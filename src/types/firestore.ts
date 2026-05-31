@@ -92,6 +92,7 @@ export type DivisionDocument = FirestoreDocument & {
 export type ProgramDocument = FirestoreDocument & {
   name: string
   desc: string
+  divisionCode: DivisionCode
   status: ProgramStatus
   date: string
   active: boolean

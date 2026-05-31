@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { AdminCollectionPage } from '@/components/admin/AdminCollectionPage'
+import { AdminOrganizationManager } from '@/components/admin/AdminOrganizationManager'
 
 export const metadata: Metadata = {
   title: 'Admin Kepengurusan HMTE',
@@ -7,14 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function AdminLeadersPage() {
-  return (
-    <AdminCollectionPage
-      activeHref="/admin/leaders"
-      description="Kelola pengurus, divisi, dan urutan tampil direktori kepengurusan."
-      emptyBody="Data kepengurusan akan dikelola dari Firestore pada phase organisasi."
-      emptyTitle="Kepengurusan masih memakai data lokal."
-      kicker="Kepengurusan"
-      title="Kelola kepengurusan"
-    />
-  )
+  return <AdminOrganizationManager />
 }
