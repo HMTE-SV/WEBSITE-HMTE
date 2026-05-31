@@ -654,10 +654,6 @@ a {
   pointer-events: none;
 }
 
-.photo-tile:figure {
-  background-color: var(--hmte-navy-deep);
-}
-
 .photo-tile:nth-child(5n+1) { --tile-bg: linear-gradient(145deg, rgba(245,184,46,0.22), rgba(1,15,36,0.9)); }
 .photo-tile:nth-child(5n+2) { --tile-bg: linear-gradient(145deg, rgba(34,199,215,0.18), rgba(1,31,75,0.85)); }
 .photo-tile:nth-child(5n+3) { --tile-bg: linear-gradient(145deg, rgba(21,94,117,0.25), rgba(1,10,22,0.9)); }
