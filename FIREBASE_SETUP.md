@@ -58,7 +58,26 @@ The helpers initialize Firebase lazily. This keeps `next build` from crashing be
 
 Do not add Firebase Admin SDK until a server-side feature needs it. Admin SDK requires private service account credentials, so it should be introduced only when the server-side authorization model is defined.
 
-## 6. Deployment Notes
+## 6. Initial Admin Account
+
+For the current admin login foundation:
+
+1. Open Firebase Console.
+2. Go to Authentication.
+3. Add an Email/Password user for the first HMTE admin.
+4. Use that email and password at `/admin/login`.
+
+The role model is defined in code as:
+
+```txt
+superadmin
+editor
+viewer
+```
+
+Firestore-backed role enforcement will be added in the content model and security rules phases.
+
+## 7. Deployment Notes
 
 When deploying to Vercel or Firebase App Hosting, add the same `NEXT_PUBLIC_FIREBASE_*` variables in the hosting provider environment settings.
 
