@@ -1,0 +1,42 @@
+@import url('../colors_and_type.css');
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  width: 700px;
+  padding: 28px 32px;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+}
+
+.card.dark {
+  background: var(--tre-black);
+  color: var(--tre-paper);
+  --fg: var(--tre-paper);
+  --fg-muted: var(--tre-ink-muted);
+  --line: var(--tre-line-dark);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  font-family: var(--font-body);
+}
+.mono { font-family: var(--font-mono); }
+.display { font-family: var(--font-display); }
+.row { display: flex; align-items: stretch; }
+.col { display: flex; flex-direction: column; }
