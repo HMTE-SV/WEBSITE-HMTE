@@ -4425,6 +4425,34 @@ a {
   padding: 0 14px;
 }
 
+.admin-tabbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.admin-tabbar button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(1, 31, 75, 0.16);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--hmte-navy);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-tabbar button[aria-selected='true'] {
+  border-color: var(--hmte-gold);
+  background: var(--hmte-gold);
+  color: var(--hmte-navy-deep);
+}
+
 .admin-content-form {
   display: grid;
   gap: 18px;
@@ -4446,6 +4474,20 @@ a {
   gap: 12px;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.admin-check-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--hmte-navy);
+  font-weight: 700;
+}
+
+.admin-check-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--hmte-gold);
 }
 
 .admin-form-actions .admin-primary-button,
