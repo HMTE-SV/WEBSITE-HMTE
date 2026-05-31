@@ -1,14 +1,30 @@
 'use client'
 
 import { useEffect } from 'react'
+import type { ArticleCategoryKey, ArticleGroup, DivisionCode, Leader, Program } from '@/types/content'
 
 type LegacyInteractionsProps = {
   script: string
+  data: LegacyData
 }
 
-export function LegacyInteractions({ script }: LegacyInteractionsProps) {
+export type LegacyData = {
+  newsData: Record<ArticleCategoryKey, ArticleGroup>
+  kepData: Record<DivisionCode, Leader[]>
+  prokerData: Record<DivisionCode, Program[]>
+}
+
+declare global {
+  interface Window {
+    __HMTE_LEGACY_DATA__?: LegacyData
+  }
+}
+
+export function LegacyInteractions({ script, data }: LegacyInteractionsProps) {
   useEffect(() => {
     const originalAddEventListener = document.addEventListener.bind(document)
+
+    window.__HMTE_LEGACY_DATA__ = data
 
     const patchedAddEventListener = ((
       type: string,
@@ -31,7 +47,7 @@ export function LegacyInteractions({ script }: LegacyInteractionsProps) {
     } finally {
       document.addEventListener = originalAddEventListener
     }
-  }, [script])
+  }, [script, data])
 
   return null
 }

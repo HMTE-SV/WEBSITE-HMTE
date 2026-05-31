@@ -1,50 +1,52 @@
+import { footerColumns, footerContent } from '@/data/site-content'
+
 export function Footer() {
   return (
     <footer className="tre-footer" id="kontak">
-        <div className="container">
-          <div className="top">
-            <div className="col">
-              <div className="ftr-brand">
-                <div className="ftr-bar"></div>
-                <div className="ftr-wordmark">HMTE TRE SV UGM</div>
-              </div>
-              <p className="addr">
-                Himpunan Mahasiswa Teknik Elektro<br />
-                Teknologi Rekayasa Elektro · Sekolah Vokasi UGM
+      <div className="container">
+        <div className="top">
+          <div className="col">
+            <div className="ftr-brand">
+              <div className="ftr-bar"></div>
+              <div className="ftr-wordmark">{footerContent.wordmark}</div>
+            </div>
+            {footerContent.addressLines.map((lines) => (
+              <p className="addr" key={lines.join('|')}>
+                {lines.map((line, index) => (
+                  <span key={line}>
+                    {line}
+                    {index < lines.length - 1 ? <br /> : null}
+                  </span>
+                ))}
               </p>
-              <p className="addr">
-                Departemen Teknik Elektro dan Informatika<br />
-                Universitas Gadjah Mada<br />
-                Elektro... Satu!!!
-              </p>
-            </div>
-            <div className="col">
-              <h4>Organisasi</h4>
-              <a href="#">Tentang</a>
-              <a href="#">Kepengurusan</a>
-              <a href="#">Divisi</a>
-              <a href="#">Program Kerja</a>
-            </div>
-            <div className="col">
-              <h4>Mahasiswa</h4>
-              <a href="#">Berita</a>
-              <a href="#">Prestasi</a>
-              <a href="#">Galeri</a>
-              <a href="#">Alumni</a>
-            </div>
-            <div className="col">
-              <h4>Kontak</h4>
-              <a href="https://www.instagram.com/hmteugm" target="_blank" rel="noopener">@hmteugm</a>
-              <a href="#">Email resmi perlu dikonfirmasi</a>
-              <a href="#">Kanal aspirasi perlu dikonfirmasi</a>
-              <a href="#">Sekretariat perlu dikonfirmasi</a>
-            </div>
+            ))}
           </div>
-          <div className="bottom">
-            <span>© 2026 HMTE TRE SV UGM · SEKOLAH VOKASI UNIVERSITAS GADJAH MADA</span>
-            <span>TERKONFIRMASI · INDIKASI PUBLIK · PERLU KONFIRMASI</span>
-          </div>
+
+          {footerColumns.map((column) => (
+            <div className="col" key={column.title}>
+              <h4>{column.title}</h4>
+              {column.links.map((link) => {
+                const isExternal = link.href.startsWith('http')
+
+                return (
+                  <a
+                    href={link.href}
+                    target={isExternal ? '_blank' : undefined}
+                    rel={isExternal ? 'noopener' : undefined}
+                    key={link.label}
+                  >
+                    {link.label}
+                  </a>
+                )
+              })}
+            </div>
+          ))}
         </div>
-      </footer>
+        <div className="bottom">
+          <span>{footerContent.bottomLeft}</span>
+          <span>{footerContent.bottomRight}</span>
+        </div>
+      </div>
+    </footer>
   )
 }

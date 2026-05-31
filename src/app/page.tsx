@@ -8,6 +8,9 @@ import { LeadershipDirectory } from '@/components/site/LeadershipDirectory'
 import { MemberDetailModal } from '@/components/site/MemberDetailModal'
 import { NewsAgenda } from '@/components/site/NewsAgenda'
 import { Partners } from '@/components/site/Partners'
+import { articleCategories } from '@/data/articles'
+import { leadersByDivision } from '@/data/leaders'
+import { programsByDivision } from '@/data/programs'
 import { readLegacyScript } from '@/lib/legacy-page'
 import { LegacyInteractions } from './legacy-interactions'
 
@@ -27,7 +30,14 @@ export default function Home() {
         <CTA />
       </main>
       <Footer />
-      <LegacyInteractions script={legacyScript} />
+      <LegacyInteractions
+        script={legacyScript}
+        data={{
+          newsData: articleCategories,
+          kepData: leadersByDivision,
+          prokerData: programsByDivision,
+        }}
+      />
       <MemberDetailModal />
     </>
   )
