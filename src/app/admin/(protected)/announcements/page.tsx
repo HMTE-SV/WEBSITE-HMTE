@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { AdminCollectionPage } from '@/components/admin/AdminCollectionPage'
+import { AdminContentListPage } from '@/components/admin/AdminContentListPage'
 
 export const metadata: Metadata = {
   title: 'Admin Pengumuman HMTE',
@@ -7,14 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function AdminAnnouncementsPage() {
-  return (
-    <AdminCollectionPage
-      activeHref="/admin/announcements"
-      description="Kelola pengumuman yang akan tampil di halaman publik."
-      emptyBody="CRUD pengumuman akan disambungkan ke Firestore pada phase konten berikutnya."
-      emptyTitle="Pengumuman masih memakai data lokal."
-      kicker="Pengumuman"
-      title="Kelola pengumuman"
-    />
-  )
+  return <AdminContentListPage kind="announcements" />
 }

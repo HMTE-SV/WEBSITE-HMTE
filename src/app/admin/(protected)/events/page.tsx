@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { AdminCollectionPage } from '@/components/admin/AdminCollectionPage'
+import { AdminContentListPage } from '@/components/admin/AdminContentListPage'
 
 export const metadata: Metadata = {
   title: 'Admin Agenda HMTE',
@@ -7,14 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function AdminEventsPage() {
-  return (
-    <AdminCollectionPage
-      activeHref="/admin/events"
-      description="Kelola agenda kegiatan HMTE yang akan tampil di halaman publik."
-      emptyBody="CRUD agenda akan disambungkan ke Firestore pada phase konten berikutnya."
-      emptyTitle="Agenda masih memakai data lokal."
-      kicker="Agenda"
-      title="Kelola agenda"
-    />
-  )
+  return <AdminContentListPage kind="events" />
 }
