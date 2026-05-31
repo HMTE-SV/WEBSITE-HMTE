@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { articleTabs } from '@/data/articles'
 import { newsAgendaIntro } from '@/data/site-content'
 
@@ -41,7 +42,7 @@ export function NewsAgenda() {
         <div className="news-latest-section fade-up">
           <div className="news-latest-header">
             <h3 className="news-latest-title">Berita Terkini</h3>
-            <a href="#mitra" className="news-see-all">
+            <Link href="/berita" className="news-see-all">
               Lihat Semua{' '}
               <svg
                 width="14"
@@ -56,7 +57,7 @@ export function NewsAgenda() {
               >
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
-            </a>
+            </Link>
           </div>
           <div className="news-card-grid" id="latestNewsGrid"></div>
         </div>
