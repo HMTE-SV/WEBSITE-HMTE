@@ -1,7 +1,11 @@
-import { divisions } from '@/data/divisions'
 import { kabinetIntro } from '@/data/site-content'
+import type { Division } from '@/types/content'
 
-export function KabinetSection() {
+type KabinetSectionProps = {
+  divisions: Division[]
+}
+
+export function KabinetSection({ divisions }: KabinetSectionProps) {
   return (
     <section className="tre-pillars" id="pillars">
       <div className="pillars-shell">

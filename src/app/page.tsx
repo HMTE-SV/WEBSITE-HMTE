@@ -9,13 +9,13 @@ import { MemberDetailModal } from '@/components/site/MemberDetailModal'
 import { NewsAgenda } from '@/components/site/NewsAgenda'
 import { Partners } from '@/components/site/Partners'
 import { articleCategories } from '@/data/articles'
-import { leadersByDivision } from '@/data/leaders'
-import { programsByDivision } from '@/data/programs'
 import { readLegacyScript } from '@/lib/legacy-page'
+import { getOrganizationData } from '@/lib/organization-data'
 import { LegacyInteractions } from './legacy-interactions'
 
-export default function Home() {
+export default async function Home() {
   const legacyScript = readLegacyScript()
+  const organizationData = await getOrganizationData()
 
   return (
     <>
@@ -24,8 +24,11 @@ export default function Home() {
         <Hero />
         <NewsAgenda />
         <Gallery />
-        <KabinetSection />
-        <LeadershipDirectory />
+        <KabinetSection divisions={organizationData.divisions} />
+        <LeadershipDirectory
+          divisionsByCode={organizationData.divisionsByCode}
+          leadersByDivision={organizationData.leadersByDivision}
+        />
         <Partners />
         <CTA />
       </main>
@@ -34,8 +37,8 @@ export default function Home() {
         script={legacyScript}
         data={{
           newsData: articleCategories,
-          kepData: leadersByDivision,
-          prokerData: programsByDivision,
+          kepData: organizationData.leadersByDivision,
+          prokerData: organizationData.programsByDivision,
         }}
       />
       <MemberDetailModal />

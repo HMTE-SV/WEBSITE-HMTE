@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
 import { PublicCard, PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
-import { leadershipDivisionOrder, divisionsByCode } from '@/data/divisions'
-import { leadersByDivision } from '@/data/leaders'
+import { leadershipDivisionOrder } from '@/data/divisions'
+import { getOrganizationData } from '@/lib/organization-data'
 
 export const metadata: Metadata = {
   title: 'Kepengurusan HMTE TRE SV UGM',
   description: 'Direktori kepengurusan HMTE TRE SV UGM.',
 }
 
-export default function LeadershipPage() {
+export default async function LeadershipPage() {
+  const { divisionsByCode, leadersByDivision } = await getOrganizationData()
+
   return (
     <PublicPageFrame>
       <PublicPageHeader
@@ -21,6 +23,10 @@ export default function LeadershipPage() {
           {leadershipDivisionOrder.map((divisionCode) => {
             const division = divisionsByCode[divisionCode]
             const leaders = leadersByDivision[divisionCode]
+
+            if (!division) {
+              return null
+            }
 
             return (
               <PublicCard
