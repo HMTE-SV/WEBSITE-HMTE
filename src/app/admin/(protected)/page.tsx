@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
+import { AdminShell } from '@/components/admin/AdminShell'
 
 export const metadata: Metadata = {
   title: 'Admin HMTE TRE SV UGM',
@@ -9,8 +9,13 @@ export const metadata: Metadata = {
 
 export default function AdminPage() {
   return (
-    <AdminAuthGuard>
+    <AdminShell
+      activeHref="/admin"
+      description="Ringkasan status pengelolaan konten dan fondasi admin website."
+      kicker="Dashboard"
+      title="Panel pengelolaan website"
+    >
       <AdminDashboard />
-    </AdminAuthGuard>
+    </AdminShell>
   )
 }

@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { AdminLogoutButton } from './AdminLogoutButton'
+import { AdminEmptyState } from './AdminEmptyState'
 import { adminRoles } from '@/types/admin'
 
 const dashboardCards = [
@@ -22,48 +21,21 @@ const dashboardCards = [
 
 export function AdminDashboard() {
   return (
-    <main className="admin-dashboard">
-      <aside className="admin-sidebar" aria-label="Navigasi admin">
-        <div>
-          <span className="admin-kicker">HMTE TRE SV UGM</span>
-          <h1>Admin</h1>
-        </div>
-        <nav className="admin-nav">
-          <Link href="/admin" aria-current="page">
-            Dashboard
-          </Link>
-          <span>Pengumuman</span>
-          <span>Agenda</span>
-          <span>Berita</span>
-          <span>Galeri</span>
-        </nav>
-      </aside>
-      <section className="admin-main">
-        <header className="admin-topbar">
-          <div>
-            <span className="admin-kicker">Dashboard</span>
-            <h2>Panel pengelolaan website</h2>
-          </div>
-          <AdminLogoutButton />
-        </header>
-        <div className="admin-card-grid">
-          {dashboardCards.map((card) => (
-            <article className="admin-card" key={card.label}>
-              <span>{card.label}</span>
-              <strong>{card.value}</strong>
-              <p>{card.body}</p>
-            </article>
-          ))}
-        </div>
-        <section className="admin-empty-state">
-          <span className="admin-kicker">Berikutnya</span>
-          <h3>Dashboard shell sudah siap untuk CRUD.</h3>
-          <p>
-            Setelah Firebase project dan akun admin dibuat, phase berikutnya bisa menambahkan sidebar route,
-            form konten, dan koneksi Firestore.
-          </p>
-        </section>
-      </section>
-    </main>
+    <>
+      <div className="admin-card-grid">
+        {dashboardCards.map((card) => (
+          <article className="admin-card" key={card.label}>
+            <span>{card.label}</span>
+            <strong>{card.value}</strong>
+            <p>{card.body}</p>
+          </article>
+        ))}
+      </div>
+      <AdminEmptyState
+        body="Setelah Firebase project dan akun admin dibuat, phase berikutnya bisa menambahkan form konten dan koneksi Firestore."
+        kicker="Berikutnya"
+        title="Dashboard shell sudah siap untuk CRUD."
+      />
+    </>
   )
 }

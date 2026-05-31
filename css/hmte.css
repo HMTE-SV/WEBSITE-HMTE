@@ -4350,6 +4350,49 @@ a {
   color: var(--hmte-navy);
 }
 
+.admin-topbar p {
+  max-width: 760px;
+  margin: 12px 0 0;
+  color: var(--fg-muted);
+  line-height: 1.65;
+}
+
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid rgba(1, 31, 75, 0.1);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.admin-toolbar span {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-toolbar button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(1, 31, 75, 0.16);
+  border-radius: var(--radius-sm);
+  background: rgba(1, 31, 75, 0.06);
+  color: var(--fg-muted);
+  cursor: not-allowed;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .admin-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4400,6 +4443,15 @@ a {
   margin: 14px 0 0;
 }
 
+.admin-route-loading h1 {
+  margin: 0;
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
 @media (max-width: 960px) {
   .admin-login-shell,
   .admin-dashboard {
@@ -4419,6 +4471,11 @@ a {
   }
 
   .admin-topbar {
+    flex-direction: column;
+  }
+
+  .admin-toolbar {
+    align-items: stretch;
     flex-direction: column;
   }
 }
