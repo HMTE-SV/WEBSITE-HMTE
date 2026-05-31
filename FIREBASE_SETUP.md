@@ -82,3 +82,13 @@ Firestore-backed role enforcement will be added in the content model and securit
 When deploying to Vercel or Firebase App Hosting, add the same `NEXT_PUBLIC_FIREBASE_*` variables in the hosting provider environment settings.
 
 Production must also deploy Firestore and Storage security rules before admin content management is considered ready.
+
+## 8. Aspirasi Spam Strategy
+
+The public aspiration form writes to the `aspirations` collection. Before production launch, deploy Firestore rules so public users can only create documents and cannot list existing aspirations.
+
+Recommended spam controls for production:
+
+- Add Firebase App Check for the web app.
+- Add a per-device or per-IP rate limit through a server-side endpoint before accepting public submissions.
+- Keep admin-only `internalNotes` write access restricted to authenticated admins.

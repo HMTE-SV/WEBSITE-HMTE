@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { EmptyState, PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
+import { AspirationForm } from '@/components/site/AspirationForm'
+import { PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
 
 export const metadata: Metadata = {
   title: 'Aspirasi Mahasiswa HMTE TRE SV UGM',
@@ -12,13 +13,10 @@ export default function AspirationsPage() {
       <PublicPageHeader
         kicker="Aspirasi"
         title="Kanal aspirasi mahasiswa"
-        lead="Halaman ini disiapkan sebagai rumah aspirasi mahasiswa TRE. Form publik dan alur admin akan dibangun pada fase Aspirasi Mahasiswa."
+        lead="Sampaikan aspirasi akademik, fasilitas, organisasi, atau kesejahteraan mahasiswa. Identitas bisa dikirim anonim."
       />
-      <PublicSection>
-        <EmptyState
-          title="Form aspirasi belum aktif"
-          body="Fase berikutnya akan menambahkan form, kategori, status tindak lanjut, dan perlindungan spam sebelum kanal ini dipakai publik."
-        />
+      <PublicSection title="Form aspirasi">
+        <AspirationForm />
       </PublicSection>
     </PublicPageFrame>
   )
