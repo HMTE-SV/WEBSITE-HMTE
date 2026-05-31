@@ -27,13 +27,16 @@ http://127.0.0.1:3000
 
 - `npm run lint` passes.
 - `npm run build` passes.
-- `GET /` returns `200`.
-- `GET /assets/hmte-mark.svg` returns `200`.
-- Chrome headless screenshots were generated for desktop and mobile.
-- Chrome DevTools Protocol smoke checks confirmed:
+- `npm run start -- --hostname 127.0.0.1 --port 3001` serves the production build.
+- `GET /` returns `200` on the production server.
+- `GET /assets/hmte-mark.svg` and `GET /assets/ugm_socialization.png` return `200`.
+- Chrome headless screenshots were generated for desktop and mobile from the production server.
+- Chrome DevTools Protocol smoke checks on the production server confirmed:
+  - document title is `HMTE TRE SV UGM - Elektro... Satu!!!`,
   - active news tab initializes as `berita-utama`,
   - switching to the `prestasi` tab updates the active tab,
-  - clicking a member card opens the member modal.
+  - clicking a member card opens the member modal,
+  - no runtime errors were captured during the smoke check.
 
 ## Intentional Constraints
 
@@ -41,6 +44,7 @@ http://127.0.0.1:3000
 - No visual redesign.
 - Existing CSS class names and static markup are preserved.
 - Static asset URLs remain compatible through `public/assets`.
+- Dependency versions are pinned to the versions used during verification.
 
 ## Known Follow-Up
 
