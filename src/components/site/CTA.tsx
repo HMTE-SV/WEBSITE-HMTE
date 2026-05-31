@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { ctaContent } from '@/data/site-content'
 
 export function CTA() {
@@ -26,7 +27,7 @@ export function CTA() {
             <div className="dl-date">{ctaContent.deadlineValue}</div>
           </div>
           <div className="cta-actions">
-            <a href="#" className="btn btn-primary-gold">
+            <Link href="/kontak" className="btn btn-primary-gold">
               {ctaContent.primaryAction}{' '}
               <svg
                 width="14"
@@ -41,10 +42,10 @@ export function CTA() {
               >
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
-            </a>
-            <a href="#" className="btn btn-secondary-dark">
+            </Link>
+            <Link href="/pengumuman" className="btn btn-secondary-dark">
               {ctaContent.secondaryAction}
-            </a>
+            </Link>
           </div>
         </div>
       </div>

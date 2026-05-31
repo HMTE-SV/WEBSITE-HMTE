@@ -3890,6 +3890,201 @@ a {
   }
 }
 
+/* ============================================================
+   PUBLIC ROUTE PAGES
+   ============================================================ */
+.public-page {
+  min-height: 100vh;
+  background: var(--tre-off-white);
+  color: var(--fg);
+}
+
+.public-hero {
+  padding: 160px var(--gutter) 72px;
+  background: var(--tre-black);
+  color: var(--tre-paper);
+}
+
+.public-shell {
+  width: min(var(--content-max), calc(100vw - (var(--gutter) * 2)));
+  margin-inline: auto;
+}
+
+.public-kicker,
+.public-card-eyebrow,
+.public-card-meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.public-kicker {
+  color: var(--hmte-gold);
+  margin-bottom: 18px;
+}
+
+.public-hero h1 {
+  max-width: 920px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 7vw, 104px);
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+
+.public-hero p {
+  max-width: 760px;
+  margin: 24px 0 0;
+  font-size: var(--fs-body-lg);
+  color: rgba(240, 237, 232, 0.78);
+  line-height: 1.7;
+}
+
+.public-section {
+  padding: 72px var(--gutter);
+}
+
+.public-section + .public-section {
+  padding-top: 0;
+}
+
+.public-section-title {
+  margin: 0 0 28px;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 54px);
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--hmte-navy);
+}
+
+.public-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.public-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.public-card-link {
+  display: block;
+  height: 100%;
+}
+
+.public-card {
+  height: 100%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(1, 31, 75, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-menu);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+
+.public-card-link:hover .public-card {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 54px -24px rgba(1, 31, 75, 0.35);
+}
+
+.public-card-image {
+  aspect-ratio: 16 / 9;
+  background: var(--tre-paper);
+  overflow: hidden;
+}
+
+.public-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.public-card-body {
+  padding: 22px;
+}
+
+.public-card-eyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--hmte-teal);
+}
+
+.public-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-h5);
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--hmte-navy);
+}
+
+.public-card p {
+  margin: 12px 0 0;
+  color: var(--fg-muted);
+  line-height: 1.65;
+}
+
+.public-card-meta {
+  display: inline-block;
+  margin-top: 18px;
+  color: var(--fg-soft);
+}
+
+.public-empty {
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px dashed rgba(1, 31, 75, 0.18);
+  border-radius: var(--radius-md);
+}
+
+.public-empty h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-h5);
+  color: var(--hmte-navy);
+}
+
+.public-empty p {
+  margin: 10px 0 0;
+  color: var(--fg-muted);
+  line-height: 1.7;
+}
+
+.article-detail {
+  max-width: 920px;
+}
+
+.article-detail img {
+  width: 100%;
+  margin: 0 0 28px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-menu);
+}
+
+.article-detail p {
+  font-size: var(--fs-body-lg);
+  line-height: 1.85;
+  color: var(--fg-muted);
+}
+
+.public-list {
+  display: grid;
+  gap: 18px;
+}
+
+@media (max-width: 920px) {
+  .public-grid,
+  .public-grid.two {
+    grid-template-columns: 1fr;
+  }
+
+  .public-hero {
+    padding-top: 132px;
+  }
+}
+
 
 /* ============================================================
    REDUCED MOTION GUARD

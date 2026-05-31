@@ -1,9 +1,14 @@
+import Link from 'next/link'
 import { siteNavLinks } from '@/data/site-content'
 
-export function Header() {
+type HeaderProps = {
+  activeHref?: string
+}
+
+export function Header({ activeHref = '/' }: HeaderProps) {
   return (
     <>
-      <a className="skip-link" href="#hero">
+      <a className="skip-link" href="#main-content">
         Lewati ke konten
       </a>
 
@@ -17,13 +22,13 @@ export function Header() {
             <div className="sub">TRE·SV·UGM</div>
           </div>
           <nav>
-            {siteNavLinks.map((link, index) => (
-              <a href={link.href} className={index === 0 ? 'active' : undefined} key={link.href}>
+            {siteNavLinks.map((link) => (
+              <Link href={link.href} className={link.href === activeHref ? 'active' : undefined} key={link.href}>
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
-          <a href="#daftar" className="hdr-cta">
+          <Link href="/kontak" className="hdr-cta">
             Hubungi{' '}
             <svg
               width="12"
@@ -38,7 +43,7 @@ export function Header() {
             >
               <path d="M5 12h14M13 5l7 7-7 7" />
             </svg>
-          </a>
+          </Link>
         </div>
       </header>
     </>

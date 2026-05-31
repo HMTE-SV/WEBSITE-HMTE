@@ -3,23 +3,23 @@ import type { FooterColumn, GalleryCard, NavLink, PartnerTile } from '@/types/co
 export const siteNavLinks = [
   {
     "label": "Beranda",
-    "href": "#hero"
+    "href": "/"
   },
   {
     "label": "Halaman",
-    "href": "#galeri"
+    "href": "/galeri"
   },
   {
     "label": "Berita",
-    "href": "#stats"
+    "href": "/berita"
   },
   {
     "label": "Program",
-    "href": "#kurikulum"
+    "href": "/program-kerja"
   },
   {
     "label": "Kontak",
-    "href": "#kontak"
+    "href": "/kontak"
   }
 ] satisfies NavLink[]
 
@@ -63,7 +63,7 @@ export const galleryCards = [
     "statusLabel": "Terkonfirmasi",
     "title": "Identitas organisasi",
     "description": "Profil HMTE TRE SV UGM dan relasi kelembagaan dengan TRE, DTEDI, SV UGM, dan UGM.",
-    "href": "#kontak",
+    "href": "/kontak",
     "linkLabel": "Buka tentang →"
   },
   {
@@ -72,7 +72,7 @@ export const galleryCards = [
     "statusLabel": "Indikasi publik",
     "title": "Pengurus & divisi",
     "description": "Ruang untuk struktur pengurus, bidang/divisi, dan foto resmi yang masih perlu dikonfirmasi.",
-    "href": "#pillars",
+    "href": "/kepengurusan",
     "linkLabel": "Lihat struktur →"
   },
   {
@@ -81,7 +81,7 @@ export const galleryCards = [
     "statusLabel": "Perlu konfirmasi",
     "title": "Agenda & proker",
     "description": "Agenda, kegiatan, program kerja, dan arsip kemahasiswaan yang nanti diganti dengan data resmi.",
-    "href": "#kurikulum",
+    "href": "/program-kerja",
     "linkLabel": "Buka ledger →"
   },
   {
@@ -90,7 +90,7 @@ export const galleryCards = [
     "statusLabel": "Indikasi publik",
     "title": "Berita, galeri, alumni",
     "description": "Berita, prestasi, galeri, alumni, kontak, dan kolaborasi disiapkan sebagai halaman mudah dipindai.",
-    "href": "#mitra",
+    "href": "/berita",
     "linkLabel": "Lihat publikasi →"
   }
 ] satisfies GalleryCard[]
@@ -188,19 +188,19 @@ export const footerColumns = [
     "links": [
       {
         "label": "Tentang",
-        "href": "#"
+        "href": "/kontak"
       },
       {
         "label": "Kepengurusan",
-        "href": "#"
+        "href": "/kepengurusan"
       },
       {
         "label": "Divisi",
-        "href": "#"
+        "href": "/divisi"
       },
       {
         "label": "Program Kerja",
-        "href": "#"
+        "href": "/program-kerja"
       }
     ]
   },
@@ -209,19 +209,19 @@ export const footerColumns = [
     "links": [
       {
         "label": "Berita",
-        "href": "#"
+        "href": "/berita"
       },
       {
         "label": "Prestasi",
-        "href": "#"
+        "href": "/berita"
       },
       {
         "label": "Galeri",
-        "href": "#"
+        "href": "/galeri"
       },
       {
         "label": "Alumni",
-        "href": "#"
+        "href": "/berita"
       }
     ]
   },
@@ -238,7 +238,7 @@ export const footerColumns = [
       },
       {
         "label": "Kanal aspirasi perlu dikonfirmasi",
-        "href": "#"
+        "href": "/aspirasi"
       },
       {
         "label": "Sekretariat perlu dikonfirmasi",
