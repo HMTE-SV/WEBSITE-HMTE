@@ -38,6 +38,11 @@ export const adminNavItems = [
     roles: ['superadmin', 'editor', 'viewer'],
   },
   {
+    href: '/admin/aspirations',
+    label: 'Aspirasi',
+    roles: ['superadmin', 'editor', 'viewer'],
+  },
+  {
     href: '/admin/settings',
     label: 'Settings',
     roles: ['superadmin'],

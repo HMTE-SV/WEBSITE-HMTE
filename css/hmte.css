@@ -4074,6 +4074,67 @@ a {
   gap: 18px;
 }
 
+.public-form {
+  display: grid;
+  max-width: 820px;
+  gap: 18px;
+  padding: clamp(22px, 4vw, 32px);
+  border: 1px solid rgba(1, 31, 75, 0.1);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow-menu);
+}
+
+.public-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.public-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--hmte-navy);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.public-form input,
+.public-form select,
+.public-form textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(1, 31, 75, 0.18);
+  border-radius: var(--radius-sm);
+  background: var(--tre-paper-deep);
+  color: var(--fg);
+  font: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.public-form textarea {
+  padding: 14px;
+  resize: vertical;
+}
+
+.public-check-row {
+  display: flex !important;
+  grid-template-columns: none !important;
+  gap: 10px !important;
+  align-items: center;
+}
+
+.public-check-row input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: var(--hmte-gold);
+}
+
 @media (max-width: 920px) {
   .public-grid,
   .public-grid.two {
@@ -4082,6 +4143,10 @@ a {
 
   .public-hero {
     padding-top: 132px;
+  }
+
+  .public-form-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -4645,6 +4710,41 @@ a {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.admin-aspiration-list {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-aspiration-item {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(1, 31, 75, 0.1);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-menu);
+}
+
+.admin-aspiration-item h3 {
+  margin: 12px 0 0;
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.admin-aspiration-item p {
+  margin: 10px 0 0;
+  color: var(--fg-muted);
+  line-height: 1.65;
+}
+
+.admin-aspiration-item small {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--fg-soft);
 }
 
 .admin-card-grid {
