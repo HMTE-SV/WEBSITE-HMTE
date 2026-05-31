@@ -1,20 +1,13 @@
 import { articleCategories, articleTabs } from '@/data/articles'
+import { slugify } from '@/lib/slug'
 import type { ArticleCategoryKey, ArticleSummary } from '@/types/content'
+
+export { slugify } from '@/lib/slug'
 
 export type ArticleListItem = ArticleSummary & {
   categoryKey: ArticleCategoryKey
   categoryLabel: string
   slug: string
-}
-
-export function slugify(value: string) {
-  return value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/&/g, 'dan')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
 }
 
 export function getAllArticles() {
