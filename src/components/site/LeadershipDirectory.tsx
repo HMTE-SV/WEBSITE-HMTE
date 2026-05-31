@@ -1,11 +1,16 @@
-import { divisionsByCode, leadershipDivisionOrder } from '@/data/divisions'
-import { leadersByDivision } from '@/data/leaders'
+import { leadershipDivisionOrder } from '@/data/divisions'
 import { leadershipIntro } from '@/data/site-content'
+import type { Division, DivisionCode, Leader } from '@/types/content'
 
-const defaultDivision = divisionsByCode.PH
-const defaultMemberCount = leadersByDivision.PH.length
+type LeadershipDirectoryProps = {
+  divisionsByCode: Record<DivisionCode, Division>
+  leadersByDivision: Record<DivisionCode, Leader[]>
+}
 
-export function LeadershipDirectory() {
+export function LeadershipDirectory({ divisionsByCode, leadersByDivision }: LeadershipDirectoryProps) {
+  const defaultDivision = divisionsByCode.PH
+  const defaultMemberCount = leadersByDivision.PH.length
+
   return (
     <section className="tre-curriculum" id="kurikulum">
       <div className="curr-shell">

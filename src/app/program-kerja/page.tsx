@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
 import { PublicCard, PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
-import { divisions } from '@/data/divisions'
-import { programsByDivision } from '@/data/programs'
+import { getOrganizationData } from '@/lib/organization-data'
 
 export const metadata: Metadata = {
   title: 'Program Kerja HMTE TRE SV UGM',
   description: 'Program kerja HMTE TRE SV UGM per bidang.',
 }
 
-export default function ProgramsPage() {
+export default async function ProgramsPage() {
+  const { divisions, programsByDivision } = await getOrganizationData()
+
   return (
     <PublicPageFrame activeHref="/program-kerja">
       <PublicPageHeader

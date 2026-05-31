@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
 import { PublicCard, PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
-import { divisions } from '@/data/divisions'
+import { getOrganizationData } from '@/lib/organization-data'
 
 export const metadata: Metadata = {
   title: 'Divisi HMTE TRE SV UGM',
   description: 'Bidang dan divisi HMTE TRE SV UGM.',
 }
 
-export default function DivisionsPage() {
+export default async function DivisionsPage() {
+  const { divisions } = await getOrganizationData()
+
   return (
     <PublicPageFrame>
       <PublicPageHeader
