@@ -62,6 +62,7 @@ export type GalleryDocument = PublishableDocument & {
   alt: string
   caption?: string
   order: number
+  storagePath?: string
 }
 
 export type LeaderDocument = FirestoreDocument & {
