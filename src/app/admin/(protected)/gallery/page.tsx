@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { AdminCollectionPage } from '@/components/admin/AdminCollectionPage'
+import { AdminGalleryManager } from '@/components/admin/AdminGalleryManager'
 
 export const metadata: Metadata = {
   title: 'Admin Galeri HMTE',
@@ -7,14 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function AdminGalleryPage() {
-  return (
-    <AdminCollectionPage
-      activeHref="/admin/gallery"
-      description="Kelola foto kegiatan dan arsip visual organisasi."
-      emptyBody="Upload media akan disambungkan ke Firebase Storage pada phase media."
-      emptyTitle="Galeri belum tersambung ke storage."
-      kicker="Galeri"
-      title="Kelola galeri"
-    />
-  )
+  return <AdminGalleryManager />
 }
