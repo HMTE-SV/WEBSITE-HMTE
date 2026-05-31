@@ -1,0 +1,285 @@
+<style>
+  .tre-board {
+    --black: #0d0d0d;
+    --paper: #f8f7f4;
+    --warm: #f0ede8;
+    --ink: #1a1a1a;
+    --muted: #8a8a8a;
+    --line: #e8e4e0;
+    --line-dark: #2c2c2c;
+    --red: #c0272d;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  .tre-board h2 {
+    max-width: 860px;
+    letter-spacing: -0.035em;
+  }
+  .direction-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 28px;
+  }
+  .direction-card {
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 180ms ease, transform 180ms ease;
+  }
+  .direction-card:hover {
+    border-color: var(--red);
+    transform: translateY(-3px);
+  }
+  .mini-site {
+    min-height: 430px;
+    background: var(--paper);
+    color: var(--ink);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  .mini-nav {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .mini-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+    font-weight: 700;
+  }
+  .mini-bar {
+    width: 3px;
+    height: 18px;
+    background: var(--red);
+  }
+  .mini-hero {
+    padding: 34px 18px 22px;
+  }
+  .mini-kicker {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .mini-title {
+    font-family: Geist, Inter, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 42px;
+    line-height: .92;
+    letter-spacing: -.05em;
+  }
+  .mini-title span {
+    color: var(--red);
+  }
+  .mini-copy {
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.55;
+    max-width: 260px;
+  }
+  .mini-blocks {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 1px;
+    background: var(--line);
+    border-top: 1px solid var(--line);
+  }
+  .mini-block {
+    background: var(--paper);
+    padding: 14px;
+    min-height: 82px;
+  }
+  .mini-block strong {
+    display: block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 24px;
+    letter-spacing: -.04em;
+  }
+  .mini-block small {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .dark .mini-site {
+    background: var(--black);
+    color: var(--warm);
+  }
+  .dark .mini-blocks {
+    background: var(--line-dark);
+    border-top-color: var(--line-dark);
+  }
+  .dark .mini-block {
+    background: var(--black);
+  }
+  .demo-panel {
+    margin-top: 22px;
+    border: 1px solid rgba(240,237,232,.15);
+    background: rgba(255,255,255,.03);
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+  }
+  .demo-row {
+    height: 18px;
+    border: 1px solid rgba(240,237,232,.11);
+    background: rgba(240,237,232,.04);
+  }
+  .demo-row:nth-child(2) { width: 72%; }
+  .demo-row:nth-child(3) { width: 88%; border-left: 2px solid var(--red); }
+  .editorial-slice {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 16px;
+  }
+  .editorial-rail {
+    border-right: 1px solid var(--line-dark);
+    color: var(--red);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    padding-top: 4px;
+  }
+  .hub-grid {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line);
+  }
+  .hub-tile {
+    background: #fff;
+    min-height: 58px;
+    padding: 12px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .hub-tile strong {
+    display: block;
+    color: var(--ink);
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  .direction-body {
+    padding: 18px;
+  }
+  .direction-body h3 {
+    margin-bottom: 8px;
+    letter-spacing: -.02em;
+  }
+  .direction-body p {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .recommend {
+    display: inline-flex;
+    margin-bottom: 10px;
+    color: var(--red);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  @media (max-width: 980px) {
+    .direction-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="tre-board">
+  <h2>Arah feel mana yang paling pas untuk Website TRE?</h2>
+  <p class="subtitle">Semuanya mempertahankan warna dan tipografi TRE. Bedanya ada di cara menerjemahkan rasa Cursor: product-like, editorial, atau hub akademik.</p>
+
+  <div class="direction-grid">
+    <div class="direction-card card" data-choice="a-product-discipline" onclick="toggleSelect(this)">
+      <div class="mini-site dark">
+        <div class="mini-nav">
+          <div class="mini-brand"><span class="mini-bar"></span>TRE</div>
+          <span>Program</span><span>Kurikulum</span><span>Daftar</span>
+        </div>
+        <div class="mini-hero">
+          <div class="mini-kicker">SV UGM / Applied Engineering</div>
+          <div class="mini-title">Electrical<br>engineering<br><span>system.</span></div>
+          <p class="mini-copy">Hero kuat, lalu satu visual interface seperti program cockpit: kurikulum, lab, akreditasi, dan jalur industri terasa seperti produk yang bisa dieksplor.</p>
+          <div class="demo-panel">
+            <div class="demo-row"></div>
+            <div class="demo-row"></div>
+            <div class="demo-row"></div>
+          </div>
+        </div>
+        <div class="mini-blocks">
+          <div class="mini-block"><strong>144</strong><small>SKS</small></div>
+          <div class="mini-block"><strong>8</strong><small>Semester</small></div>
+        </div>
+      </div>
+      <div class="direction-body">
+        <span class="recommend">Recommended</span>
+        <h3>A. Product discipline</h3>
+        <p>Paling dekat ke Cursor secara rasa: halaman terasa modern, lapang, dan punya demo visual yang memorable. Cocok kalau mau website TRE terasa naik kelas drastis.</p>
+      </div>
+    </div>
+
+    <div class="direction-card card" data-choice="b-institutional-editorial" onclick="toggleSelect(this)">
+      <div class="mini-site dark">
+        <div class="mini-nav">
+          <div class="mini-brand"><span class="mini-bar"></span>TRE</div>
+          <span>Mandat</span><span>Lab</span><span>Mitra</span>
+        </div>
+        <div class="mini-hero editorial-slice">
+          <div class="editorial-rail">00<br><br>01<br><br>02</div>
+          <div>
+            <div class="mini-kicker">Teknologi Rekayasa Elektro</div>
+            <div class="mini-title">Engineers<br>Indonesia<br>can build<br><span>with.</span></div>
+            <p class="mini-copy">Lebih seperti institusi riset/pendidikan premium: headline besar, narasi pendek, banyak whitespace, section sangat editorial.</p>
+          </div>
+        </div>
+        <div class="mini-blocks">
+          <div class="mini-block"><strong>Unggul</strong><small>Akreditasi</small></div>
+          <div class="mini-block"><strong>PLN</strong><small>Mitra</small></div>
+        </div>
+      </div>
+      <div class="direction-body">
+        <h3>B. Institutional editorial</h3>
+        <p>Paling berwibawa dan tidak terlalu software-like. Cocok kalau TRE ingin terlihat seperti program nasional yang matang, serius, dan akademik.</p>
+      </div>
+    </div>
+
+    <div class="direction-card card" data-choice="c-academic-hub" onclick="toggleSelect(this)">
+      <div class="mini-site">
+        <div class="mini-nav" style="border-bottom-color: var(--line);">
+          <div class="mini-brand"><span class="mini-bar"></span>TRE</div>
+          <span>Akademik</span><span>Riset</span><span>Kontak</span>
+        </div>
+        <div class="mini-hero">
+          <div class="mini-kicker">Program hub</div>
+          <div class="mini-title">Belajar.<br>Praktik.<br>Industri<span>.</span></div>
+          <p class="mini-copy">Lebih ramah untuk mahasiswa baru: struktur jelas, banyak pintu masuk, navigasi cepat ke dosen, lab, kurikulum, dan berita.</p>
+          <div class="hub-grid">
+            <div class="hub-tile">01<strong>Dosen</strong></div>
+            <div class="hub-tile">02<strong>Lab</strong></div>
+            <div class="hub-tile">03<strong>Kurikulum</strong></div>
+            <div class="hub-tile">04<strong>Berita</strong></div>
+          </div>
+        </div>
+        <div class="mini-blocks">
+          <div class="mini-block"><strong>D4</strong><small>Sarjana Terapan</small></div>
+          <div class="mini-block"><strong>UGM</strong><small>Sekolah Vokasi</small></div>
+        </div>
+      </div>
+      <div class="direction-body">
+        <h3>C. Academic hub</h3>
+        <p>Paling fungsional dan mudah dipakai. Modernnya tetap ada, tapi energinya lebih ke portal program daripada landing page premium.</p>
+      </div>
+    </div>
+  </div>
+</div>
