@@ -1,28 +1,34 @@
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
+import { CTA } from '@/components/site/CTA'
+import { Footer } from '@/components/site/Footer'
+import { Gallery } from '@/components/site/Gallery'
+import { Header } from '@/components/site/Header'
+import { Hero } from '@/components/site/Hero'
+import { KabinetSection } from '@/components/site/KabinetSection'
+import { LeadershipDirectory } from '@/components/site/LeadershipDirectory'
+import { MemberDetailModal } from '@/components/site/MemberDetailModal'
+import { NewsAgenda } from '@/components/site/NewsAgenda'
+import { Partners } from '@/components/site/Partners'
+import { readLegacyScript } from '@/lib/legacy-page'
 import { LegacyInteractions } from './legacy-interactions'
 
-function readLegacyPage() {
-  const html = readFileSync(path.join(process.cwd(), 'index.html'), 'utf8')
-  const pageMatch = html.match(/<body[^>]*>([\s\S]*?)<script>([\s\S]*?)<\/script>([\s\S]*?)<\/body>/)
-
-  if (!pageMatch) {
-    throw new Error('Unable to extract legacy page body and script from index.html')
-  }
-
-  return {
-    body: `${pageMatch[1]}${pageMatch[3]}`.trim(),
-    script: pageMatch[2],
-  }
-}
-
 export default function Home() {
-  const legacyPage = readLegacyPage()
+  const legacyScript = readLegacyScript()
 
   return (
     <>
-      <div dangerouslySetInnerHTML={{ __html: legacyPage.body }} />
-      <LegacyInteractions script={legacyPage.script} />
+      <Header />
+      <main>
+        <Hero />
+        <NewsAgenda />
+        <Gallery />
+        <KabinetSection />
+        <LeadershipDirectory />
+        <Partners />
+        <CTA />
+      </main>
+      <Footer />
+      <LegacyInteractions script={legacyScript} />
+      <MemberDetailModal />
     </>
   )
 }
