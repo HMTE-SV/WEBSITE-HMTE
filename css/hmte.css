@@ -210,8 +210,8 @@ a {
    ANIMATIONS & TRANSITIONS
    ============================================================ */
 .fade-up {
-  opacity: 0;
-  transform: translateY(16px);
+  opacity: 1;
+  transform: translateY(0);
   transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
 }
 
