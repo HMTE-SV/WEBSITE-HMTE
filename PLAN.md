@@ -5,9 +5,38 @@ This plan turns the current migrated Next.js shell into a functional HMTE websit
 ## Current State
 
 - The static HMTE website has been migrated into a Next.js App Router project.
-- The public design is still preserved through the legacy `index.html` markup and `css/hmte.css`.
-- Legacy client interactions are still run through `src/app/legacy-interactions.tsx`.
-- The website currently has no real database, no admin login, and no per-section TSX components yet.
+- The homepage and public surfaces are being componentized into real TSX pages and shared public layout components.
+- Public routes for berita, agenda, pengumuman, galeri, kepengurusan, divisi, program kerja, aspirasi, and kontak exist in `src/app`.
+- Local typed content modules are in use for public content while Firebase remains the planned backing store.
+- Admin routes and CRUD foundations exist, but Firebase-backed production readiness still needs verification and hardening.
+- The current design direction for public subpages is shifting from generic cards/dashboard blocks toward an editorial institutional system with clearer hierarchy, whitespace, and scan-friendly layouts.
+
+## Progress Update - 2026-06-03
+
+Completed since the original roadmap was written:
+
+- Added a stable verification helper at `scripts/codex-verify.cmd` to avoid PowerShell `npm.ps1`/`npx.ps1` execution-policy friction.
+- Added `.codex-run` to `.gitignore` for local Codex/dev-server runtime files.
+- Audited the current public subpage design using fresh screenshots in `audit/current-design/`.
+- Documented the current design audit in `audit/current-design/audit-report.md`.
+- Redesigned `/program-kerja` desktop as a roadmap-style page:
+  - public shell width now aligns with the floating navbar width;
+  - top overview section has roadmap metadata, status summary, and active-program spotlight;
+  - division index is compact and aligned to the same content shell;
+  - division cards use stronger labels, status summary strips, and numbered program timeline items;
+  - heading count on `/program-kerja` was reduced from a directory-like structure to a clearer hierarchy.
+- Verified the scoped redesign with:
+  - `npm.cmd run lint` passing with existing `<img>` warnings;
+  - `npx.cmd tsc --noEmit` passing;
+  - `scripts\codex-verify.cmd` passing lint, tests, typecheck, and build before push.
+- Pushed commit `102f14f Refine program roadmap page` to `origin/alpha-dev`.
+
+Remaining near-term design work:
+
+- Continue applying the new public-page design system page by page, instead of redesigning every page at once.
+- Next candidates: `/berita`, `/agenda`, `/pengumuman`, then `/kepengurusan`, `/divisi`, `/kontak`, `/aspirasi`, and `/galeri`.
+- Keep checking desktop and mobile screenshots for whitespace, hierarchy, text fit, and whether content aligns to the navbar shell.
+- Decide later whether the homepage should stay darker/landing-like or share more of the refined public subpage system.
 
 ## Guiding Principles
 
