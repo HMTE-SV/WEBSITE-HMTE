@@ -49,4 +49,20 @@ describe('admin content form validation', () => {
     expect(result.errors).toContain('Isi artikel wajib diisi.')
     expect(result.errors).toContain('Kategori wajib dipilih.')
   })
+
+  it('allows article payloads without a slug when the title is present', () => {
+    const result = validateArticleInput({
+      title: 'Berita HMTE',
+      slug: '',
+      excerpt: 'Ringkasan berita.',
+      content: 'Isi artikel lengkap untuk publikasi HMTE.',
+      category: 'berita-utama',
+      status: 'draft',
+    })
+
+    expect(result).toEqual({
+      success: true,
+      errors: [],
+    })
+  })
 })
