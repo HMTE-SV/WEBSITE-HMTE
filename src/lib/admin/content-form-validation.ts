@@ -60,7 +60,6 @@ export function validateEventInput(input: EventInput): ValidationResult {
 export function validateArticleInput(input: ArticleInput): ValidationResult {
   return validateRequiredFields([
     [input.title, 'Judul wajib diisi.'],
-    [input.slug, 'Slug wajib diisi.'],
     [input.excerpt, 'Ringkasan wajib diisi.'],
     [input.content, 'Isi artikel wajib diisi.'],
     [input.category, 'Kategori wajib dipilih.'],
