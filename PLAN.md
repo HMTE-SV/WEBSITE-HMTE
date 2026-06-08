@@ -38,6 +38,23 @@ Remaining near-term design work:
 - Keep checking desktop and mobile screenshots for whitespace, hierarchy, text fit, and whether content aligns to the navbar shell.
 - Decide later whether the homepage should stay darker/landing-like or share more of the refined public subpage system.
 
+## Progress Update - 2026-06-08
+
+Completed after the 2026-06-03 roadmap refresh:
+
+- Added `outputs/` to `.gitignore` so generated verification artifacts stop polluting `git status` while the intentionally reviewed `audit/` screenshots remain visible.
+- Added a top-level `README.md` that documents repo scope, setup, core verification commands, the `scripts\codex-verify.cmd` helper, and the main source directories.
+- Aligned admin article validation with the existing slug auto-generation flow:
+  - `src/lib/admin/content-form-validation.ts` no longer rejects empty article slugs when the other required fields are present;
+  - `src/lib/admin/content-form-validation.test.ts` now includes a regression test for title-present, slug-empty article drafts.
+- Added fresh audit screenshots under `audit/newsroom/` for the berita/newsroom surface, including desktop, mobile, and article-detail states.
+
+Current near-term focus after these maintenance updates:
+
+- Keep tracker/docs aligned with shipped repo workflow before adding new feature scope.
+- Continue validating public newsroom/public-page states with audit evidence before broader design or data-model changes.
+- Preserve the current article authoring behavior where slugs can be generated from titles instead of being required manual input.
+
 ## Guiding Principles
 
 - Preserve the current public visual design unless a phase explicitly says otherwise.
