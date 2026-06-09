@@ -47,7 +47,7 @@ Completed after the 2026-06-03 roadmap refresh:
 - Aligned admin article validation with the existing slug auto-generation flow:
   - `src/lib/admin/content-form-validation.ts` no longer rejects empty article slugs when the other required fields are present;
   - `src/lib/admin/content-form-validation.test.ts` now includes a regression test for title-present, slug-empty article drafts.
-- Added fresh audit screenshots under `audit/newsroom/` for the berita/newsroom surface, including desktop, mobile, and article-detail states.
+- Captured fresh local audit screenshots under `audit/newsroom/` for the berita/newsroom surface, including desktop, mobile, and article-detail states; keep them as working evidence unless they are intentionally staged later.
 
 Current near-term focus after these maintenance updates:
 
