@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "website-tre",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8081"],
-      "port": 8081,
+      "name": "hmte-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "3001"],
+      "port": 3001,
       "autoPort": false
     }
   ]
