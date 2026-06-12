@@ -5,3 +5,6 @@ node_modules/
 .codex-run/
 outputs/
 tsconfig.tsbuildinfo
+
+# Keep manual QA screenshots visible, but ignore transient browser profile dumps.
+verification/chrome-*-profile/
