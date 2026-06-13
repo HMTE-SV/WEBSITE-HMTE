@@ -3,8 +3,11 @@ node_modules/
 .next-local/
 .vercel/
 .codex-run/
+.claude/
 outputs/
 tsconfig.tsbuildinfo
 
-# Keep manual QA screenshots visible, but ignore transient browser profile dumps.
+# Keep local QA/design evidence out of git by default, along with transient browser profiles.
+audit/
+verification/*.png
 verification/chrome-*-profile/
