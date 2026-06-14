@@ -14,7 +14,10 @@ These React components import data from `@/data/site-content` and `@/types/conte
 ## Working-tree notes
 
 - Generated local directories such as `node_modules/`, `.next/`, `.next-local/`, and `outputs/` are development artifacts, not source-of-truth code.
-- `audit/` and `verification/` are useful for manual design QA evidence. Keep them local unless you intentionally decide to stage that evidence.
+- `.claude/` is local agent workspace state and stays ignored by default.
+- `audit/` is for local design/content QA evidence and stays ignored by default.
+- `verification/*.png` and `verification/chrome-*-profile/` stay ignored by default so screenshot evidence and transient browser-profile dumps do not leak into routine commits.
+- If you intentionally need to preserve QA evidence in git, force-add only the exact files that belong in project history.
 
 ## Maintenance rule
 
