@@ -11,6 +11,8 @@ This repository currently tracks a focused HMTE public landing redesign slice ra
 
 These React components import data from `@/data/site-content` and `@/types/content`. If you are checking out only the tracked baseline on `beta-dev`, expect to supply the wider app shell and data files from your active local work before rendering them.
 
+At the time of writing, directories such as `src/data/`, `src/lib/`, and `src/types/` may exist in local worktrees but are not part of the tracked baseline on this branch. Treat them as local in-progress context unless you intentionally stage and commit them.
+
 ## Working-tree notes
 
 - Generated local directories such as `node_modules/`, `.next/`, `.next-local/`, and `outputs/` are development artifacts, not source-of-truth code.
