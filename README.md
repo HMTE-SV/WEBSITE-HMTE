@@ -15,7 +15,7 @@ At the time of writing, directories such as `src/data/`, `src/lib/`, and `src/ty
 
 ## Working-tree notes
 
-- Generated local directories such as `node_modules/`, `.next/`, `.next-local/`, and `outputs/` are development artifacts, not source-of-truth code.
+- Generated local paths such as `node_modules/`, `.next/`, `.next-local/`, `.vercel/`, `.codex-run/`, `outputs/`, and `tsconfig.tsbuildinfo` are development or tooling artifacts, not source-of-truth code.
 - `.claude/` is local agent workspace state and stays ignored by default.
 - `audit/` is for local design/content QA evidence and stays ignored by default.
 - `verification/*.png` and `verification/chrome-*-profile/` stay ignored by default so screenshot evidence and transient browser-profile dumps do not leak into routine commits.
