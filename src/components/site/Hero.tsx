@@ -1,3 +1,4 @@
+import { LogoMark } from '@/components/site/Brand'
 import { heroIdentity, heroPhotoTiles } from '@/data/site-content'
 
 const heroRows = Array.from({ length: Math.ceil(heroPhotoTiles.length / 8) }, (_, index) =>
@@ -20,12 +21,10 @@ export function Hero() {
       <div className="hero-fade-overlay" aria-hidden="true"></div>
 
       <div className="hero-identity">
-        <h1 className="identity-primary">
-          {heroIdentity.titleLineOne}
-          <br />
-          {heroIdentity.titleLineTwo}
-        </h1>
-        <p className="identity-program">{heroIdentity.program}</p>
+        <div className="hero-logo-lockup" aria-label="HMTE TRE SV UGM">
+          <LogoMark width={390} height={115} className="hero-logo-mark" />
+        </div>
+        <h1 className="identity-program">{heroIdentity.program}</h1>
         <p className="identity-dept">{heroIdentity.department}</p>
         <p className="identity-faculty">{heroIdentity.faculty}</p>
         <p className="identity-univ">{heroIdentity.university}</p>

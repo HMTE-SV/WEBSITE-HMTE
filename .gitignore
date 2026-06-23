@@ -15,3 +15,7 @@ pnpm-debug.log*
 verification
 .codex-run
 outputs
+.codex
+.superpowers
+.claude
+.agents
