@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
-  <rect x="0.5" y="0.5" width="199" height="79" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"></rect>
-  <line x1="0" y1="0" x2="0" y2="80" stroke="#E30613" stroke-width="3"></line>
-  <g font-family="JetBrains Mono, monospace" fill="currentColor">
-    <text x="14" y="22" font-size="9" letter-spacing="0.12em" opacity="0.6">AKREDITASI</text>
-    <text x="14" y="48" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="600" letter-spacing="-0.02em">UNGGUL</text>
-    <text x="14" y="66" font-size="8" letter-spacing="0.08em" opacity="0.6">LAM TEKNIK · 2026</text>
-  </g>
-</svg>
