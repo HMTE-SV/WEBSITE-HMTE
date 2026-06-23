@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+/* ============================================================
+   HMTE TRE SV UGM - Cheerful Design Reset (Tailwind v4)
+   Brand anchor: navy + gold. Supporting accents: mint, sky, coral, lime.
+   ============================================================ */
+
+@theme {
+  /* Type */
+  --font-sans: "Aptos", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  /* Brand */
+  --color-navy: #062657;
+  --color-navy-700: #0d3a78;
+  --color-navy-800: #031a40;
+  --color-navy-900: #020f27;
+  --color-ink: #061525;
+
+  --color-gold: #ffc83d;
+  --color-gold-600: #e0a300;
+  --color-gold-300: #ffe48a;
+
+  /* Cheerful support palette */
+  --color-joy-mint: #31d184;
+  --color-joy-mint-700: #087a50;
+  --color-joy-sky: #35a7ff;
+  --color-joy-sky-100: #dff3ff;
+  --color-joy-coral: #ff6b57;
+  --color-joy-coral-700: #b92b1c;
+  --color-joy-lime: #c8f05f;
+
+  /* Neutrals */
+  --color-paper: #f6fbff;
+  --color-sand: #fff4d8;
+  --color-cloud: #fffef9;
+  --color-graphite: #172333;
+  --color-slate: #5d6c7a;
+  --color-line: #d8e5ef;
+
+  /* On-dark neutrals */
+  --color-haze: #d7e7f4;
+  --color-navy-line: rgba(255, 255, 255, 0.14);
+
+  /* Radius scale */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --breakpoint-xs: 30rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background:
+      linear-gradient(90deg, rgba(6, 38, 87, 0.04) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(6, 38, 87, 0.04) 1px, transparent 1px),
+      var(--color-paper);
+    background-size: 28px 28px;
+    color: var(--color-graphite);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-gold);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 800;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 48rem) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: var(--color-navy);
+    font-weight: 900;
+  }
+
+  .rule {
+    height: 1px;
+    background: var(--color-line);
+  }
+
+  .playful-card {
+    border: 2px solid var(--color-navy);
+    border-radius: var(--radius);
+    background: var(--color-cloud);
+    box-shadow: 6px 6px 0 var(--color-navy);
+  }
+
+  .playful-card-gold {
+    border: 2px solid var(--color-navy);
+    border-radius: var(--radius);
+    background: var(--color-gold);
+    box-shadow: 6px 6px 0 var(--color-navy);
+  }
+
+  .section-band {
+    border-block: 2px solid rgba(6, 38, 87, 0.12);
+  }
+}
+
+@layer utilities {
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-rise {
+    animation: rise-in 0.75s var(--ease-out) both;
+  }
+
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.65s var(--ease-out),
+      transform 0.65s var(--ease-out);
+    will-change: opacity, transform;
+  }
+
+  .js [data-reveal='show'] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-rise,
+  .js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

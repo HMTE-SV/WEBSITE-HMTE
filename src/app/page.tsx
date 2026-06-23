@@ -19,9 +19,11 @@ export default async function Home() {
 
   return (
     <>
-      <Header />
+      <Hero />
+      <div className="landing-nav-stage">
+        <Header variant="landing" />
+      </div>
       <main id="main-content">
-        <Hero />
         <NewsAgenda />
         <Gallery />
         <KabinetSection divisions={organizationData.divisions} />

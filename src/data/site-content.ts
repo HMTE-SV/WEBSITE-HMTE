@@ -23,13 +23,11 @@ export const siteNavLinks = [
   }
 ] satisfies NavLink[]
 
-export const heroPhotoTiles = Array.from({ length: 32 }, (_, index) => ({
+export const heroPhotoTiles = Array.from({ length: 40 }, (_, index) => ({
   label: `Foto kegiatan ${index + 1}`,
 }))
 
 export const heroIdentity = {
-  titleLineOne: 'Himpunan Mahasiswa',
-  titleLineTwo: 'Teknik Elektro',
   program: 'Teknologi Rekayasa Elektro',
   department: 'Departemen Teknik Elektro dan Informatika',
   faculty: 'Sekolah Vokasi',
