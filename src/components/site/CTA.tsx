@@ -6,11 +6,6 @@ export function CTA() {
     <section className="tre-cta" id="daftar">
       <div className="cta-shell">
         <div className="cta-left fade-up">
-          <div className="cta-tag">
-            <span className="ct-num">{ctaContent.sectionNumber}</span>
-            <span className="ct-line"></span>
-            <span>{ctaContent.kicker}</span>
-          </div>
           <h2 className="cta-h2">
             {ctaContent.titleLineOne}
             <br />

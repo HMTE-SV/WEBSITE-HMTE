@@ -1,50 +1,60 @@
-import type { FooterColumn, GalleryCard, NavLink, PartnerTile } from '@/types/content'
+import type { FooterColumn, GalleryCard, NavItem, PartnerTile } from '@/types/content'
 
-export const siteNavLinks = [
+export const siteNav = [
   {
-    "label": "Beranda",
-    "href": "/"
+    label: 'Beranda',
+    href: '/',
   },
   {
-    "label": "Halaman",
-    "href": "/galeri"
+    label: 'Organisasi',
+    children: [
+      { label: 'Kepengurusan', href: '/kepengurusan' },
+      { label: 'Divisi', href: '/divisi' },
+      { label: 'Program Kerja', href: '/program-kerja' },
+    ],
   },
   {
-    "label": "Berita",
-    "href": "/berita"
+    label: 'Kabar',
+    children: [
+      { label: 'Berita', href: '/berita' },
+      { label: 'Agenda', href: '/agenda' },
+      { label: 'Pengumuman', href: '/pengumuman' },
+    ],
   },
   {
-    "label": "Program",
-    "href": "/program-kerja"
+    label: 'Galeri',
+    href: '/galeri',
   },
   {
-    "label": "Kontak",
-    "href": "/kontak"
-  }
-] satisfies NavLink[]
+    label: 'Aspirasi',
+    href: '/aspirasi',
+  },
+] satisfies NavItem[]
 
-export const heroPhotoTiles = Array.from({ length: 40 }, (_, index) => ({
-  label: `Foto kegiatan ${index + 1}`,
-}))
+export const heroActivityImages = [
+  { src: '/assets/ugm_socialization.png', alt: 'Mahasiswa mengikuti seminar keinsinyuran di ruang kuliah' },
+  { src: '/assets/robotics_prestige.png', alt: 'Tim mahasiswa menyiapkan robot untuk kompetisi robotika' },
+  { src: '/assets/smart_grid_dashboard.png', alt: 'Pengujian dasbor smart grid di laboratorium elektro' },
+  { src: '/assets/solar_village.png', alt: 'Mahasiswa memasang lampu tenaga surya dalam pengabdian masyarakat' },
+  { src: '/assets/semiconductor_career.png', alt: 'Mahasiswa di ruang bersih fasilitas semikonduktor' },
+]
 
 export const heroIdentity = {
-  program: 'Teknologi Rekayasa Elektro',
-  department: 'Departemen Teknik Elektro dan Informatika',
-  faculty: 'Sekolah Vokasi',
-  university: 'Universitas Gadjah Mada',
+  name: 'Himpunan Mahasiswa Teknik Elektro',
+  context: 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
+  tagline:
+    'Ruang kabar, agenda, dan kegiatan mahasiswa Teknik Elektro Sekolah Vokasi UGM — diperbarui mengikuti gerak organisasi.',
+  ctaLabel: 'Lihat agenda & kabar terbaru',
+  ctaHref: '#stats',
 }
 
 export const newsAgendaIntro = {
-  sectionNumber: '01',
-  kicker: 'Berita & Agenda',
   title: 'Kabar kegiatan dan agenda HMTE',
   lead:
     'Ikuti perkembangan informasi akademik, prestasi mahasiswa, lowongan magang, proyek akhir, serta pengabdian masyarakat di lingkungan Departemen Teknik Elektro dan Informatika (DTEDI) Sekolah Vokasi UGM.',
 }
 
 export const galleryIntro = {
-  sectionNumber: '02',
-  kicker: 'NAVIGASI HALAMAN',
   title: 'Navigasi cepat untuk halaman yang perlu ada di website HMTE',
   hubKicker: 'Navigasi cepat',
   hubTitle: 'Peta halaman HMTE.',
@@ -94,8 +104,6 @@ export const galleryCards = [
 ] satisfies GalleryCard[]
 
 export const kabinetIntro = {
-  sectionNumber: '03',
-  kicker: 'STRUKTUR KABINET',
   title: 'Bidang',
   mutedTitle: ' & divisi',
   lead:
@@ -103,8 +111,6 @@ export const kabinetIntro = {
 }
 
 export const leadershipIntro = {
-  sectionNumber: '04',
-  kicker: 'KEPENGURUSAN',
   titleNumber: '08',
   titleLabel: 'BIDANG',
   lead:
@@ -112,8 +118,6 @@ export const leadershipIntro = {
 }
 
 export const partnersIntro = {
-  sectionNumber: '05',
-  kicker: 'JEJARING',
   titleLineOne: 'Alumni, mitra,',
   titleMuted: 'dan ruang',
   titleLineThree: 'kolaborasi',
@@ -157,8 +161,6 @@ export const partnerTiles = [
 ] satisfies PartnerTile[]
 
 export const ctaContent = {
-  sectionNumber: '06',
-  kicker: 'KONTAK HMTE',
   titleLineOne: 'Kirim data',
   titleMuted: 'resmi',
   titleLineThree: 'HMTE',
@@ -210,16 +212,16 @@ export const footerColumns = [
         "href": "/berita"
       },
       {
-        "label": "Prestasi",
-        "href": "/berita"
+        "label": "Agenda",
+        "href": "/agenda"
+      },
+      {
+        "label": "Pengumuman",
+        "href": "/pengumuman"
       },
       {
         "label": "Galeri",
         "href": "/galeri"
-      },
-      {
-        "label": "Alumni",
-        "href": "/berita"
       }
     ]
   },
@@ -231,15 +233,15 @@ export const footerColumns = [
         "href": "https://www.instagram.com/hmteugm"
       },
       {
-        "label": "Email resmi perlu dikonfirmasi",
-        "href": "#"
-      },
-      {
-        "label": "Kanal aspirasi perlu dikonfirmasi",
+        "label": "Aspirasi mahasiswa",
         "href": "/aspirasi"
       },
       {
-        "label": "Sekretariat perlu dikonfirmasi",
+        "label": "Email resmi — segera",
+        "href": "#"
+      },
+      {
+        "label": "Sekretariat — segera",
         "href": "#"
       }
     ]

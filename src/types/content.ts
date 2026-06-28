@@ -94,6 +94,14 @@ export type NavLink = {
   href: string
 }
 
+export type NavChild = NavLink
+
+export type NavItem = {
+  label: string
+  href?: string
+  children?: NavChild[]
+}
+
 export type GalleryCard = {
   kicker: string
   status: 'confirmed' | 'indicated' | 'pending'
