@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { siteNav } from '@/data/site-content'
 
@@ -67,13 +68,16 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
   return (
     <header className={headerClassName}>
       <div className="container">
-        <div className="brand">
-          <div className="bar"></div>
-          <div>
-            <div className="wordmark">HMTE</div>
-          </div>
-          <div className="sub">TRE·SV·UGM</div>
-        </div>
+        <Link href="/" className="brand" aria-label="HMTE TRE SV UGM — Beranda" onClick={closeAll}>
+          <Image
+            src="/assets/logo-hmte.svg"
+            alt="HMTE TRE SV UGM"
+            width={96}
+            height={28}
+            className="brand-logo"
+            priority
+          />
+        </Link>
         <button
           type="button"
           className="mobile-menu-button"
