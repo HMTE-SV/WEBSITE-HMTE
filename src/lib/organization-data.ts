@@ -65,6 +65,9 @@ export async function getOrganizationData(): Promise<OrganizationData> {
       }))
 
     if (divisions.length === 0) {
+      console.warn(
+        '[organization-data] Firebase terkonfigurasi tetapi tidak ada divisi aktif di Firestore — memakai data lokal sebagai fallback.',
+      )
       return getLocalOrganizationData()
     }
 
@@ -104,7 +107,11 @@ export async function getOrganizationData(): Promise<OrganizationData> {
       leadersByDivision,
       programsByDivision,
     }
-  } catch {
+  } catch (error) {
+    console.warn(
+      '[organization-data] Gagal mengambil data dari Firestore — memakai data lokal sebagai fallback.',
+      error,
+    )
     return getLocalOrganizationData()
   }
 }

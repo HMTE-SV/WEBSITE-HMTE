@@ -40,10 +40,12 @@ This helper runs lint, tests, typecheck, and production build in sequence.
 
 ## Project References
 
-- [`PLAN.md`](./PLAN.md): implementation roadmap and recent progress notes.
-- [`HMTE_CONTEXT.md`](./HMTE_CONTEXT.md): confirmed product direction and communication goals.
+- [`PRODUCT.md`](./PRODUCT.md): brand register, audience, and design principles.
 - [`FIREBASE_SETUP.md`](./FIREBASE_SETUP.md): local Firebase setup and deployment notes.
-- [`hmte-complete-overview.md`](./hmte-complete-overview.md): broader repo and design overview.
+- [`docs/PLAN.md`](./docs/PLAN.md): implementation roadmap and recent progress notes.
+- [`docs/HMTE_CONTEXT.md`](./docs/HMTE_CONTEXT.md): confirmed product direction and communication goals.
+- [`docs/hmte-complete-overview.md`](./docs/hmte-complete-overview.md): broader repo and design overview.
+- [`docs/NEXT_MIGRATION.md`](./docs/NEXT_MIGRATION.md): historical Next.js migration notes.
 
 ## Repo Layout
 
