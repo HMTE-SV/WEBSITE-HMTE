@@ -2,14 +2,9 @@ import { galleryCards, galleryIntro } from '@/data/site-content'
 
 export function Gallery() {
   return (
-    <section className="tre-gallery" id="galeri">
+    <section className="tre-gallery" id="peta-situs">
       <div className="gallery-shell">
         <header className="gallery-head fade-up">
-          <div className="gallery-tag">
-            <span className="g-num">{galleryIntro.sectionNumber}</span>
-            <span className="g-line"></span>
-            <span>{galleryIntro.kicker}</span>
-          </div>
           <h2 className="gallery-h2">
             {galleryIntro.title}
             <span className="acc">.</span>

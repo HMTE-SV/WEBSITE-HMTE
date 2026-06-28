@@ -31,10 +31,6 @@ export function Partners() {
     <section className="tre-partners" id="mitra">
       <div className="partners-shell">
         <div className="partners-head fade-up">
-          <div className="partners-tag">
-            <span className="p-num">{partnersIntro.sectionNumber}</span>
-            <span>{partnersIntro.kicker}</span>
-          </div>
           <h2 className="partners-h2">
             {partnersIntro.titleLineOne}
             <br />

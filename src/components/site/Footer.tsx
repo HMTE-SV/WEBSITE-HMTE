@@ -2,7 +2,7 @@ import { footerColumns, footerContent } from '@/data/site-content'
 
 export function Footer() {
   return (
-    <footer className="tre-footer" id="kontak">
+    <footer className="tre-footer" id="site-footer">
       <div className="container">
         <div className="top">
           <div className="col">
@@ -26,6 +26,16 @@ export function Footer() {
             <div className="col" key={column.title}>
               <h4>{column.title}</h4>
               {column.links.map((link) => {
+                // Items still awaiting official data render as muted, non-clickable
+                // text rather than dead "#" links.
+                if (link.href === '#') {
+                  return (
+                    <span className="ftr-pending" key={link.label}>
+                      {link.label}
+                    </span>
+                  )
+                }
+
                 const isExternal = link.href.startsWith('http')
 
                 return (
