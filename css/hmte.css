@@ -1,6 +1,21 @@
 /* ============================================================
    HMTE Website Consolidated CSS (hmte.css)
    Himpunan Mahasiswa Teknik Elektro · Sekolah Vokasi UGM
+   ------------------------------------------------------------
+   Section index (search the banner text to jump):
+     :root TOKENS · GLOBAL RESETS & BASE STYLES · ANIMATIONS &
+     TRANSITIONS · BUTTONS & ACTIONS · STATUS TAGS & BADGES ·
+     HEADER COMPONENT · HERO SECTION · NEWS & AGENDA SECTION ·
+     GALLERY SECTION · PILLARS SECTION · KABINET GRID ·
+     CURRICULUM / VERIFICATION SECTION · KEPENGURUSAN WINDOW ·
+     PARTNERS SECTION · CALL TO ACTION SECTION · FOOTER ·
+     RESPONSIVE MEDIA QUERIES · PROPERTIES DETAIL MODAL ·
+     OS WINDOW FOLDER TABS & PROKER CARDS · PUBLIC ROUTE PAGES ·
+     ADMIN AUTH · REDUCED MOTION GUARD · INLINE FIELD VALIDATION
+     ERRORS · REACT REFACTOR ADJUSTMENTS · GROUPED NAV DROPDOWNS
+   Note: some public surfaces reuse .admin-* classes (e.g. the
+   aspiration form), so this file is intentionally kept as one
+   cascade until a screenshot-verified split can be done safely.
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
