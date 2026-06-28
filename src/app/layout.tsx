@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Website HMTE TRE SV UGM sebagai rumah informasi organisasi, kegiatan mahasiswa, program kerja, prestasi, galeri, alumni, dan kolaborasi.',
   icons: {
-    icon: '/assets/hmte-mark.svg',
+    icon: '/assets/favicon.svg',
   },
 }
 
