@@ -1,4 +1,4 @@
-import type { FooterColumn, GalleryCard, NavItem, PartnerTile } from '@/types/content'
+import type { FooterColumn, NavItem, PartnerTile } from '@/types/content'
 
 export const siteNav = [
   {
@@ -55,53 +55,36 @@ export const newsAgendaIntro = {
 }
 
 export const galleryIntro = {
-  title: 'Navigasi cepat untuk halaman yang perlu ada di website HMTE',
-  hubKicker: 'Navigasi cepat',
-  hubTitle: 'Peta halaman HMTE.',
-  stats: [
-    { value: '10', label: 'Halaman arah' },
-    { value: '03', label: 'Status data' },
-  ],
+  title: 'Gerak yang terekam',
+  lead: 'Potongan ruang belajar, karya teknologi, dan kebersamaan mahasiswa Teknik Elektro TRE SV UGM.',
 }
 
-export const galleryCards = [
+export const galleryPhotos = [
   {
-    "kicker": "Tentang",
-    "status": "confirmed",
-    "statusLabel": "Terkonfirmasi",
-    "title": "Identitas organisasi",
-    "description": "Profil HMTE TRE SV UGM dan relasi kelembagaan dengan TRE, DTEDI, SV UGM, dan UGM.",
-    "href": "/kontak",
-    "linkLabel": "Buka tentang →"
+    src: '/assets/ugm_socialization.png',
+    label: 'Ruang belajar',
+    alt: 'Mahasiswa mengikuti seminar keinsinyuran di ruang kuliah',
+    span: 'tall',
   },
   {
-    "kicker": "Kepengurusan",
-    "status": "indicated",
-    "statusLabel": "Indikasi publik",
-    "title": "Pengurus & divisi",
-    "description": "Ruang untuk struktur pengurus, bidang/divisi, dan foto resmi yang masih perlu dikonfirmasi.",
-    "href": "/kepengurusan",
-    "linkLabel": "Lihat struktur →"
+    src: '/assets/robotics_prestige.png',
+    label: 'Kerja kolaboratif',
+    alt: 'Tim mahasiswa menyiapkan robot untuk kompetisi robotika',
+    span: 'wide',
   },
   {
-    "kicker": "Program kerja",
-    "status": "pending",
-    "statusLabel": "Perlu konfirmasi",
-    "title": "Agenda & proker",
-    "description": "Agenda, kegiatan, program kerja, dan arsip kemahasiswaan yang nanti diganti dengan data resmi.",
-    "href": "/program-kerja",
-    "linkLabel": "Buka ledger →"
+    src: '/assets/semiconductor_career.png',
+    label: 'Eksplorasi teknologi',
+    alt: 'Mahasiswa di ruang bersih fasilitas semikonduktor',
+    span: 'wide',
   },
   {
-    "kicker": "Publikasi",
-    "status": "indicated",
-    "statusLabel": "Indikasi publik",
-    "title": "Berita, galeri, alumni",
-    "description": "Berita, prestasi, galeri, alumni, kontak, dan kolaborasi disiapkan sebagai halaman mudah dipindai.",
-    "href": "/berita",
-    "linkLabel": "Lihat publikasi →"
-  }
-] satisfies GalleryCard[]
+    src: '/assets/solar_village.png',
+    label: 'Teknologi untuk sekitar',
+    alt: 'Mahasiswa memasang lampu tenaga surya dalam pengabdian masyarakat',
+    span: 'full',
+  },
+] as const
 
 export const kabinetIntro = {
   title: 'Bidang',
