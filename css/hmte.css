@@ -1320,7 +1320,19 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 }
 
 .gallery-head {
-  margin-bottom: 56px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  align-items: end;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+
+.gallery-lead {
+  margin: 0 0 6px;
+  max-width: 42ch;
+  font-size: var(--fs-body-lg);
+  line-height: 1.6;
+  color: var(--fg-muted);
 }
 
 .gallery-h2 {
@@ -6520,5 +6532,99 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 @media (max-width: 768px) {
   .tre-header .brand-logo {
     height: 22px;
+  }
+}
+
+/* ============================================================
+   GALLERY BENTO GRID
+   Photo documentation grid. Right cells are 16:9 (landscape uploads);
+   the left cell spans both rows for portrait-ish (3:4) shots; the
+   bottom cell is a full-width panorama. object-fit keeps any upload
+   filling its cell cleanly.
+   ============================================================ */
+.gallery-bento {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 16px;
+}
+
+.bento-cell {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.bento-cell .bento-img {
+  object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.bento-cell:hover .bento-img {
+  transform: scale(1.04);
+}
+
+.bento-cell--tall {
+  grid-row: span 2;
+}
+
+.bento-cell--wide {
+  aspect-ratio: 16 / 9;
+}
+
+.bento-cell--full {
+  grid-column: 1 / -1;
+  aspect-ratio: 24 / 7;
+}
+
+.bento-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 22px 24px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-body);
+  color: #ffffff;
+  background: linear-gradient(transparent, rgba(2, 11, 20, 0.82));
+}
+
+@media (max-width: 880px) {
+  .gallery-head {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-bottom: 32px;
+  }
+}
+
+@media (max-width: 760px) {
+  .gallery-bento {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .bento-cell--tall {
+    grid-row: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  .bento-cell--full {
+    aspect-ratio: 16 / 9;
+  }
+
+  .bento-label {
+    padding: 16px 18px;
+    font-size: var(--fs-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bento-cell .bento-img,
+  .bento-cell:hover .bento-img {
+    transition: none;
+    transform: none;
   }
 }
