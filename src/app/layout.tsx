@@ -1,13 +1,38 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import '../../css/hmte.css'
 
+const siteUrl = 'https://website-hmte.vercel.app'
+const siteName = 'HMTE TRE SV UGM'
+const siteTitle = 'HMTE TRE SV UGM - Elektro... Satu!!!'
+const siteDescription =
+  'Website HMTE TRE SV UGM sebagai rumah informasi organisasi, kegiatan mahasiswa, program kerja, prestasi, galeri, alumni, dan kolaborasi.'
+
 export const metadata: Metadata = {
-  title: 'HMTE TRE SV UGM - Elektro... Satu!!!',
-  description:
-    'Website HMTE TRE SV UGM sebagai rumah informasi organisasi, kegiatan mahasiswa, program kerja, prestasi, galeri, alumni, dan kolaborasi.',
+  metadataBase: new URL(siteUrl),
+  title: siteTitle,
+  description: siteDescription,
+  applicationName: siteName,
   icons: {
     icon: '/assets/favicon.svg',
   },
+  openGraph: {
+    type: 'website',
+    locale: 'id_ID',
+    url: siteUrl,
+    siteName,
+    title: siteTitle,
+    description: siteDescription,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteTitle,
+    description: siteDescription,
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#011f4b',
+  colorScheme: 'light',
 }
 
 export default function RootLayout({
