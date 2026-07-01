@@ -25,3 +25,4 @@ outputs
 # working copy this session. Ignored so `git add -A` won't re-track it.
 # Delete the physical file with `del src\lib\legacy-page.ts` once unlocked.
 src/lib/legacy-page.ts
+.env*

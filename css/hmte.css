@@ -643,6 +643,10 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   color: var(--tre-paper);
   padding: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Hero Photo Grid */
@@ -650,6 +654,7 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   position: relative;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   gap: 6px;
   padding: 6px 0;
   z-index: 1;
@@ -755,16 +760,35 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   );
 }
 
-/* Identity Text */
+/* Accessible-only text: keeps a real <h1> for SEO/screen readers without
+   rendering a visible duplicate of what the logo mark already shows. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Identity — the logo mark is now the sole focal point in the fade-to-black
+   zone. It flexes to fill whatever space is left under the photo grid so
+   the hero always fills one full screen: photo grid -> black -> logo,
+   centered -> white/navbar only appears once you scroll past. */
 .hero-identity {
   position: relative;
   z-index: 3;
+  flex: 1;
+  min-height: 0;
   text-align: center;
-  padding: 0 32px 136px;
-  margin-top: -150px;
+  padding: 40px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0;
 }
 
@@ -773,7 +797,6 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   display: grid;
   place-items: center;
   width: clamp(280px, 29vw, 420px);
-  margin-bottom: 34px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -797,94 +820,6 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.42));
-}
-
-.identity-program {
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.08;
-  letter-spacing: 0.02em;
-  color: var(--hmte-gold);
-  margin: 0 0 18px;
-  max-width: 18ch;
-  text-wrap: balance;
-}
-
-.identity-dept {
-  position: relative;
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: clamp(15px, 1.5vw, 20px);
-  line-height: 1.5;
-  letter-spacing: 0.015em;
-  color: rgba(246, 242, 234, 0.66);
-  margin: 0 0 34px;
-  max-width: 46ch;
-  text-wrap: balance;
-}
-
-.identity-dept::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -19px;
-  width: 210px;
-  max-width: 56vw;
-  height: 1px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, rgba(246, 242, 234, 0.24), transparent);
-}
-
-.identity-tagline {
-  font-family: var(--font-body);
-  font-weight: 400;
-  font-size: clamp(15px, 1.55vw, 19px);
-  line-height: 1.6;
-  color: rgba(246, 242, 234, 0.82);
-  margin: 0 0 32px;
-  max-width: 50ch;
-  text-wrap: pretty;
-}
-
-.identity-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  letter-spacing: 0.01em;
-  color: var(--hmte-gold);
-  padding: 11px 22px;
-  border: 1px solid rgba(245, 184, 46, 0.4);
-  border-radius: var(--radius-pill);
-  background: rgba(245, 184, 46, 0.06);
-  transition: background var(--dur-base) var(--ease-out),
-    border-color var(--dur-base) var(--ease-out),
-    color var(--dur-base) var(--ease-out),
-    transform var(--dur-base) var(--ease-out);
-}
-
-.identity-cta svg {
-  stroke: currentColor;
-  transition: transform var(--dur-base) var(--ease-out);
-}
-
-.identity-cta:hover {
-  background: var(--hmte-gold);
-  border-color: var(--hmte-gold);
-  color: var(--hmte-navy-deep);
-  transform: translateY(-1px);
-}
-
-.identity-cta:hover svg {
-  transform: translateY(3px);
-}
-
-.identity-cta:focus-visible {
-  outline: 2px solid var(--hmte-gold);
-  outline-offset: 3px;
 }
 
 /* Subtle glow behind identity text */
@@ -1591,24 +1526,43 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 }
 
 .pillars-head {
+  position: relative;
+  padding-bottom: 56px;
+  margin-bottom: 72px;
+}
+
+.pillars-head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--hmte-navy) 0,
+    var(--hmte-navy) 2px,
+    transparent 2px,
+    transparent 15px
+  );
+  opacity: 0.4;
+}
+
+.pillars-head-row {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
   gap: 64px;
   align-items: end;
-  padding-bottom: 80px;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 80px;
 }
 
 .pillars-h2 {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(40px, 5.5vw, 72px);
-  line-height: 1.0;
+  font-size: clamp(36px, 4.2vw, 56px);
+  line-height: 1.05;
   letter-spacing: -0.03em;
   margin: 0;
   color: var(--hmte-navy);
-  grid-column: 1 / 3;
 }
 
 .pillars-h2 .muted {
@@ -1625,8 +1579,7 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   line-height: 1.6;
   color: var(--fg-muted);
   margin: 0;
-  max-width: 52ch;
-  grid-column: 2 / 3;
+  max-width: 46ch;
 }
 
 .pillars-grid {
@@ -1772,46 +1725,38 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 
 /* ============================================================
    KABINET GRID (replaces pillars-grid)
+   Every bidang gets the same footprint — no card is bigger than
+   another. Boldness comes from an alternating navy/paper checker
+   rhythm and confident type, not from unequal sizing. Pengurus
+   Harian sits apart in its own banner because it is structurally
+   not one of the seven bidang, not because it "wins" the grid.
    ============================================================ */
 .kabinet-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-@media (max-width: 880px) {
-  .kabinet-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .kabinet-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  gap: 20px;
 }
 
 .kabinet-card {
   background: var(--bg-elevated);
-  padding: 32px 28px;
+  padding: 28px 26px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   position: relative;
-  transition: background var(--dur-base) var(--ease-out),
-              transform var(--dur-base) var(--ease-out);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  min-height: 280px;
+  transition: transform var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
   cursor: pointer;
-  min-height: 240px;
   /* Button-element resets so the clickable card keeps its card layout. */
   width: 100%;
   text-align: left;
   font: inherit;
   color: inherit;
-  border: 0;
   appearance: none;
   -webkit-appearance: none;
 }
@@ -1827,34 +1772,35 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   top: 0;
   left: 0;
   width: 4px;
-  height: 0;
+  height: 100%;
   background: var(--hmte-gold);
-  transition: height var(--dur-slow) var(--ease-out);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform var(--dur-slow) var(--ease-out);
   z-index: 2;
 }
 
 .kabinet-card:hover {
-  background: #fffdf6;
+  transform: translateY(-4px);
+  border-color: var(--hmte-navy);
+  box-shadow: 0 20px 44px rgba(1, 31, 75, 0.1);
 }
 
 .kabinet-card:hover::before {
-  height: 100%;
+  transform: scaleY(1);
 }
 
 .kabinet-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.kabinet-card-top {
   position: relative;
   z-index: 1;
 }
 
 .kabinet-abbr {
   font-family: var(--font-mono);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--hmte-navy);
@@ -1873,10 +1819,10 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 /* Large ghost numeral — decorative section index */
 .kabinet-num {
   position: absolute;
-  top: 18px;
-  right: 24px;
+  top: 14px;
+  right: 20px;
   font-family: var(--font-display);
-  font-size: 64px;
+  font-size: 60px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -1890,7 +1836,7 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 }
 
 .kabinet-card:hover .kabinet-num {
-  opacity: 0.18;
+  opacity: 0.16;
   color: var(--hmte-gold-deep);
   transform: translateY(-2px);
 }
@@ -1899,11 +1845,12 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   font-family: var(--font-display);
   font-size: var(--fs-h4);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.22;
   letter-spacing: -0.01em;
   color: var(--hmte-navy);
   margin: 0;
-  flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .kabinet-desc {
@@ -1911,6 +1858,12 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   line-height: 1.55;
   color: var(--fg-muted);
   margin: 0;
+  position: relative;
+  z-index: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .kabinet-footer {
@@ -1918,12 +1871,14 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   align-items: center;
   gap: 8px;
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--line);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   letter-spacing: 0.04em;
   color: var(--fg-muted);
+  position: relative;
+  z-index: 1;
   transition: color var(--dur-base) var(--ease-out);
 }
 
@@ -1945,14 +1900,6 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   box-shadow: 0 0 0 4px var(--hmte-gold-glow);
 }
 
-/* Keep card text above the ghost numeral */
-.kabinet-name,
-.kabinet-desc,
-.kabinet-footer {
-  position: relative;
-  z-index: 1;
-}
-
 .kabinet-arrow {
   display: inline-block;
   transition: transform var(--dur-base) var(--ease-out);
@@ -1960,6 +1907,82 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 
 .kabinet-card:hover .kabinet-arrow {
   transform: translateX(5px);
+}
+
+/* --- Checker rhythm: every other card flips to navy, same footprint --- */
+.kabinet-card:nth-child(odd) {
+  background: linear-gradient(155deg, var(--hmte-navy) 0%, var(--hmte-navy-light) 100%);
+  border-color: var(--hmte-navy);
+}
+
+.kabinet-card:nth-child(odd)::after {
+  content: '';
+  position: absolute;
+  right: -44px;
+  bottom: -44px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--hmte-gold-glow), transparent 70%);
+  pointer-events: none;
+}
+
+.kabinet-card:nth-child(odd):hover {
+  border-color: var(--hmte-gold);
+  box-shadow: 0 20px 48px rgba(1, 31, 75, 0.28);
+}
+
+.kabinet-card:nth-child(odd) .kabinet-abbr {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.kabinet-card:nth-child(odd):hover .kabinet-abbr {
+  background: var(--hmte-gold);
+  color: var(--hmte-navy-deep);
+}
+
+.kabinet-card:nth-child(odd) .kabinet-num {
+  color: #ffffff;
+  opacity: 0.09;
+}
+
+.kabinet-card:nth-child(odd):hover .kabinet-num {
+  color: var(--hmte-gold);
+  opacity: 0.3;
+}
+
+.kabinet-card:nth-child(odd) .kabinet-name {
+  color: #ffffff;
+}
+
+.kabinet-card:nth-child(odd) .kabinet-desc {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.kabinet-card:nth-child(odd) .kabinet-footer {
+  border-top-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.kabinet-card:nth-child(odd):hover .kabinet-footer {
+  color: #ffffff;
+}
+
+@media (max-width: 880px) {
+  .kabinet-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kabinet-card {
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kabinet-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Validation Flow */
@@ -3174,12 +3197,10 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   border-radius: 2px;
 }
 
-.ftr-wordmark {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--fs-body-lg);
-  letter-spacing: -0.01em;
-  color: #ffffff;
+.ftr-logo {
+  width: 132px;
+  height: auto;
+  display: block;
 }
 
 .tre-footer .addr {
@@ -3218,20 +3239,19 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
    ============================================================ */
 @media (max-width: 1180px) {
   .pillars-head {
+    padding-bottom: 48px;
+    margin-bottom: 48px;
+  }
+
+  .pillars-head-row {
     grid-template-columns: 1fr;
     gap: 24px;
-    padding-bottom: 60px;
-    margin-bottom: 60px;
   }
-  
-  .pillars-h2 {
-    grid-column: 1;
-  }
-  
+
   .pillars-lead {
-    grid-column: 1;
+    max-width: none;
   }
-  
+
   .pillars-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3524,20 +3544,13 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   }
   
   .hero-identity {
-    padding: 0 20px 100px;
-    margin-top: -80px;
+    padding: 40px 20px;
   }
 
   .hero-logo-lockup {
     width: clamp(250px, 58vw, 340px);
-    margin-bottom: 28px;
   }
 
-  .identity-program {
-    font-size: clamp(24px, 6vw, 31px);
-    max-width: 15ch;
-  }
-  
   .tre-footer .top {
     grid-template-columns: 1fr 1fr;
     gap: 32px;
@@ -3709,19 +3722,13 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   }
   
   .hero-identity {
-    margin-top: -60px;
-    padding-bottom: 80px;
+    padding: 32px 20px;
   }
 
   .hero-logo-lockup {
     width: min(78vw, 300px);
-    margin-bottom: 26px;
   }
 
-  .identity-dept {
-    margin-bottom: 30px;
-  }
-  
   .tre-footer .top {
     grid-template-columns: 1fr;
   }
@@ -6272,81 +6279,6 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 .member-card:focus-visible {
   outline: 2px solid var(--hmte-gold);
   outline-offset: 2px;
-}
-
-/* Hero identity copy — restores the page's single <h1>, tagline, and the
-   "active, not archival" CTA that points at the live news feed. */
-.hero-headline {
-  margin: 4px 0 0;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(1.4rem, 1.05rem + 1.6vw, 2.15rem);
-  line-height: 1.16;
-  letter-spacing: -0.02em;
-  color: var(--tre-off-white);
-  max-width: 18ch;
-  text-wrap: balance;
-}
-
-.hero-tagline {
-  margin: 18px auto 0;
-  max-width: 52ch;
-  font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.075rem);
-  line-height: 1.6;
-  color: rgba(248, 247, 244, 0.82);
-  text-wrap: pretty;
-}
-
-.hero-cta-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 30px;
-  padding: 13px 22px;
-  border-radius: var(--radius-pill);
-  border: 1px solid transparent;
-  background: var(--hmte-gold);
-  color: var(--hmte-navy-deep);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  letter-spacing: 0.01em;
-  text-decoration: none;
-  box-shadow: 0 10px 30px -12px rgba(245, 184, 46, 0.55);
-  transition: transform var(--dur-base) var(--ease-out),
-              box-shadow var(--dur-base) var(--ease-out),
-              background var(--dur-base) var(--ease-out);
-}
-
-.hero-cta-link svg {
-  transition: transform var(--dur-base) var(--ease-out);
-}
-
-.hero-cta-link:hover {
-  transform: translateY(-2px);
-  background: var(--hmte-gold-deep);
-  box-shadow: 0 16px 38px -14px rgba(245, 184, 46, 0.62);
-}
-
-.hero-cta-link:hover svg {
-  transform: translateY(3px);
-}
-
-.hero-cta-link:focus-visible {
-  outline: 2px solid var(--tre-off-white);
-  outline-offset: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-cta-link,
-  .hero-cta-link svg {
-    transition: none;
-  }
-
-  .hero-cta-link:hover,
-  .hero-cta-link:hover svg {
-    transform: none;
-  }
 }
 
 /* ============================================================
