@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { footerColumns, footerContent } from '@/data/site-content'
 
 export function Footer() {
@@ -8,7 +9,13 @@ export function Footer() {
           <div className="col">
             <div className="ftr-brand">
               <div className="ftr-bar"></div>
-              <div className="ftr-wordmark">{footerContent.wordmark}</div>
+              <Image
+                src="/assets/logo-hmte.svg"
+                alt="HMTE TRE SV UGM"
+                width={132}
+                height={39}
+                className="ftr-logo"
+              />
             </div>
             {footerContent.addressLines.map((lines) => (
               <p className="addr" key={lines.join('|')}>

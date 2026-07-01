@@ -39,27 +39,12 @@ export function Hero() {
       <div className="hero-fade-overlay" aria-hidden="true"></div>
 
       <div className="hero-identity">
+        {/* Visually hidden — keeps a real page <h1> for SEO/accessibility
+            now that the logo mark carries the name on screen. */}
+        <h1 className="sr-only">{heroIdentity.name}</h1>
         <div className="hero-logo-lockup">
           <LogoMark width={390} height={115} className="hero-logo-mark" />
         </div>
-        <h1 className="hero-headline">{heroIdentity.name}</h1>
-        <p className="hero-tagline">{heroIdentity.tagline}</p>
-        <a className="hero-cta-link" href={heroIdentity.ctaHref}>
-          {heroIdentity.ctaLabel}
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 5v14M5 12l7 7 7-7" />
-          </svg>
-        </a>
       </div>
     </section>
   )

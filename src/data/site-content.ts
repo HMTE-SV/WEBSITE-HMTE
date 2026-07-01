@@ -156,7 +156,6 @@ export const ctaContent = {
 }
 
 export const footerContent = {
-  wordmark: 'HMTE TRE SV UGM',
   addressLines: [
     ['Himpunan Mahasiswa Teknik Elektro', 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM'],
     ['Departemen Teknik Elektro dan Informatika', 'Universitas Gadjah Mada', 'Elektro... Satu!!!'],
