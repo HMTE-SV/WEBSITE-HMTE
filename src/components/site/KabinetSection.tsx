@@ -9,7 +9,7 @@ type KabinetSectionProps = {
 }
 
 export function KabinetSection({ divisions }: KabinetSectionProps) {
-  const { selectDivision } = useDirectory()
+  const { selectedDivision, directoryStage, selectDivision } = useDirectory()
 
   // Pengurus Harian leads the grid (it's the senior body) but carries no
   // sequence number — the 01-07 numbering belongs to the seven bidang only.
@@ -18,7 +18,7 @@ export function KabinetSection({ divisions }: KabinetSectionProps) {
   const ordered = executive ? [executive, ...bidang] : bidang
 
   return (
-    <section className="tre-pillars" id="pillars">
+    <div className="tre-pillars organization-selector">
       <div className="pillars-shell">
         <header className="pillars-head fade-up">
           <div className="pillars-head-row">
@@ -34,13 +34,15 @@ export function KabinetSection({ divisions }: KabinetSectionProps) {
         <div className="kabinet-grid">
           {ordered.map((division) => {
             const isExecutive = division.code === 'PH'
+            const isSelected = directoryStage !== 'idle' && selectedDivision === division.code
             return (
               <button
                 type="button"
-                className="kabinet-card fade-up"
+                className={isSelected ? 'kabinet-card fade-up is-selected' : 'kabinet-card fade-up'}
                 key={division.code}
                 onClick={() => selectDivision(division.code, { scroll: true })}
                 aria-label={`Lihat anggota ${isExecutive ? '' : 'bidang '}${division.name}`}
+                aria-pressed={isSelected}
               >
                 <div className="kabinet-card-top">
                   <span className="kabinet-abbr">{division.shortName}</span>
@@ -53,7 +55,7 @@ export function KabinetSection({ divisions }: KabinetSectionProps) {
                 <div className="kabinet-footer">
                   <span className="kabinet-dot"></span>
                   <span>
-                    Lihat Anggota{' '}
+                    Buka Direktori{' '}
                     <span className="kabinet-arrow" aria-hidden="true">
                       →
                     </span>
@@ -64,6 +66,6 @@ export function KabinetSection({ divisions }: KabinetSectionProps) {
           })}
         </div>
       </div>
-    </section>
+    </div>
   )
 }

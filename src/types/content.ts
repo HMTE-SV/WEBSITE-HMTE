@@ -114,7 +114,7 @@ export type GalleryCard = {
 
 export type PartnerTile = {
   label: string
-  status: string
+  role: string
 }
 
 export type FooterColumn = {

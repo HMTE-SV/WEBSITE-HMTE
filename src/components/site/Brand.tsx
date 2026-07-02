@@ -5,9 +5,10 @@ type LogoMarkProps = {
   width?: number
   height?: number
   className?: string
+  priority?: boolean
 }
 
-export function LogoMark({ size = 40, width, height, className }: LogoMarkProps) {
+export function LogoMark({ size = 40, width, height, className, priority = false }: LogoMarkProps) {
   return (
     <Image
       src="/assets/logo-hmte.svg"
@@ -15,6 +16,7 @@ export function LogoMark({ size = 40, width, height, className }: LogoMarkProps)
       width={width ?? size}
       height={height ?? size}
       className={className}
+      priority={priority}
     />
   )
 }

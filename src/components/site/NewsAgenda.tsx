@@ -55,7 +55,7 @@ export function NewsAgenda() {
   }
 
   return (
-    <section className="tre-news-agenda" id="stats">
+    <section className="tre-news-agenda" id="kabar">
       <div className="news-agenda-shell">
         <header className="news-agenda-head">
           <h2 className="news-agenda-title fade-up">

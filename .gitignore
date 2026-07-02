@@ -25,4 +25,12 @@ outputs
 # working copy this session. Ignored so `git add -A` won't re-track it.
 # Delete the physical file with `del src\lib\legacy-page.ts` once unlocked.
 src/lib/legacy-page.ts
+
+# Dead component removed from tracking; a Windows file lock blocked deleting
+# the working copy this session. Ignored so `git add -A` won't re-track it.
+# Delete the physical file with `del src\components\site\Gallery.tsx` once unlocked.
+src/components/site/Gallery.tsx
+
+# Audit screenshots/notes should not be committed.
+audit/
 .env*

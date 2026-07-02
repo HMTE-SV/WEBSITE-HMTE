@@ -13,7 +13,7 @@ export default async function Home() {
   return (
     <>
       <Hero />
-      <div className="landing-nav-stage">
+      <div className="landing-nav-stage landing-nav-stage--after-hero">
         <Header variant="landing" />
       </div>
       <main id="main-content">
