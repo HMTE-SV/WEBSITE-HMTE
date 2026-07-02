@@ -1,6 +1,15 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import type { DivisionCode, Leader } from '@/types/content'
 
 export type ActiveMember = {
@@ -11,6 +20,8 @@ export type ActiveMember = {
 
 type DirectoryContextValue = {
   selectedDivision: DivisionCode
+  directoryStage: 'idle' | 'confirming' | 'open'
+  transitionKey: number
   selectDivision: (code: DivisionCode, options?: { scroll?: boolean }) => void
   activeMember: ActiveMember | null
   openMember: (member: ActiveMember) => void
@@ -33,22 +44,70 @@ export function DirectoryProvider({
   initialDivision?: DivisionCode
 }) {
   const [selectedDivision, setSelectedDivision] = useState<DivisionCode>(initialDivision)
+  const [directoryStage, setDirectoryStage] = useState<'idle' | 'confirming' | 'open'>('idle')
+  const [transitionKey, setTransitionKey] = useState(0)
   const [activeMember, setActiveMember] = useState<ActiveMember | null>(null)
+  const openTimer = useRef<number | null>(null)
+
+  useEffect(
+    () => () => {
+      if (openTimer.current !== null) {
+        window.clearTimeout(openTimer.current)
+      }
+    },
+    [],
+  )
 
   const selectDivision = useCallback((code: DivisionCode, options?: { scroll?: boolean }) => {
+    if (openTimer.current !== null) {
+      window.clearTimeout(openTimer.current)
+    }
+
     setSelectedDivision(code)
+    setActiveMember(null)
+    setDirectoryStage('confirming')
+    setTransitionKey((current) => current + 1)
 
     if (options?.scroll && typeof document !== 'undefined') {
-      document.getElementById('kurikulum')?.scrollIntoView({ behavior: 'smooth' })
+      window.requestAnimationFrame(() => {
+        document.getElementById('division-reveal')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
     }
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    openTimer.current = window.setTimeout(
+      () => {
+        setDirectoryStage('open')
+        openTimer.current = null
+      },
+      prefersReducedMotion ? 0 : 860,
+    )
   }, [])
 
   const openMember = useCallback((member: ActiveMember) => setActiveMember(member), [])
   const closeMember = useCallback(() => setActiveMember(null), [])
 
   const value = useMemo<DirectoryContextValue>(
-    () => ({ selectedDivision, selectDivision, activeMember, openMember, closeMember }),
-    [selectedDivision, selectDivision, activeMember, openMember, closeMember],
+    () => ({
+      selectedDivision,
+      directoryStage,
+      transitionKey,
+      selectDivision,
+      activeMember,
+      openMember,
+      closeMember,
+    }),
+    [
+      selectedDivision,
+      directoryStage,
+      transitionKey,
+      selectDivision,
+      activeMember,
+      openMember,
+      closeMember,
+    ],
   )
 
   return <DirectoryContext.Provider value={value}>{children}</DirectoryContext.Provider>

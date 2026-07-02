@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { divisions as localDivisions } from '@/data/divisions'
 import { leadersByDivision as localLeadersByDivision } from '@/data/leaders'
 import { programsByDivision as localProgramsByDivision } from '@/data/programs'
@@ -41,7 +42,7 @@ function emptyDivisionRecord<T>() {
   return record
 }
 
-export async function getOrganizationData(): Promise<OrganizationData> {
+export const getOrganizationData = cache(async function getOrganizationData(): Promise<OrganizationData> {
   if (!hasFirebaseConfig()) {
     return getLocalOrganizationData()
   }
@@ -114,4 +115,4 @@ export async function getOrganizationData(): Promise<OrganizationData> {
     )
     return getLocalOrganizationData()
   }
-}
+})

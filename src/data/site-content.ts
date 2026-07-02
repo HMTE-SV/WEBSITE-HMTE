@@ -8,8 +8,8 @@ export const siteNav = [
   {
     label: 'Organisasi',
     children: [
-      { label: 'Kepengurusan', href: '/kepengurusan' },
-      { label: 'Divisi', href: '/divisi' },
+      { label: 'Bidang & Divisi', href: '/divisi' },
+      { label: 'Pengurus', href: '/kepengurusan' },
       { label: 'Program Kerja', href: '/program-kerja' },
     ],
   },
@@ -43,54 +43,22 @@ export const heroIdentity = {
   name: 'Himpunan Mahasiswa Teknik Elektro',
   context: 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
   tagline:
-    'Ruang kabar, agenda, dan kegiatan mahasiswa Teknik Elektro Sekolah Vokasi UGM — diperbarui mengikuti gerak organisasi.',
-  ctaLabel: 'Lihat agenda & kabar terbaru',
-  ctaHref: '#stats',
+    'Ruang kabar, agenda, dan dokumentasi kegiatan: dari himpunan, untuk mahasiswa.',
+  ctaLabel: 'Jelajahi kabar terbaru',
+  ctaHref: '#kabar',
 }
 
 export const newsAgendaIntro = {
   title: 'Kabar kegiatan dan agenda HMTE',
   lead:
-    'Ikuti perkembangan informasi akademik, prestasi mahasiswa, lowongan magang, proyek akhir, serta pengabdian masyarakat di lingkungan Departemen Teknik Elektro dan Informatika (DTEDI) Sekolah Vokasi UGM.',
+    'Informasi akademik, prestasi mahasiswa, magang, proyek akhir, dan pengabdian masyarakat di lingkungan DTEDI Sekolah Vokasi UGM.',
 }
-
-export const galleryIntro = {
-  title: 'Gerak yang terekam',
-  lead: 'Potongan ruang belajar, karya teknologi, dan kebersamaan mahasiswa Teknik Elektro TRE SV UGM.',
-}
-
-export const galleryPhotos = [
-  {
-    src: '/assets/ugm_socialization.png',
-    label: 'Ruang belajar',
-    alt: 'Mahasiswa mengikuti seminar keinsinyuran di ruang kuliah',
-    span: 'tall',
-  },
-  {
-    src: '/assets/robotics_prestige.png',
-    label: 'Kerja kolaboratif',
-    alt: 'Tim mahasiswa menyiapkan robot untuk kompetisi robotika',
-    span: 'wide',
-  },
-  {
-    src: '/assets/semiconductor_career.png',
-    label: 'Eksplorasi teknologi',
-    alt: 'Mahasiswa di ruang bersih fasilitas semikonduktor',
-    span: 'wide',
-  },
-  {
-    src: '/assets/solar_village.png',
-    label: 'Teknologi untuk sekitar',
-    alt: 'Mahasiswa memasang lampu tenaga surya dalam pengabdian masyarakat',
-    span: 'full',
-  },
-] as const
 
 export const kabinetIntro = {
   title: 'Bidang',
   mutedTitle: ' & divisi',
   lead:
-    'Kabinet HMTE TRE SV UGM terdiri dari tujuh bidang yang bekerja secara kolaboratif untuk menggerakkan roda organisasi, mengembangkan potensi anggota, dan mempererat hubungan internal maupun eksternal.',
+    'Kabinet HMTE TRE SV UGM digerakkan Pengurus Harian dan tujuh bidang yang bekerja kolaboratif untuk menjalankan organisasi, mengembangkan potensi anggota, dan mempererat hubungan internal maupun eksternal.',
 }
 
 export const leadershipIntro = {
@@ -105,63 +73,63 @@ export const partnersIntro = {
   titleMuted: 'dan ruang',
   titleLineThree: 'kolaborasi',
   lead:
-    'Jejaring HMTE disiapkan untuk mahasiswa, pengurus, alumni, dosen pembina, mitra kegiatan, sponsor, dan relasi industri. Detail final tetap menunggu data resmi.',
+    'Jejaring HMTE menghubungkan mahasiswa, pengurus, alumni, dosen pembina, mitra kegiatan, sponsor, dan relasi industri di lingkungan Teknologi Rekayasa Elektro Sekolah Vokasi UGM.',
 }
 
 export const partnerTiles = [
   {
-    "label": "Mahasiswa Elektro",
-    "status": "Terkonfirmasi"
+    label: 'Mahasiswa Elektro',
+    role: 'Anggota himpunan, pusat seluruh kegiatan',
   },
   {
-    "label": "Pengurus HMTE",
-    "status": "Perlu cek"
+    label: 'Pengurus HMTE',
+    role: 'Penggerak program kerja lintas bidang',
   },
   {
-    "label": "Alumni",
-    "status": "Perlu cek"
+    label: 'Alumni',
+    role: 'Jejaring karier dan mentoring lintas angkatan',
   },
   {
-    "label": "Dosen Pembina",
-    "status": "Perlu cek"
+    label: 'Dosen Pembina',
+    role: 'Pendamping arah organisasi dan akademik',
   },
   {
-    "label": "Mitra Kegiatan",
-    "status": "Perlu cek"
+    label: 'Mitra Kegiatan',
+    role: 'Kolaborator acara, pelatihan, dan kompetisi',
   },
   {
-    "label": "Relasi Industri",
-    "status": "Indikasi"
+    label: 'Relasi Industri',
+    role: 'Kanal magang, kunjungan, dan praktik industri',
   },
   {
-    "label": "Prestasi",
-    "status": "Publik awal"
+    label: 'Sponsor',
+    role: 'Pendukung pendanaan dan fasilitas kegiatan',
   },
   {
-    "label": "Aspirasi",
-    "status": "Perlu kanal"
-  }
+    label: 'Masyarakat',
+    role: 'Penerima manfaat program pengabdian',
+  },
 ] satisfies PartnerTile[]
 
 export const ctaContent = {
-  titleLineOne: 'Kirim data',
-  titleMuted: 'resmi',
+  titleLineOne: 'Terhubung',
+  titleMuted: 'dengan',
   titleLineThree: 'HMTE',
   body:
-    'Website ini siap menjadi draft resmi HMTE TRE SV UGM. Bagian logo, struktur pengurus, divisi, proker, galeri, kontak, alumni, dan partner masih perlu dikunci bersama pengurus.',
-  deadlineLabel: 'Prinsip data',
-  deadlineValue: 'Jujur / Valid / Siap isi',
-  primaryAction: 'Kirim data resmi',
-  secondaryAction: 'Lihat checklist',
+    'Punya ide, pertanyaan, atau ajakan kolaborasi? HMTE TRE SV UGM terbuka untuk mahasiswa, alumni, dan mitra. Sampaikan aspirasimu atau hubungi pengurus lewat kanal resmi.',
+  deadlineLabel: 'Kanal resmi',
+  deadlineValue: 'Instagram @hmteugm',
+  primaryAction: 'Sampaikan aspirasi',
+  secondaryAction: 'Hubungi pengurus',
 }
 
 export const footerContent = {
   addressLines: [
     ['Himpunan Mahasiswa Teknik Elektro', 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM'],
-    ['Departemen Teknik Elektro dan Informatika', 'Universitas Gadjah Mada', 'Elektro... Satu!!!'],
+    ['Departemen Teknik Elektro dan Informatika', 'Universitas Gadjah Mada'],
   ],
   bottomLeft: '© 2026 HMTE TRE SV UGM · SEKOLAH VOKASI UNIVERSITAS GADJAH MADA',
-  bottomRight: 'TERKONFIRMASI · INDIKASI PUBLIK · PERLU KONFIRMASI',
+  bottomRight: 'ELEKTRO... SATU!!!',
 }
 
 export const footerColumns = [
@@ -173,12 +141,12 @@ export const footerColumns = [
         "href": "/kontak"
       },
       {
-        "label": "Kepengurusan",
-        "href": "/kepengurusan"
+        "label": "Bidang & Divisi",
+        "href": "/divisi"
       },
       {
-        "label": "Divisi",
-        "href": "/divisi"
+        "label": "Pengurus",
+        "href": "/kepengurusan"
       },
       {
         "label": "Program Kerja",
@@ -219,12 +187,8 @@ export const footerColumns = [
         "href": "/aspirasi"
       },
       {
-        "label": "Email resmi — segera",
-        "href": "#"
-      },
-      {
-        "label": "Sekretariat — segera",
-        "href": "#"
+        "label": "Halaman kontak",
+        "href": "/kontak"
       }
     ]
   }

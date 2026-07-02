@@ -3,7 +3,7 @@ import { ctaContent } from '@/data/site-content'
 
 export function CTA() {
   return (
-    <section className="tre-cta" id="daftar">
+    <section className="tre-cta" id="hubungi">
       <div className="cta-shell">
         <div className="cta-left fade-up">
           <h2 className="cta-h2">
@@ -22,7 +22,7 @@ export function CTA() {
             <div className="dl-date">{ctaContent.deadlineValue}</div>
           </div>
           <div className="cta-actions">
-            <Link href="/kontak" className="btn btn-primary-gold">
+            <Link href="/aspirasi" className="btn btn-primary-gold">
               {ctaContent.primaryAction}{' '}
               <svg
                 width="14"
@@ -38,7 +38,7 @@ export function CTA() {
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </Link>
-            <Link href="/pengumuman" className="btn btn-secondary-dark">
+            <Link href="/kontak" className="btn btn-secondary-dark">
               {ctaContent.secondaryAction}
             </Link>
           </div>

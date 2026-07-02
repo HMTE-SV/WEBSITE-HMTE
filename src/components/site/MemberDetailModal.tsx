@@ -1,6 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef } from 'react'
+import { getLeaderHref } from '@/lib/organization-slugs'
 import { getRoleClass } from '@/lib/roles'
 import { useDirectory } from './directory/DirectoryProvider'
 
@@ -81,10 +83,8 @@ export function MemberDetailModal() {
     >
       <div className="os-modal-window" ref={windowRef}>
         <div className="os-modal-header">
-          <div className="window-controls" aria-hidden="true">
-            <span className="ctrl-dot red"></span>
-            <span className="ctrl-dot yellow"></span>
-            <span className="ctrl-dot green"></span>
+          <div className="os-modal-context" aria-hidden="true">
+            {activeMember?.divisionCode ?? 'HMTE'}
           </div>
           <div className="os-modal-title">Info Pengurus</div>
           <button
@@ -149,6 +149,9 @@ export function MemberDetailModal() {
                   <h4>Bio Organisasi</h4>
                   <p>{leader.bio || `Profil ${leader.name} akan dilengkapi bersama data resmi pengurus HMTE.`}</p>
                 </div>
+                <Link className="detail-profile-link" href={getLeaderHref(leader)}>
+                  Buka profil lengkap
+                </Link>
                 {hasSocials ? (
                   <div className="detail-socials">
                     <h4>Hubungi Pengurus</h4>

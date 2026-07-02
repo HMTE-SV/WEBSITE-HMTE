@@ -5,56 +5,56 @@ export const divisions = [
     "code": "KOMINFO",
     "name": "Komunikasi dan Informasi",
     "shortName": "KOMINFO",
-    "description": "Mengelola komunikasi organisasi, media sosial, website, dan arus informasi kepada mahasiswa dan publik.",
+    "description": "Mengelola media sosial, website, dan arus informasi himpunan.",
     "order": 1
   },
   {
     "code": "IPTEK",
     "name": "Ilmu Pengetahuan dan Teknologi",
     "shortName": "IPTEK",
-    "description": "Mendorong pengembangan kapasitas teknis anggota melalui pelatihan, seminar, riset, dan kegiatan berbasis ilmu pengetahuan.",
+    "description": "Mengembangkan kapasitas teknis anggota lewat pelatihan, seminar, dan riset.",
     "order": 2
   },
   {
     "code": "PSDM",
     "name": "Pengembangan Sumber Daya Manusia",
     "shortName": "PSDM",
-    "description": "Berfokus pada kaderisasi, pengembangan karakter, dan peningkatan kualitas sumber daya manusia di dalam organisasi.",
+    "description": "Menangani kaderisasi dan pengembangan karakter anggota.",
     "order": 3
   },
   {
     "code": "PHAL",
     "name": "Pengembangan Hubungan Antar Lembaga",
     "shortName": "PHAL",
-    "description": "Membangun dan memelihara hubungan baik dengan lembaga internal kampus maupun organisasi mahasiswa eksternal.",
+    "description": "Menjaga hubungan dengan lembaga kampus dan organisasi eksternal.",
     "order": 4
   },
   {
     "code": "MINKAT",
     "name": "Minat dan Bakat",
     "shortName": "MINKAT",
-    "description": "Memfasilitasi pengembangan minat dan bakat anggota melalui kegiatan olahraga, seni, dan aktivitas kreatif lainnya.",
+    "description": "Mewadahi minat dan bakat anggota di olahraga, seni, dan kegiatan kreatif.",
     "order": 5
   },
   {
     "code": "KASTRAD",
     "name": "Kajian Strategis dan Advokasi",
     "shortName": "KASTRAD",
-    "description": "Melakukan kajian isu strategis, advokasi kebijakan, dan memperkuat suara mahasiswa dalam pengambilan keputusan.",
+    "description": "Mengkaji isu strategis dan mengadvokasi suara mahasiswa.",
     "order": 6
   },
   {
     "code": "KEWIRUS",
     "name": "Kewirausahaan",
     "shortName": "KEWIRUS",
-    "description": "Menumbuhkan jiwa wirausaha anggota melalui pelatihan bisnis, inkubasi ide, dan kegiatan ekonomi kreatif mahasiswa.",
+    "description": "Menumbuhkan jiwa wirausaha lewat pelatihan bisnis dan ekonomi kreatif.",
     "order": 7
   },
   {
     "code": "PH",
     "name": "Pengurus Harian",
     "shortName": "PH",
-    "description": "Mengoordinasikan arah strategis, administrasi keuangan, kesekretariatan, dan manajemen internal organisasi secara menyeluruh.",
+    "description": "Mengoordinasikan arah strategis, keuangan, dan administrasi organisasi.",
     "order": 8
   }
 ] satisfies Division[]

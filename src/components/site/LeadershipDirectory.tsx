@@ -1,8 +1,10 @@
 'use client'
 
+import Image from 'next/image'
+import Link from 'next/link'
 import { useState } from 'react'
-import { leadershipDivisionOrder } from '@/data/divisions'
-import { leadershipIntro } from '@/data/site-content'
+import { isFeaturedProgram } from '@/data/featured-programs'
+import { getDivisionHref, getProgramHref } from '@/lib/organization-slugs'
 import { getRoleClass } from '@/lib/roles'
 import type { Division, DivisionCode, Leader, Program, ProgramStatus } from '@/types/content'
 import { useDirectory } from './directory/DirectoryProvider'
@@ -24,20 +26,7 @@ function programStatusClass(status: ProgramStatus) {
 
 function MemberAvatarFallback() {
   return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-      <circle cx="12" cy="7" r="4"></circle>
-    </svg>
+    <Image className="organization-logo-fallback" src="/assets/logo-hmte.svg" alt="" width={48} height={22} />
   )
 }
 
@@ -46,7 +35,7 @@ export function LeadershipDirectory({
   leadersByDivision,
   programsByDivision,
 }: LeadershipDirectoryProps) {
-  const { selectedDivision, selectDivision, openMember } = useDirectory()
+  const { selectedDivision, openMember } = useDirectory()
   const [directoryMode, setDirectoryMode] = useState<DirectoryMode>('anggota')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchQuery, setSearchQuery] = useState('')
@@ -69,12 +58,6 @@ export function LeadershipDirectory({
   const countNoun = directoryMode === 'anggota' ? 'Anggota' : 'Program Kerja'
   const chipNoun = directoryMode === 'anggota' ? 'Anggota' : 'Proker'
 
-  function changeDivision(code: DivisionCode) {
-    if (code === selectedDivision) return
-    selectDivision(code)
-    setSearchQuery('')
-  }
-
   function changeMode(mode: DirectoryMode) {
     if (mode === directoryMode) return
     setDirectoryMode(mode)
@@ -82,18 +65,8 @@ export function LeadershipDirectory({
   }
 
   return (
-    <section className="tre-curriculum" id="kurikulum">
-      <div className="curr-shell">
-        <header className="curr-head fade-up">
-          <h2 className="curr-h2">
-            <span>{leadershipIntro.titleNumber}</span>
-            <span className="big-sub">{leadershipIntro.titleLabel}</span>
-          </h2>
-          <p className="curr-lead">{leadershipIntro.lead}</p>
-        </header>
-      </div>
-
-      <div className="curr-os-wrap fade-up">
+    <div className="organization-directory">
+      <div className="curr-os-wrap">
         <div className="curr-os" aria-label="Direktori Kepengurusan HMTE">
           <div className="os-menubar">
             <div className="os-brand">
@@ -105,37 +78,9 @@ export function LeadershipDirectory({
             </div>
           </div>
           <div className="os-desktop os-desktop--kep">
-            <aside className="os-dock os-dock--kep" aria-label="Pilih bidang">
-              {leadershipDivisionOrder.map((divisionCode) => {
-                const dockDivision = divisionsByCode[divisionCode]
-                const isActive = divisionCode === selectedDivision
-
-                if (!dockDivision) {
-                  return null
-                }
-
-                return (
-                  <button
-                    type="button"
-                    className={isActive ? 'kep-dock-btn active' : 'kep-dock-btn'}
-                    aria-pressed={isActive}
-                    onClick={() => changeDivision(divisionCode)}
-                    key={dockDivision.code}
-                  >
-                    <span className="kep-dock-abbr">{dockDivision.shortName}</span>
-                    <span className="kep-dock-name">{dockDivision.name}</span>
-                  </button>
-                )
-              })}
-            </aside>
-
             <section className="os-window os-window--kep" aria-live="polite">
               <div className="window-top">
-                <div className="window-controls" aria-hidden="true">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
+                <div className="workspace-context-mark" aria-hidden="true">HMTE</div>
                 <div className="window-title-wrap">
                   <div className="window-title" id="kepWindowTitle">
                     {division ? division.name : selectedDivision}
@@ -169,58 +114,60 @@ export function LeadershipDirectory({
                       aria-label={directoryMode === 'proker' ? 'Cari program kerja' : 'Cari pengurus'}
                     />
                   </div>
-                  <div className="view-toggle" role="group" aria-label="Mode Tampilan">
-                    <button
-                      type="button"
-                      className={viewMode === 'grid' ? 'toggle-btn active' : 'toggle-btn'}
-                      aria-pressed={viewMode === 'grid'}
-                      onClick={() => setViewMode('grid')}
-                      title="Tampilan Grid"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
+                  {directoryMode === 'anggota' ? (
+                    <div className="view-toggle" role="group" aria-label="Mode Tampilan">
+                      <button
+                        type="button"
+                        className={viewMode === 'grid' ? 'toggle-btn active' : 'toggle-btn'}
+                        aria-pressed={viewMode === 'grid'}
+                        onClick={() => setViewMode('grid')}
+                        title="Tampilan Grid"
                       >
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      className={viewMode === 'list' ? 'toggle-btn active' : 'toggle-btn'}
-                      aria-pressed={viewMode === 'list'}
-                      onClick={() => setViewMode('list')}
-                      title="Tampilan Daftar"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <rect x="3" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="14" width="7" height="7"></rect>
+                          <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        className={viewMode === 'list' ? 'toggle-btn active' : 'toggle-btn'}
+                        aria-pressed={viewMode === 'list'}
+                        onClick={() => setViewMode('list')}
+                        title="Tampilan Daftar"
                       >
-                        <line x1="8" y1="6" x2="21" y2="6"></line>
-                        <line x1="8" y1="12" x2="21" y2="12"></line>
-                        <line x1="8" y1="18" x2="21" y2="18"></line>
-                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="8" y1="6" x2="21" y2="6"></line>
+                          <line x1="8" y1="12" x2="21" y2="12"></line>
+                          <line x1="8" y1="18" x2="21" y2="18"></line>
+                          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="window-tabs" role="tablist" aria-label="Menu Direktori">
@@ -328,16 +275,26 @@ export function LeadershipDirectory({
               ) : (
                 <div className="kep-members-grid">
                   {filteredPrograms.length > 0 ? (
-                    filteredPrograms.map((program) => (
-                      <div className="proker-card" key={program.name}>
+                    filteredPrograms.map((program) => {
+                      const featured = isFeaturedProgram(selectedDivision, program.name)
+
+                      return (
+                      <div className={featured ? 'proker-card is-featured' : 'proker-card'} key={program.name}>
                         <div className="proker-header">
-                          <span className={`status-tag ${programStatusClass(program.status)}`}>{program.status}</span>
+                          <div>
+                            <span className={`status-tag ${programStatusClass(program.status)}`}>{program.status}</span>
+                            {featured ? <span className="proker-featured-tag">Unggulan</span> : null}
+                          </div>
                           <span className="proker-date">{program.date}</span>
                         </div>
                         <h4 className="proker-title">{program.name}</h4>
                         <p className="proker-desc">{program.desc}</p>
+                        {featured ? (
+                          <Link className="proker-detail-link" href={getProgramHref(program)}>Buka detail program</Link>
+                        ) : null}
                       </div>
-                    ))
+                      )
+                    })
                   ) : (
                     <div className="empty-search-state">
                       <svg
@@ -360,10 +317,22 @@ export function LeadershipDirectory({
                   )}
                 </div>
               )}
+              <div className="workspace-footer-actions">
+                <Link href={getDivisionHref(selectedDivision)}>Profil lengkap {division.shortName}</Link>
+                <Link
+                  href={
+                    directoryMode === 'anggota'
+                      ? `/kepengurusan?divisi=${selectedDivision}`
+                      : `/program-kerja#division-${selectedDivision.toLowerCase()}`
+                  }
+                >
+                  {directoryMode === 'anggota' ? 'Semua pengurus' : 'Semua program kerja'}
+                </Link>
+              </div>
             </section>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   )
 }

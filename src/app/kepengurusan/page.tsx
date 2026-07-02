@@ -1,43 +1,46 @@
 import type { Metadata } from 'next'
-import { PublicCard, PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
+import { LeadershipIndex } from '@/components/site/LeadershipIndex'
+import { PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
 import { leadershipDivisionOrder } from '@/data/divisions'
 import { getOrganizationData } from '@/lib/organization-data'
+import type { DivisionCode } from '@/types/content'
 
 export const metadata: Metadata = {
-  title: 'Kepengurusan HMTE TRE SV UGM',
-  description: 'Direktori kepengurusan HMTE TRE SV UGM.',
+  title: 'Pengurus HMTE TRE SV UGM',
+  description: 'Direktori pengurus HMTE TRE SV UGM lintas bidang dan jabatan.',
 }
 
-export default async function LeadershipPage() {
-  const { divisionsByCode, leadersByDivision } = await getOrganizationData()
+type LeadershipPageProps = {
+  searchParams: Promise<{ divisi?: string }>
+}
+
+export default async function LeadershipPage({ searchParams }: LeadershipPageProps) {
+  const [{ divisi }, { divisionsByCode, leadersByDivision }] = await Promise.all([
+    searchParams,
+    getOrganizationData(),
+  ])
+  const divisions = leadershipDivisionOrder.flatMap((code) => {
+    const division = divisionsByCode[code]
+    return division ? [division] : []
+  })
+  const normalizedDivision = divisi?.toUpperCase()
+  const initialDivision = leadershipDivisionOrder.includes(normalizedDivision as DivisionCode)
+    ? (normalizedDivision as DivisionCode)
+    : 'ALL'
 
   return (
-    <PublicPageFrame>
+    <PublicPageFrame activeHref="/kepengurusan">
       <PublicPageHeader
-        kicker="Kepengurusan"
-        title="Direktori pengurus"
-        lead="Ringkasan pengurus per bidang. Data ini disiapkan agar nanti bisa dikelola melalui admin dashboard."
+        kicker="Pengurus"
+        title="Orang-orang di balik HMTE"
+        lead="Temukan pengurus berdasarkan bidang, jabatan, atau nama. Setiap profil tetap terhubung dengan divisi dan program kerja yang dijalankan."
       />
-      <PublicSection title="Bidang dan anggota">
-        <div className="public-grid two">
-          {leadershipDivisionOrder.map((divisionCode) => {
-            const division = divisionsByCode[divisionCode]
-            const leaders = leadersByDivision[divisionCode]
-
-            if (!division) {
-              return null
-            }
-
-            return (
-              <PublicCard
-                eyebrow={`${leaders.length} anggota`}
-                title={division.name}
-                body={leaders.map((leader) => `${leader.name} (${leader.role})`).join(', ')}
-                key={division.code}
-              />
-            )
-          })}
-        </div>
+      <PublicSection>
+        <LeadershipIndex
+          divisions={divisions}
+          leadersByDivision={leadersByDivision}
+          initialDivision={initialDivision}
+        />
       </PublicSection>
     </PublicPageFrame>
   )

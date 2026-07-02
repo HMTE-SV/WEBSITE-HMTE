@@ -49,7 +49,7 @@ export const articleCategories = {
     },
     "latest": [
       {
-        "image": "assets/ugm_socialization.png",
+        "image": "assets/robotics_prestige.png",
         "publisher": "UGM",
         "publisherIcon": "U",
         "timeAgo": "Mei 25, 2026",
@@ -59,7 +59,7 @@ export const articleCategories = {
         "readTime": "4 min read"
       },
       {
-        "image": "assets/robotics_prestige.png",
+        "image": "assets/semiconductor_career.png",
         "publisher": "SV UGM",
         "publisherIcon": "S",
         "timeAgo": "Mei 22, 2026",
@@ -69,7 +69,7 @@ export const articleCategories = {
         "readTime": "6 min read"
       },
       {
-        "image": "assets/semiconductor_career.png",
+        "image": "assets/smart_grid_dashboard.png",
         "publisher": "DTEDI SV UGM",
         "publisherIcon": "D",
         "timeAgo": "Mei 19, 2026",
@@ -103,7 +103,7 @@ export const articleCategories = {
     },
     "latest": [
       {
-        "image": "assets/ugm_socialization.png",
+        "image": "assets/semiconductor_career.png",
         "publisher": "UGM",
         "publisherIcon": "U",
         "timeAgo": "Mei 24, 2026",
@@ -113,7 +113,7 @@ export const articleCategories = {
         "readTime": "4 min read"
       },
       {
-        "image": "assets/robotics_prestige.png",
+        "image": "assets/smart_grid_dashboard.png",
         "publisher": "SV UGM",
         "publisherIcon": "S",
         "timeAgo": "Mei 19, 2026",
@@ -123,7 +123,7 @@ export const articleCategories = {
         "readTime": "7 min read"
       },
       {
-        "image": "assets/smart_grid_dashboard.png",
+        "image": "assets/solar_village.png",
         "publisher": "DTEDI SV UGM",
         "publisherIcon": "D",
         "timeAgo": "Mei 10, 2026",
@@ -133,7 +133,7 @@ export const articleCategories = {
         "readTime": "5 min read"
       },
       {
-        "image": "assets/solar_village.png",
+        "image": "assets/ugm_socialization.png",
         "publisher": "HMTE",
         "publisherIcon": "H",
         "timeAgo": "Mei 05, 2026",
@@ -157,7 +157,7 @@ export const articleCategories = {
     },
     "latest": [
       {
-        "image": "assets/ugm_socialization.png",
+        "image": "assets/smart_grid_dashboard.png",
         "publisher": "UGM",
         "publisherIcon": "U",
         "timeAgo": "Mei 25, 2026",
@@ -167,7 +167,7 @@ export const articleCategories = {
         "readTime": "4 min read"
       },
       {
-        "image": "assets/robotics_prestige.png",
+        "image": "assets/solar_village.png",
         "publisher": "SV UGM",
         "publisherIcon": "S",
         "timeAgo": "Mei 19, 2026",
@@ -177,7 +177,7 @@ export const articleCategories = {
         "readTime": "6 min read"
       },
       {
-        "image": "assets/semiconductor_career.png",
+        "image": "assets/ugm_socialization.png",
         "publisher": "DTEDI SV UGM",
         "publisherIcon": "D",
         "timeAgo": "Mei 08, 2026",
@@ -187,7 +187,7 @@ export const articleCategories = {
         "readTime": "5 min read"
       },
       {
-        "image": "assets/solar_village.png",
+        "image": "assets/robotics_prestige.png",
         "publisher": "HMTE",
         "publisherIcon": "H",
         "timeAgo": "April 28, 2026",
@@ -221,7 +221,7 @@ export const articleCategories = {
         "readTime": "4 min read"
       },
       {
-        "image": "assets/smart_grid_dashboard.png",
+        "image": "assets/solar_village.png",
         "publisher": "SV UGM",
         "publisherIcon": "S",
         "timeAgo": "Mei 19, 2026",
@@ -241,7 +241,7 @@ export const articleCategories = {
         "readTime": "6 min read"
       },
       {
-        "image": "assets/solar_village.png",
+        "image": "assets/semiconductor_career.png",
         "publisher": "HMTE",
         "publisherIcon": "H",
         "timeAgo": "Mei 02, 2026",
@@ -265,7 +265,7 @@ export const articleCategories = {
     },
     "latest": [
       {
-        "image": "assets/ugm_socialization.png",
+        "image": "assets/semiconductor_career.png",
         "publisher": "UGM",
         "publisherIcon": "U",
         "timeAgo": "Mei 22, 2026",
@@ -285,7 +285,7 @@ export const articleCategories = {
         "readTime": "6 min read"
       },
       {
-        "image": "assets/smart_grid_dashboard.png",
+        "image": "assets/ugm_socialization.png",
         "publisher": "DTEDI SV UGM",
         "publisherIcon": "D",
         "timeAgo": "Mei 06, 2026",
@@ -319,7 +319,7 @@ export const articleCategories = {
     },
     "latest": [
       {
-        "image": "assets/ugm_socialization.png",
+        "image": "assets/smart_grid_dashboard.png",
         "publisher": "UGM",
         "publisherIcon": "U",
         "timeAgo": "Mei 21, 2026",
@@ -339,7 +339,7 @@ export const articleCategories = {
         "readTime": "5 min read"
       },
       {
-        "image": "assets/ugm_socialization.png",
+        "image": "assets/semiconductor_career.png",
         "publisher": "DTEDI SV UGM",
         "publisherIcon": "D",
         "timeAgo": "Mei 08, 2026",
@@ -447,7 +447,7 @@ export const articleCategories = {
         "readTime": "4 min read"
       },
       {
-        "image": "assets/solar_village.png",
+        "image": "assets/semiconductor_career.png",
         "publisher": "DTEDI SV UGM",
         "publisherIcon": "D",
         "timeAgo": "Mei 06, 2026",
@@ -457,7 +457,7 @@ export const articleCategories = {
         "readTime": "6 min read"
       },
       {
-        "image": "assets/solar_village.png",
+        "image": "assets/smart_grid_dashboard.png",
         "publisher": "HMTE",
         "publisherIcon": "H",
         "timeAgo": "April 10, 2026",
