@@ -1,16 +1,19 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { LogoMark } from '@/components/site/Brand'
 import { getToKnowContent } from '@/data/site-content'
 
-function AboutField({ activeStep }: { activeStep: number }) {
+const SCENE_COUNT = 4
+
+function CinemaCanvas({ activeScene }: { activeScene: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const activeStepRef = useRef(activeStep)
+  const sceneRef = useRef(activeScene)
 
   useEffect(() => {
-    activeStepRef.current = activeStep
-  }, [activeStep])
+    sceneRef.current = activeScene
+  }, [activeScene])
 
   useEffect(() => {
     const canvasElement = canvasRef.current
@@ -19,19 +22,19 @@ function AboutField({ activeStep }: { activeStep: number }) {
     if (!drawingContext) return
     const canvas: HTMLCanvasElement = canvasElement
     const context: CanvasRenderingContext2D = drawingContext
-
+    const section = canvas.closest<HTMLElement>('.about-cinema')
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const pointer = { x: 0.5, y: 0.5 }
+    const particles = Array.from({ length: 72 }, (_, index) => ({
+      angle: (index / 72) * Math.PI * 2,
+      orbit: 0.18 + ((index * 17) % 53) / 100,
+      speed: 0.14 + (index % 7) * 0.018,
+      size: 0.7 + (index % 5) * 0.42,
+      phase: (index * 0.61803398875) % 1,
+    }))
     let width = 0
     let height = 0
     let frame = 0
-
-    const particles = Array.from({ length: 38 }, (_, index) => ({
-      phase: (index * 0.61803398875) % 1,
-      lane: (index * 7) % 13,
-      speed: 0.018 + (index % 5) * 0.004,
-      radius: 0.8 + (index % 4) * 0.45,
-    }))
 
     function resize() {
       const bounds = canvas.getBoundingClientRect()
@@ -44,58 +47,55 @@ function AboutField({ activeStep }: { activeStep: number }) {
     }
 
     function draw(timestamp: number) {
-      const time = reducedMotion ? 0 : timestamp * 0.00018
-      const step = activeStepRef.current
+      const time = reducedMotion ? 0 : timestamp * 0.00035
+      const scene = sceneRef.current
+      const progress = Number.parseFloat(section?.style.getPropertyValue('--cinema-progress') || '0')
+      const centerX = width * (0.5 + (pointer.x - 0.5) * 0.08)
+      const centerY = height * (0.48 + (pointer.y - 0.5) * 0.06)
+      const scale = Math.min(width, height)
+
       context.clearRect(0, 0, width, height)
 
-      const halo = context.createRadialGradient(
-        pointer.x * width,
-        pointer.y * height,
-        0,
-        pointer.x * width,
-        pointer.y * height,
-        Math.max(width, height) * 0.62,
-      )
-      halo.addColorStop(0, `rgba(21, 112, 198, ${0.16 + step * 0.025})`)
-      halo.addColorStop(0.48, 'rgba(3, 61, 125, 0.08)')
-      halo.addColorStop(1, 'rgba(1, 19, 51, 0)')
-      context.fillStyle = halo
+      const glow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, scale * 0.58)
+      glow.addColorStop(0, `rgba(19, 112, 205, ${0.22 + scene * 0.025})`)
+      glow.addColorStop(0.45, 'rgba(6, 61, 127, 0.09)')
+      glow.addColorStop(1, 'rgba(0, 13, 36, 0)')
+      context.fillStyle = glow
       context.fillRect(0, 0, width, height)
 
-      for (let lane = 0; lane < 13; lane += 1) {
-        const laneY = ((lane + 0.7) / 13) * height
-        const sway = Math.sin(time * (1.1 + step * 0.16) + lane * 0.72) * height * 0.055
-        const pullX = (pointer.x - 0.5) * width * 0.19
-        const pullY = (pointer.y - 0.5) * height * 0.16
-        const gradient = context.createLinearGradient(0, laneY, width, laneY)
-        gradient.addColorStop(0, 'rgba(68, 144, 222, 0)')
-        gradient.addColorStop(0.42, `rgba(90, 164, 238, ${0.1 + lane * 0.004})`)
-        gradient.addColorStop(0.72, 'rgba(245, 184, 46, 0.2)')
-        gradient.addColorStop(1, 'rgba(245, 184, 46, 0)')
-
+      for (let ring = 0; ring < 9; ring += 1) {
+        const radius = scale * (0.1 + ring * 0.055)
+        const rotation = time * (ring % 2 === 0 ? 1 : -0.72) + progress * Math.PI * (1.4 + ring * 0.05)
+        const squeeze = 0.56 + scene * 0.1
         context.beginPath()
-        context.moveTo(-width * 0.08, laneY)
-        context.bezierCurveTo(
-          width * 0.25 + pullX,
-          laneY + sway,
-          width * 0.56 - pullX * 0.6,
-          laneY - sway * 1.35 + pullY,
-          width * 1.08,
-          laneY + Math.sin(time + lane) * height * 0.025,
-        )
-        context.strokeStyle = gradient
-        context.lineWidth = lane % 4 === 0 ? 1.4 : 0.72
+
+        for (let point = 0; point <= 120; point += 1) {
+          const angle = (point / 120) * Math.PI * 2
+          const pulse = Math.sin(angle * (2 + scene) + time * 3 + ring) * scale * 0.009
+          const x = centerX + Math.cos(angle + rotation) * (radius + pulse)
+          const y = centerY + Math.sin(angle + rotation) * (radius + pulse) * squeeze
+          if (point === 0) context.moveTo(x, y)
+          else context.lineTo(x, y)
+        }
+
+        context.strokeStyle = ring % 3 === 0
+          ? `rgba(245, 184, 46, ${0.08 + ring * 0.006})`
+          : `rgba(93, 169, 239, ${0.08 + ring * 0.008})`
+        context.lineWidth = ring % 3 === 0 ? 1.25 : 0.7
         context.stroke()
       }
 
-      particles.forEach((particle) => {
-        const progress = (particle.phase + time * particle.speed * 14 + step * 0.07) % 1
-        const x = progress * width
-        const baseY = ((particle.lane + 0.7) / 13) * height
-        const y = baseY + Math.sin(time * 5 + particle.lane * 0.72 + progress * 6) * height * 0.055
+      particles.forEach((particle, index) => {
+        const direction = index % 2 === 0 ? 1 : -1
+        const angle = particle.angle + time * particle.speed * direction + progress * Math.PI * 1.8
+        const radius = scale * particle.orbit
+        const topology = 0.54 + scene * 0.1
+        const wave = Math.sin(angle * (scene + 1) + particle.phase * 8) * scale * 0.018
+        const x = centerX + Math.cos(angle) * (radius + wave)
+        const y = centerY + Math.sin(angle) * radius * topology
         context.beginPath()
-        context.arc(x, y, particle.radius, 0, Math.PI * 2)
-        context.fillStyle = particle.lane % 4 === 0 ? 'rgba(245, 184, 46, 0.72)' : 'rgba(142, 197, 250, 0.52)'
+        context.arc(x, y, particle.size, 0, Math.PI * 2)
+        context.fillStyle = index % 9 === 0 ? 'rgba(245, 184, 46, 0.78)' : 'rgba(152, 207, 255, 0.52)'
         context.fill()
       })
 
@@ -103,8 +103,8 @@ function AboutField({ activeStep }: { activeStep: number }) {
     }
 
     function handlePointer(event: PointerEvent) {
-      pointer.x += (event.clientX / window.innerWidth - pointer.x) * 0.18
-      pointer.y += (event.clientY / window.innerHeight - pointer.y) * 0.18
+      pointer.x += (event.clientX / window.innerWidth - pointer.x) * 0.12
+      pointer.y += (event.clientY / window.innerHeight - pointer.y) * 0.12
     }
 
     const resizeObserver = new ResizeObserver(resize)
@@ -120,79 +120,135 @@ function AboutField({ activeStep }: { activeStep: number }) {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="about-field-canvas" aria-hidden="true" />
+  return <canvas ref={canvasRef} className="about-cinema-canvas" aria-hidden="true" />
 }
 
 export function GetToKnow() {
-  const [activeStep, setActiveStep] = useState(0)
-  const stepRefs = useRef<Array<HTMLElement | null>>([])
+  const [activeScene, setActiveScene] = useState(0)
+  const sectionRef = useRef<HTMLElement>(null)
+  const activeSceneRef = useRef(0)
 
   useEffect(() => {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (reducedMotion.matches) return
+    const section = sectionRef.current
+    if (!section) return
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reducedMotion) return
+    let frame = 0
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0]
+    function update() {
+      frame = 0
+      if (!section) return
+      const bounds = section.getBoundingClientRect()
+      const travel = Math.max(section.offsetHeight - window.innerHeight, 1)
+      const progress = Math.min(1, Math.max(0, -bounds.top / travel))
+      const nextScene = Math.min(SCENE_COUNT - 1, Math.floor(progress * SCENE_COUNT))
+      section.style.setProperty('--cinema-progress', progress.toFixed(4))
 
-        if (visibleEntry) setActiveStep(Number((visibleEntry.target as HTMLElement).dataset.step))
-      },
-      { rootMargin: '-28% 0px -42%', threshold: [0.18, 0.48, 0.76] },
-    )
+      if (nextScene !== activeSceneRef.current) {
+        activeSceneRef.current = nextScene
+        setActiveScene(nextScene)
+      }
+    }
 
-    stepRefs.current.forEach((element) => {
-      if (element) observer.observe(element)
-    })
+    function handleScroll() {
+      if (!frame) frame = window.requestAnimationFrame(update)
+    }
 
-    return () => observer.disconnect()
+    update()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
   }, [])
 
+  function goToScene(index: number) {
+    const section = sectionRef.current
+    if (!section) return
+    const travel = Math.max(section.offsetHeight - window.innerHeight, 1)
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({
+      top: section.offsetTop + (travel * index) / (SCENE_COUNT - 1),
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    })
+  }
+
+  const scenes = [
+    {
+      label: 'HMTE TRE SV UGM',
+      title: 'Tempat energi mahasiswa bertemu.',
+      body: 'Satu ruang bersama untuk bertumbuh, mencoba hal baru, dan membawa gagasan menjadi gerakan yang terasa.',
+    },
+    ...getToKnowContent.steps.map((step) => ({ label: step.label, title: step.title, body: step.body })),
+  ]
+
   return (
-    <section className="about-field" id="tentang" aria-labelledby="about-field-title">
-      <div className="about-field-stage">
-        <AboutField activeStep={activeStep} />
-        <div className="about-field-wash" aria-hidden="true" />
+    <section
+      ref={sectionRef}
+      className="about-cinema"
+      id="tentang"
+      data-scene={activeScene}
+      aria-labelledby="about-cinema-title"
+    >
+      <div className="about-cinema-stage">
+        <CinemaCanvas activeScene={activeScene} />
+        <div className="about-cinema-tone" aria-hidden="true" />
 
-        <aside className="about-field-identity">
-          <LogoMark width={250} height={74} className="about-field-logo" />
-          <div>
-            <strong>{getToKnowContent.identity}</strong>
-            <span>{getToKnowContent.period}</span>
-          </div>
+        <div className="about-cinema-frames" aria-hidden="true">
+          <figure className="about-cinema-frame about-cinema-frame--one">
+            <Image src="/assets/robotics_prestige.png" alt="" fill sizes="30vw" />
+          </figure>
+          <figure className="about-cinema-frame about-cinema-frame--two">
+            <Image src="/assets/ugm_socialization.png" alt="" fill sizes="26vw" />
+          </figure>
+          <figure className="about-cinema-frame about-cinema-frame--three">
+            <Image src="/assets/solar_village.png" alt="" fill sizes="24vw" />
+          </figure>
+        </div>
+
+        <div className="about-cinema-mark" aria-hidden="true">
+          <LogoMark width={330} height={98} className="about-cinema-logo" />
+          <span>{getToKnowContent.period}</span>
+        </div>
+
+        <header className="about-cinema-meta">
+          <strong>{getToKnowContent.identity}</strong>
           <p>{getToKnowContent.context}</p>
-          <div className="about-field-meter" aria-hidden="true">
-            {getToKnowContent.steps.map((item, index) => (
-              <span className={index === activeStep ? 'is-active' : undefined} key={item.label} />
-            ))}
-          </div>
-        </aside>
-      </div>
-
-      <div className="about-field-story">
-        <header className="about-field-intro">
-          <p>Get to know us</p>
-          <h2 id="about-field-title">Kenal dulu. Baru bergerak bersama.</h2>
         </header>
 
-        {getToKnowContent.steps.map((item, index) => (
-          <article
-            ref={(element) => {
-              stepRefs.current[index] = element
-            }}
-            className={index === activeStep ? 'about-field-chapter is-active' : 'about-field-chapter'}
-            data-step={index}
-            key={item.label}
-          >
-            <div className="about-field-index">
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <strong>{item.label}</strong>
-            </div>
-            <h3>{item.title}</h3>
-            <p>{item.body}</p>
-          </article>
-        ))}
+        <div className="about-cinema-scenes">
+          {scenes.map((scene, index) => (
+            <article
+              className={`about-cinema-scene about-cinema-scene--${index}${index === activeScene ? ' is-active' : ''}`}
+              aria-hidden={index !== activeScene}
+              key={scene.label}
+            >
+              <span>{scene.label}</span>
+              <h2 id={index === 0 ? 'about-cinema-title' : undefined}>{scene.title}</h2>
+              <p>{scene.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <nav className="about-cinema-nav" aria-label="Navigasi cerita Tentang HMTE">
+          {scenes.map((scene, index) => (
+            <button
+              type="button"
+              className={index === activeScene ? 'is-active' : undefined}
+              onClick={() => goToScene(index)}
+              aria-label={`Buka bagian ${scene.label}`}
+              aria-current={index === activeScene ? 'step' : undefined}
+              key={scene.label}
+            >
+              <i aria-hidden="true" />
+              <span>{scene.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <p className="about-cinema-scroll">Scroll untuk mengubah medan</p>
       </div>
     </section>
   )
