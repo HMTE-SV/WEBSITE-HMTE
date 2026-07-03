@@ -6,6 +6,10 @@ export const siteNav = [
     href: '/',
   },
   {
+    label: 'Tentang HMTE',
+    href: '/#tentang',
+  },
+  {
     label: 'Organisasi',
     children: [
       { label: 'Bidang & Divisi', href: '/divisi' },
@@ -20,14 +24,6 @@ export const siteNav = [
       { label: 'Agenda', href: '/agenda' },
       { label: 'Pengumuman', href: '/pengumuman' },
     ],
-  },
-  {
-    label: 'Galeri',
-    href: '/galeri',
-  },
-  {
-    label: 'Aspirasi',
-    href: '/aspirasi',
   },
 ] satisfies NavItem[]
 
@@ -52,6 +48,32 @@ export const newsAgendaIntro = {
   title: 'Kabar kegiatan dan agenda HMTE',
   lead:
     'Informasi akademik, prestasi mahasiswa, magang, proyek akhir, dan pengabdian masyarakat di lingkungan DTEDI Sekolah Vokasi UGM.',
+}
+
+export const getToKnowContent = {
+  identity: 'Kabinet HMTE',
+  period: 'Periode 2026',
+  context: 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
+  steps: [
+    {
+      label: 'Siapa kami',
+      title: 'Bukan sekadar kepengurusan.',
+      body:
+        'HMTE adalah ruang temu mahasiswa Elektro untuk belajar bersama, menguji gagasan, dan mengubah kebutuhan sehari-hari menjadi gerakan yang nyata.',
+    },
+    {
+      label: 'Visi',
+      title: 'Ruang tumbuh yang saling menguatkan.',
+      body:
+        'Kami ingin setiap mahasiswa merasa punya tempat untuk berkembang—secara teknis, sosial, maupun personal—tanpa harus berjalan sendirian.',
+    },
+    {
+      label: 'Misi',
+      title: 'Belajar. Bergerak. Membawa dampak.',
+      body:
+        'Menghubungkan pengembangan kompetensi, advokasi mahasiswa, ekspresi minat, dan kolaborasi menjadi pengalaman organisasi yang relevan dan bisa dirasakan.',
+    },
+  ],
 }
 
 export const kabinetIntro = {

@@ -1,5 +1,6 @@
 import { CTA } from '@/components/site/CTA'
 import { Footer } from '@/components/site/Footer'
+import { GetToKnow } from '@/components/site/GetToKnow'
 import { Header } from '@/components/site/Header'
 import { Hero } from '@/components/site/Hero'
 import { NewsAgenda } from '@/components/site/NewsAgenda'
@@ -17,6 +18,7 @@ export default async function Home() {
         <Header variant="landing" />
       </div>
       <main id="main-content">
+        <GetToKnow />
         <NewsAgenda />
         <OrganizationDirectory
           divisions={organizationData.divisions}
