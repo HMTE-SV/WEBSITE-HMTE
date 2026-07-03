@@ -1,6 +1,8 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
-import { heroActivityImages } from '@/data/site-content'
+import { useEffect, useRef, useState } from 'react'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 
 type HMTEMomentumProps = {
@@ -9,64 +11,212 @@ type HMTEMomentumProps = {
   programsByDivision: Record<DivisionCode, Program[]>
 }
 
+type MomentTile = {
+  src: string
+  alt: string
+  label: string
+  size: 'tall' | 'wide' | 'base' | 'grand'
+  drift: number
+  rotate: number
+  position?: string
+}
+
+const moments: MomentTile[] = [
+  {
+    src: '/assets/ugm_socialization.png',
+    alt: 'Mahasiswa mengikuti seminar keinsinyuran di ruang kuliah',
+    label: 'Sosialisasi & seminar',
+    size: 'tall',
+    drift: -46,
+    rotate: -1.3,
+  },
+  {
+    src: '/assets/robotics_prestige.png',
+    alt: 'Tim mahasiswa menyiapkan robot untuk kompetisi robotika',
+    label: 'Tim robotika',
+    size: 'base',
+    drift: 34,
+    rotate: 1.1,
+  },
+  {
+    src: '/assets/smart_grid_dashboard.png',
+    alt: 'Pengujian dasbor smart grid di laboratorium elektro',
+    label: 'Riset smart grid',
+    size: 'base',
+    drift: -18,
+    rotate: -0.7,
+  },
+  {
+    src: '/assets/solar_village.png',
+    alt: 'Mahasiswa memasang lampu tenaga surya dalam pengabdian masyarakat',
+    label: 'Pengabdian desa',
+    size: 'tall',
+    drift: 42,
+    rotate: 1.4,
+  },
+  {
+    src: '/assets/semiconductor_career.png',
+    alt: 'Mahasiswa di ruang bersih fasilitas semikonduktor',
+    label: 'Kunjungan industri',
+    size: 'base',
+    drift: -30,
+    rotate: -1,
+  },
+  {
+    src: '/assets/ugm_socialization.png',
+    alt: 'Suasana kebersamaan pengurus HMTE di sela kegiatan',
+    label: 'Momen bersama',
+    size: 'grand',
+    drift: 22,
+    rotate: 0.6,
+    position: '50% 30%',
+  },
+]
+
 export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision }: HMTEMomentumProps) {
+  const [isInView, setIsInView] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+
   const members = Object.values(leadersByDivision).flat()
   const programs = Object.values(programsByDivision).flat()
-  const activePrograms = programs.filter((program) => program.status === 'Sedang Berjalan')
 
-  const stats = [
-    { value: divisions.length, label: 'bidang bergerak bersama' },
-    { value: members.length, label: 'pengurus dalam satu periode' },
-    { value: programs.length, label: 'program kerja terdata' },
-    { value: activePrograms.length, label: 'sedang berjalan sekarang' },
-  ]
+  // Scroll progress feeds the per-tile parallax drift.
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setIsInView(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.12 },
+    )
+    observer.observe(section)
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return () => observer.disconnect()
+    }
+
+    let frame: number | null = null
+
+    function update() {
+      frame = null
+      if (!section) return
+      const rect = section.getBoundingClientRect()
+      const total = rect.height + window.innerHeight
+      const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / total))
+      section.style.setProperty('--wall-progress', (progress * 2 - 1).toFixed(4))
+    }
+
+    function handleScroll() {
+      if (frame === null) frame = window.requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', handleScroll)
+      if (frame !== null) window.cancelAnimationFrame(frame)
+    }
+  }, [])
 
   return (
-    <section className="hmte-momentum" id="hmte-dalam-gerak">
-      <div className="hmte-momentum-shell">
-        <header className="hmte-momentum-head">
-          <span className="hmte-momentum-eyebrow">HMTE dalam gerak</span>
-          <h2>Organisasi terasa hidup ketika dampaknya terlihat.</h2>
+    <section
+      ref={sectionRef}
+      className={isInView ? 'moment-wall is-inview' : 'moment-wall'}
+      id="hmte-dalam-gerak"
+      aria-labelledby="moment-wall-title"
+    >
+      <div className="moment-wall-shell">
+        <header className="moment-wall-head">
+          <span className="moment-wall-kicker">HMTE dalam gerak</span>
+          <h2 id="moment-wall-title">Yang kami jalani, yang kami rawat.</h2>
           <p>
-            Bukan deretan logo mitra. Ini potret skala kerja HMTE—siapa yang bergerak, apa yang dikerjakan,
-            dan momen yang lahir dari prosesnya.
+            Bukan deretan logo mitra — ini dinding kenangan yang terus bertambah. Momen-momen yang lahir
+            dari kerja bersama satu periode kepengurusan.
           </p>
         </header>
 
-        <div className="hmte-momentum-stats" aria-label="HMTE dalam angka">
-          {stats.map((stat, index) => (
-            <div className="hmte-momentum-stat" key={stat.label}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <strong>{stat.value}</strong>
-              <p>{stat.label}</p>
-            </div>
+        <div className="moment-wall-grid">
+          {moments.slice(0, 3).map((moment, index) => (
+            <figure
+              className={`moment-tile moment-tile--${moment.size}`}
+              style={
+                {
+                  '--drift': `${moment.drift}px`,
+                  '--rot': `${moment.rotate}deg`,
+                  '--tile-delay': `${index * 110}ms`,
+                } as React.CSSProperties
+              }
+              key={`${moment.src}-${moment.label}`}
+            >
+              <div className="moment-tile-photo">
+                <Image
+                  src={moment.src}
+                  alt={moment.alt}
+                  fill
+                  sizes="(max-width: 700px) 82vw, 32vw"
+                  style={moment.position ? { objectPosition: moment.position } : undefined}
+                />
+              </div>
+              <figcaption>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                {moment.label}
+              </figcaption>
+            </figure>
+          ))}
+
+          <div
+            className="moment-tile moment-tile--quote"
+            style={{ '--drift': '-24px', '--tile-delay': '330ms' } as React.CSSProperties}
+          >
+            <p>Setiap momen adalah bukti kami bergerak.</p>
+            <span>Kabinet HMTE · Periode 2026</span>
+          </div>
+
+          {moments.slice(3).map((moment, index) => (
+            <figure
+              className={`moment-tile moment-tile--${moment.size}`}
+              style={
+                {
+                  '--drift': `${moment.drift}px`,
+                  '--rot': `${moment.rotate}deg`,
+                  '--tile-delay': `${(index + 4) * 110}ms`,
+                } as React.CSSProperties
+              }
+              key={`${moment.src}-${moment.label}`}
+            >
+              <div className="moment-tile-photo">
+                <Image
+                  src={moment.src}
+                  alt={moment.alt}
+                  fill
+                  sizes={moment.size === 'grand' ? '(max-width: 700px) 82vw, 64vw' : '(max-width: 700px) 82vw, 32vw'}
+                  style={moment.position ? { objectPosition: moment.position } : undefined}
+                />
+              </div>
+              <figcaption>
+                <span>{String(index + 4).padStart(2, '0')}</span>
+                {moment.label}
+              </figcaption>
+            </figure>
           ))}
         </div>
 
-        <div className="hmte-momentum-moments">
-          <div className="hmte-momentum-caption">
-            <span>Momen yang dibangun bersama</span>
-            <Link href="/galeri">Buka galeri lengkap <span aria-hidden="true">→</span></Link>
-          </div>
-          <div className="hmte-momentum-strip">
-            {heroActivityImages.map((image, index) => (
-              <figure key={image.src}>
-                <Image src={image.src} alt={image.alt} fill sizes="(max-width: 700px) 74vw, 32vw" />
-                <figcaption>{String(index + 1).padStart(2, '0')} / HMTE</figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-
-        <div className="hmte-momentum-live">
-          <span>Sedang berjalan</span>
-          <div>
-            {activePrograms.slice(0, 4).map((program) => (
-              <p key={program.name}>{program.name}</p>
-            ))}
-          </div>
-          <Link href="/program-kerja">Lihat seluruh program kerja</Link>
-        </div>
+        <footer className="moment-wall-foot">
+          <p>
+            Dinding ini dibangun oleh <strong>{members.length} pengurus</strong> di{' '}
+            <strong>{divisions.length} bidang</strong>, lewat <strong>{programs.length} program kerja</strong>{' '}
+            dalam satu periode.
+          </p>
+          <Link href="/galeri">
+            Buka galeri lengkap <span aria-hidden="true">→</span>
+          </Link>
+        </footer>
       </div>
     </section>
   )
