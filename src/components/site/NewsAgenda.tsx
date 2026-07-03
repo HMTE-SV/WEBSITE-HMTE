@@ -62,16 +62,30 @@ export function NewsAgenda() {
     const track = trackRef.current
     if (!track) return
 
-    const maxScroll = Math.max(track.scrollWidth - track.clientWidth, 1)
-    const progress = Math.min(Math.max(track.scrollLeft / maxScroll, 0), 1)
-    setActiveIndex(Math.round(progress * (articles.length - 1)))
+    const cards = Array.from(track.children) as HTMLElement[]
+    const trackCenter = track.getBoundingClientRect().left + track.clientWidth / 2
+    const closestIndex = cards.reduce((bestIndex, card, index) => {
+      const bounds = card.getBoundingClientRect()
+      const distance = Math.abs(bounds.left + bounds.width / 2 - trackCenter)
+      const bestBounds = cards[bestIndex].getBoundingClientRect()
+      const bestDistance = Math.abs(bestBounds.left + bestBounds.width / 2 - trackCenter)
+      return distance < bestDistance ? index : bestIndex
+    }, 0)
+
+    setActiveIndex(closestIndex)
   }
 
   function nudgeTrack(direction: -1 | 1) {
     const track = trackRef.current
     if (!track) return
 
-    track.scrollBy({ left: direction * Math.min(track.clientWidth * 0.72, 760), behavior: 'smooth' })
+    const cards = Array.from(track.children) as HTMLElement[]
+    const nextIndex = Math.min(Math.max(activeIndex + direction, 0), cards.length - 1)
+    const trackBounds = track.getBoundingClientRect()
+    const cardBounds = cards[nextIndex].getBoundingClientRect()
+    const targetLeft = track.scrollLeft + cardBounds.left - trackBounds.left
+
+    track.scrollTo({ left: targetLeft, behavior: 'smooth' })
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {

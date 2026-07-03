@@ -40,6 +40,10 @@ export function LeadershipDirectory({
   const division = divisionsByCode[selectedDivision]
   const members = leadersByDivision[selectedDivision] ?? []
   const programs = programsByDivision[selectedDivision] ?? []
+  const executive = divisions.find((item) => item.code === 'PH')
+  const orderedDivisions = executive
+    ? [executive, ...divisions.filter((item) => item.code !== 'PH')]
+    : divisions
 
   return (
     <div className="org-showcase-shell" id="division-showcase">
@@ -49,7 +53,7 @@ export function LeadershipDirectory({
       </div>
 
       <div className="org-switcher" aria-label="Pilih divisi dari etalase">
-        {divisions.map((item) => (
+        {orderedDivisions.map((item, index) => (
           <button
             type="button"
             className={item.code === selectedDivision ? 'is-active' : undefined}
@@ -57,7 +61,7 @@ export function LeadershipDirectory({
             onClick={() => selectDivision(item.code)}
             aria-pressed={item.code === selectedDivision}
           >
-            <span>{String(item.order).padStart(2, '0')}</span>
+            <span>{String(index + 1).padStart(2, '0')}</span>
             {item.shortName}
           </button>
         ))}
