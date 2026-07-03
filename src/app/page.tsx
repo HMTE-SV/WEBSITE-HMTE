@@ -3,9 +3,9 @@ import { Footer } from '@/components/site/Footer'
 import { GetToKnow } from '@/components/site/GetToKnow'
 import { Header } from '@/components/site/Header'
 import { Hero } from '@/components/site/Hero'
+import { HMTEMomentum } from '@/components/site/HMTEMomentum'
 import { NewsAgenda } from '@/components/site/NewsAgenda'
 import { OrganizationDirectory } from '@/components/site/OrganizationDirectory'
-import { Partners } from '@/components/site/Partners'
 import { getOrganizationData } from '@/lib/organization-data'
 
 export default async function Home() {
@@ -26,7 +26,11 @@ export default async function Home() {
           leadersByDivision={organizationData.leadersByDivision}
           programsByDivision={organizationData.programsByDivision}
         />
-        <Partners />
+        <HMTEMomentum
+          divisions={organizationData.divisions}
+          leadersByDivision={organizationData.leadersByDivision}
+          programsByDivision={organizationData.programsByDivision}
+        />
         <CTA />
       </main>
       <Footer />
