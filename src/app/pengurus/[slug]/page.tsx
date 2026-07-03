@@ -3,7 +3,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PublicPageFrame, PublicSection } from '@/components/site/PublicPage'
-import { divisionVisuals } from '@/data/organization-presentation'
 import { getLocalOrganizationData, getOrganizationData } from '@/lib/organization-data'
 import { getDivisionHref, getLeaderHref, toOrganizationSlug } from '@/lib/organization-slugs'
 import type { Division, DivisionCode, Leader } from '@/types/content'
@@ -69,14 +68,6 @@ export default async function LeaderProfilePage({ params }: LeaderProfilePagePro
   return (
     <PublicPageFrame activeHref="/kepengurusan">
       <section className="leader-profile-hero">
-        <Image
-          src={divisionVisuals[divisionCode]}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-        />
-        <div className="leader-profile-overlay" />
         <div className="public-shell leader-profile-hero-content">
           <Link href={`/kepengurusan?divisi=${divisionCode}`} className="division-profile-back">
             Direktori Pengurus

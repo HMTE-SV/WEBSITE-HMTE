@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation'
 import { PublicPageFrame, PublicSection } from '@/components/site/PublicPage'
 import { leadershipDivisionOrder } from '@/data/divisions'
 import { isFeaturedProgram } from '@/data/featured-programs'
-import { divisionVisuals } from '@/data/organization-presentation'
 import { getOrganizationData } from '@/lib/organization-data'
 import { getLeaderHref, getProgramHref, toOrganizationSlug } from '@/lib/organization-slugs'
 import type { ProgramStatus } from '@/types/content'
@@ -53,14 +52,6 @@ export default async function DivisionDetailPage({ params }: DivisionDetailPageP
   return (
     <PublicPageFrame activeHref="/divisi">
       <section className="division-profile-hero">
-        <Image
-          src={divisionVisuals[division.code]}
-          alt={`Dokumentasi kegiatan ${division.name}`}
-          fill
-          priority
-          sizes="100vw"
-        />
-        <div className="division-profile-overlay" />
         <div className="public-shell division-profile-hero-content">
           <Link href="/divisi" className="division-profile-back">
             Bidang & Divisi
