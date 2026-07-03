@@ -58,6 +58,62 @@ The supporting reference's full-image stage, atmospheric lower field, and minima
 
 final result: passed
 
+# Shared Gradient Hero Rollout QA — 2026-07-02
+
+- Source visual truth:
+  - `C:\Users\MCEE0~1.REE\AppData\Local\Temp\codex-clipboard-bc228162-3b90-4e9b-b002-96797e845002.png`
+  - Existing `/berita` hero tokens in `css/hmte.css`.
+- Target implementations:
+  - `/divisi/[slug]` — 8 generated routes.
+  - `/pengurus/[slug]` — 64 generated routes.
+- Intended comparison viewport: desktop 1280 x 720 and mobile 390 x 844.
+- State: initial hero viewport with public header visible.
+- Implementation screenshot path: unavailable; local Browser navigation to `http://localhost:3000` was blocked by the active Browser URL policy.
+
+## Full-view comparison evidence
+
+- Source opened successfully and establishes the target: navy multi-stop gradient, subtle gold radial light, large outlined circular arc, white display title, gold mono kicker, and preserved public navbar.
+- Source-level implementation copies the exact `/berita` gradient, grid texture, circular arc geometry, and color opacity tokens onto the shared division and leader hero selectors.
+- Runtime implementation capture is blocked, so full-view fidelity cannot be signed off from rendered evidence.
+
+## Focused region comparison evidence
+
+- Code audit confirms the full-bleed background `<Image fill>` and overlay nodes were removed from both shared slug templates.
+- Code audit confirms no public slug page retains a hero `<Image fill>` background.
+- Article detail imagery remains in the article body and division-index imagery remains in cards; these are content images, not hero backgrounds.
+- A focused rendered comparison is blocked for the same Browser policy reason.
+
+## Findings
+
+- [Blocked] Rendered desktop/mobile comparison is unavailable.
+  - Location: `/divisi/ph` and `/pengurus/muhammad-reyhan`.
+  - Evidence: browser policy rejected local navigation before implementation screenshots could be captured.
+  - Impact: typography wrapping, arc crop, and responsive spacing cannot be visually certified.
+  - Required follow-up: capture both routes at 1280 x 720 and 390 x 844, compare with the source screenshot, then resolve any P1/P2 drift.
+- Fonts and typography: existing HMTE display, body, and mono typography are preserved in source.
+- Spacing and layout: existing division/leader content grids are preserved; only background layers changed.
+- Colors and tokens: exact `/berita` navy/gold gradient and opacity values are reused.
+- Image quality: full-bleed background photos are intentionally removed; leader portrait/logo content remains intact.
+- Copy and content: unchanged.
+- Interaction and accessibility: navigation, links, focus behavior, and reduced-motion behavior are unchanged.
+
+## Patches made
+
+- Removed `divisionVisuals` full-bleed hero images from the division and leader slug templates.
+- Removed the obsolete photo-overlay nodes.
+- Applied the shared `/berita` gradient, grid texture, and outlined circular arc to both hero families.
+- Preserved person photos, logos, article imagery, and card imagery as content assets.
+
+## Static verification
+
+- ESLint passed without warnings.
+- TypeScript `--noEmit` passed.
+- Vitest passed: 15 tests.
+- Production build generated 147 pages, including 8 division routes and 64 leader routes.
+- Slug-page audit found zero hero `<Image fill>` backgrounds.
+
+final result: blocked
+
 # Navbar and Program Workspace QA
 
 - Visual reference: user screenshot showing the opaque landing navbar stage.
@@ -131,3 +187,9 @@ final result: passed
 - No actionable P0, P1, or P2 findings remain.
 
 final result: passed
+
+# Current QA Status — Shared Gradient Hero Rollout
+
+The latest QA report is the `Shared Gradient Hero Rollout QA — 2026-07-02` section above. Static implementation checks passed, but the required rendered desktop/mobile comparison remains unavailable because local Browser navigation was blocked.
+
+final result: blocked
