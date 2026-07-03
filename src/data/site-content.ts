@@ -45,9 +45,9 @@ export const heroIdentity = {
 }
 
 export const newsAgendaIntro = {
-  title: 'Kabar kegiatan dan agenda HMTE',
+  title: 'Kabar yang terus bergerak',
   lead:
-    'Informasi akademik, prestasi mahasiswa, magang, proyek akhir, dan pengabdian masyarakat di lingkungan DTEDI Sekolah Vokasi UGM.',
+    'Cerita kegiatan, prestasi, peluang, dan gagasan mahasiswa Elektro—dikurasi agar yang penting tidak lewat begitu saja.',
 }
 
 export const getToKnowContent = {
