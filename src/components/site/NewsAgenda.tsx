@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { articleCategories, articleTabs } from '@/data/articles'
 import { newsAgendaIntro } from '@/data/site-content'
 import { slugify } from '@/lib/slug'
@@ -16,28 +16,32 @@ function articleSlug(article: ArticleSummary) {
   return slugify(article.slug || article.title)
 }
 
-function categoryClass(category: string) {
-  return `cat-${category.toLowerCase().replace(/\s+/g, '-')}`
-}
-
 function PublisherRow({ article }: { article: ArticleSummary }) {
   return (
-    <div className="card-publisher-row">
-      <span className={`pub-badge pub-${article.publisherIcon.toLowerCase()}`}>{article.publisherIcon}</span>
-      <span className="pub-name">{article.publisher}</span>
-      <span className="pub-dot">•</span>
-      <span className="pub-time">{article.timeAgo}</span>
+    <div className="landing-news-publisher">
+      <span>{article.publisherIcon}</span>
+      <strong>{article.publisher}</strong>
+      <time>{article.timeAgo}</time>
     </div>
   )
 }
 
 export function NewsAgenda() {
   const [activeTab, setActiveTab] = useState<ArticleCategoryKey>('berita-utama')
-  const group = articleCategories[activeTab]
-  const featured = group.featured
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const trackRef = useRef<HTMLDivElement>(null)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const dragState = useRef({ active: false, moved: false, startScroll: 0, startX: 0 })
+  const group = articleCategories[activeTab]
+  const articles = useMemo(() => [group.featured, ...group.latest], [group])
 
-  // Roving-tabindex keyboard pattern for the WAI-ARIA tablist.
+  function selectCategory(category: ArticleCategoryKey) {
+    setActiveTab(category)
+    setActiveIndex(0)
+    window.requestAnimationFrame(() => trackRef.current?.scrollTo({ left: 0, behavior: 'smooth' }))
+  }
+
   function handleTabKeydown(event: React.KeyboardEvent<HTMLButtonElement>, index: number) {
     const lastIndex = articleTabs.length - 1
     let nextIndex: number | null = null
@@ -50,119 +54,161 @@ export function NewsAgenda() {
     if (nextIndex === null) return
 
     event.preventDefault()
-    setActiveTab(articleTabs[nextIndex].key)
+    selectCategory(articleTabs[nextIndex].key)
     tabRefs.current[nextIndex]?.focus()
   }
 
+  function updateActiveCard() {
+    const track = trackRef.current
+    if (!track) return
+
+    const maxScroll = Math.max(track.scrollWidth - track.clientWidth, 1)
+    const progress = Math.min(Math.max(track.scrollLeft / maxScroll, 0), 1)
+    setActiveIndex(Math.round(progress * (articles.length - 1)))
+  }
+
+  function nudgeTrack(direction: -1 | 1) {
+    const track = trackRef.current
+    if (!track) return
+
+    track.scrollBy({ left: direction * Math.min(track.clientWidth * 0.72, 760), behavior: 'smooth' })
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const track = trackRef.current
+    if (!track) return
+
+    dragState.current = {
+      active: true,
+      moved: false,
+      startScroll: track.scrollLeft,
+      startX: event.clientX,
+    }
+    setIsDragging(true)
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const track = trackRef.current
+    if (!track || !dragState.current.active) return
+
+    const distance = event.clientX - dragState.current.startX
+    if (Math.abs(distance) > 7) dragState.current.moved = true
+    track.scrollLeft = dragState.current.startScroll - distance * 1.08
+  }
+
+  function releasePointer(event: ReactPointerEvent<HTMLDivElement>) {
+    dragState.current.active = false
+    setIsDragging(false)
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
   return (
-    <section className="tre-news-agenda" id="kabar">
-      <div className="news-agenda-shell">
-        <header className="news-agenda-head">
-          <h2 className="news-agenda-title fade-up">
-            {newsAgendaIntro.title}
-            <span className="acc">.</span>
-          </h2>
-          <p className="news-agenda-lead fade-up">{newsAgendaIntro.lead}</p>
+    <section className="landing-news" id="kabar" aria-labelledby="landing-news-title">
+      <div className="landing-news-shell">
+        <header className="landing-news-head">
+          <div>
+            <span className="landing-eyebrow">News & Agenda</span>
+            <h2 id="landing-news-title">Kabar yang terus bergerak.</h2>
+          </div>
+          <div className="landing-news-intro">
+            <p>{newsAgendaIntro.lead}</p>
+            <Link href="/berita">Buka ruang berita</Link>
+          </div>
         </header>
 
-        <div className="news-tabs-container fade-up">
-          <div className="news-tabs-nav" role="tablist" aria-label="Kategori Berita">
-            {articleTabs.map((tab, index) => {
-              const isActive = tab.key === activeTab
+        <div className="landing-news-categories" role="tablist" aria-label="Kategori berita">
+          {articleTabs.map((tab, index) => {
+            const isActive = tab.key === activeTab
 
-              return (
-                <button
-                  ref={(element) => {
-                    tabRefs.current[index] = element
-                  }}
-                  type="button"
-                  className={isActive ? 'news-tab-btn active' : 'news-tab-btn'}
-                  role="tab"
-                  aria-selected={isActive}
-                  tabIndex={isActive ? 0 : -1}
-                  id={`news-tab-${tab.key}`}
-                  aria-controls="news-tabpanel"
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  onKeyDown={(event) => handleTabKeydown(event, index)}
-                >
-                  {tab.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div
-          className="news-featured-container fade-up"
-          id="news-tabpanel"
-          role="tabpanel"
-          aria-labelledby={`news-tab-${activeTab}`}
-        >
-          <article className="featured-article">
-            <div className="feat-image-wrapper">
-              <Image src={assetSrc(featured.image)} alt={featured.title} fill sizes="(max-width: 980px) 100vw, 55vw" />
-            </div>
-            <div className="feat-content">
-              <div className="feat-publisher-row">
-                <span className={`pub-badge pub-${featured.publisherIcon.toLowerCase()}`}>{featured.publisherIcon}</span>
-                <span className="pub-name">{featured.publisher}</span>
-                <span className="pub-dot">•</span>
-                <span className="pub-time">{featured.timeAgo}</span>
-              </div>
-              <h3 className="feat-title">
-                <Link href={`/berita/${articleSlug(featured)}`}>{featured.title}</Link>
-              </h3>
-              <p className="feat-excerpt">{featured.excerpt}</p>
-              <div className="feat-footer-row">
-                <span className={`feat-category ${categoryClass(featured.category)}`}>{featured.category}</span>
-                <span className="feat-dot">•</span>
-                <span className="feat-readtime">{featured.readTime}</span>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <div className="news-latest-section fade-up">
-          <div className="news-latest-header">
-            <h3 className="news-latest-title">Berita Terkini</h3>
-            <Link href="/berita" className="news-see-all">
-              Lihat Semua{' '}
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+            return (
+              <button
+                ref={(element) => {
+                  tabRefs.current[index] = element
+                }}
+                type="button"
+                className={isActive ? 'is-active' : undefined}
+                role="tab"
+                aria-selected={isActive}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => selectCategory(tab.key)}
+                onKeyDown={(event) => handleTabKeydown(event, index)}
+                key={tab.key}
               >
-                <path d="M5 12h14M13 5l7 7-7 7" />
-              </svg>
-            </Link>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="landing-news-stage">
+          <div className="landing-news-stage-meta" aria-live="polite">
+            <span>{String(activeIndex + 1).padStart(2, '0')}</span>
+            <div><i style={{ width: `${((activeIndex + 1) / articles.length) * 100}%` }} /></div>
+            <span>{String(articles.length).padStart(2, '0')}</span>
           </div>
-          <div className="news-card-grid">
-            {group.latest.map((item, index) => (
-              <article className="news-card" key={`${activeTab}-${articleSlug(item)}-${index}`}>
-                <div className="card-image-wrapper">
-                  <Image src={assetSrc(item.image)} alt={item.title} fill sizes="(max-width: 700px) 50vw, 22vw" />
-                </div>
-                <div className="card-body">
-                  <PublisherRow article={item} />
-                  <h4 className="card-title">
-                    <Link href={`/berita/${articleSlug(item)}`}>{item.title}</Link>
-                  </h4>
-                  <p className="card-excerpt">{item.excerpt}</p>
-                  <div className="card-footer-row">
-                    <span className={`card-category ${categoryClass(item.category)}`}>{item.category}</span>
-                    <span className="card-dot">•</span>
-                    <span className="card-readtime">{item.readTime}</span>
+
+          <div
+            ref={trackRef}
+            className={isDragging ? 'landing-news-track is-dragging' : 'landing-news-track'}
+            role="tabpanel"
+            aria-label={`Artikel ${articleTabs.find((tab) => tab.key === activeTab)?.label}`}
+            onScroll={updateActiveCard}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={releasePointer}
+            onPointerCancel={releasePointer}
+            onClickCapture={(event) => {
+              if (dragState.current.moved) {
+                event.preventDefault()
+                event.stopPropagation()
+                dragState.current.moved = false
+              }
+            }}
+          >
+            {articles.map((article, index) => (
+              <article
+                className={index === 0 ? 'landing-news-card is-featured' : 'landing-news-card'}
+                key={`${activeTab}-${articleSlug(article)}-${index}`}
+              >
+                <Link href={`/berita/${articleSlug(article)}`} draggable={false}>
+                  <div className="landing-news-image">
+                    <Image
+                      src={assetSrc(article.image)}
+                      alt={article.title}
+                      fill
+                      draggable={false}
+                      sizes={index === 0 ? '(max-width: 760px) 88vw, 58vw' : '(max-width: 760px) 78vw, 30vw'}
+                    />
+                    <span>{article.category}</span>
                   </div>
-                </div>
+                  <div className="landing-news-card-copy">
+                    <PublisherRow article={article} />
+                    <h3>{article.title}</h3>
+                    <p>{article.excerpt}</p>
+                    <div>
+                      <span>{article.readTime}</span>
+                      <strong>Baca cerita</strong>
+                    </div>
+                  </div>
+                </Link>
               </article>
             ))}
+          </div>
+
+          <div className="landing-news-controls">
+            <p>Tarik kartu atau gunakan kontrol untuk menjelajah.</p>
+            <div>
+              <button type="button" onClick={() => nudgeTrack(-1)} disabled={activeIndex === 0}>
+                Kembali
+              </button>
+              <button type="button" onClick={() => nudgeTrack(1)} disabled={activeIndex === articles.length - 1}>
+                Teruskan
+              </button>
+            </div>
           </div>
         </div>
       </div>
