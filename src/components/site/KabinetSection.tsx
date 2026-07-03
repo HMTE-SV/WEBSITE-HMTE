@@ -9,7 +9,7 @@ type KabinetSectionProps = {
 }
 
 export function KabinetSection({ divisions }: KabinetSectionProps) {
-  const { selectedDivision, directoryStage, selectDivision } = useDirectory()
+  const { selectedDivision, selectDivision } = useDirectory()
 
   // Pengurus Harian leads the grid (it's the senior body) but carries no
   // sequence number — the 01-07 numbering belongs to the seven bidang only.
@@ -34,7 +34,7 @@ export function KabinetSection({ divisions }: KabinetSectionProps) {
         <div className="kabinet-grid">
           {ordered.map((division) => {
             const isExecutive = division.code === 'PH'
-            const isSelected = directoryStage !== 'idle' && selectedDivision === division.code
+            const isSelected = selectedDivision === division.code
             return (
               <button
                 type="button"
@@ -55,7 +55,7 @@ export function KabinetSection({ divisions }: KabinetSectionProps) {
                 <div className="kabinet-footer">
                   <span className="kabinet-dot"></span>
                   <span>
-                    Buka Direktori{' '}
+                    Lihat etalase{' '}
                     <span className="kabinet-arrow" aria-hidden="true">
                       →
                     </span>
