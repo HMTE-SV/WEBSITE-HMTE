@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peta alur situs HMTE — halaman, slug, dan komponen</title>
+<style>
+  :root {
+    --bg: #faf9f5;
+    --surface: #ffffff;
+    --text: #1a1a17;
+    --text-2: #5f5e5a;
+    --text-3: #888780;
+    --border: #e3e1d9;
+    --border-strong: #b4b2a9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--text-2); font-size: 13px; margin: 0 0 20px; }
+
+  .leg { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--text-2); margin-bottom: 18px; }
+  .leg i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+  .stg { display: flex; gap: 14px; margin: 14px 0; align-items: stretch; }
+  .stg-lbl { flex: 0 0 100px; display: flex; flex-direction: column; justify-content: center; border-right: 2px solid var(--border-strong); padding-right: 12px; }
+  .stg-lbl b { font-size: 14px; font-weight: 600; }
+  .stg-lbl span { font-size: 11px; color: var(--text-3); }
+  .stg-body { flex: 1; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; }
+
+  .grp { border: 1.5px dashed var(--border-strong); border-radius: 12px; padding: 10px; flex: 1; min-width: 200px; }
+  .grp > em { font-style: normal; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); display: block; margin-bottom: 8px; }
+
+  .pg { border-radius: 12px; padding: 10px 12px; flex: 1; min-width: 175px; }
+  .grp .pg { margin-bottom: 8px; min-width: 0; }
+  .grp .pg:last-child { margin-bottom: 0; }
+  .pg .nm { font-size: 13.5px; font-weight: 600; }
+  .pg code { font-family: Consolas, "JetBrains Mono", monospace; font-size: 11.5px; display: inline-block; margin: 2px 0 6px; }
+  .pg .from { font-size: 11px; opacity: 0.85; float: right; margin-top: 3px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chips span { font-size: 11px; border-radius: 999px; padding: 1.5px 9px; background: rgba(255,255,255,0.75); color: var(--text-2); border: 1px solid var(--border); }
+
+  .dn { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 12px; margin: 4px 0 4px 114px; }
+  .dn::before { content: "↓"; font-size: 15px; }
+
+  .teal  { background: #e1f5ee; border: 1.5px solid #5dcaa5; }
+  .teal .nm { color: #085041; } .teal code, .teal .from { color: #0f6e56; }
+  .purp  { background: #eeedfe; border: 1.5px solid #afa9ec; }
+  .purp .nm { color: #3c3489; } .purp code, .purp .from { color: #534ab7; }
+  .cor   { background: #faece7; border: 1.5px solid #f0997b; }
+  .cor .nm { color: #712b13; } .cor code, .cor .from { color: #993c1d; }
+  .gry   { background: var(--surface); border: 1.5px solid var(--border-strong); }
+  .gry .nm { color: var(--text); } .gry code, .gry .from { color: var(--text-2); }
+
+  .admin-sep { border-top: 2px dashed var(--border-strong); margin: 22px 0 8px; padding-top: 14px; }
+  .admin-note { color: var(--text-3); font-size: 12px; margin-bottom: 8px; }
+
+  @media print {
+    body { padding: 10mm; background: #fff; }
+    .pg, .grp { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Peta alur situs HMTE</h1>
+  <p class="sub">Halaman, slug, komponen penyusun, dan tahapan yang dilalui pengunjung — WESBITE-HMTE3, branch alpha-dev</p>
+
+  <div class="leg">
+    <span><i style="background:#e1f5ee;border:1px solid #5dcaa5"></i>halaman hub publik</span>
+    <span><i style="background:#eeedfe;border:1px solid #afa9ec"></i>halaman detail dinamis [slug]</span>
+    <span><i style="background:#faece7;border:1px solid #f0997b"></i>titik aksi / konversi</span>
+    <span><i style="background:#fff;border:1px solid #b4b2a9"></i>admin CMS</span>
+  </div>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>1 · Masuk</b><span>kesan pertama</span></div>
+    <div class="stg-body">
+      <div class="pg teal" style="flex:1 1 100%">
+        <div class="nm">Beranda</div><code>/</code>
+        <div class="chips"><span>Hero</span><span>Header (landing)</span><span>NewsAgenda</span><span>OrganizationDirectory</span><span>Partners</span><span>CTA</span><span>Footer</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dn">lewat dropdown Header: Organisasi · Kabar · Galeri · Aspirasi</div>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>2 · Jelajah</b><span>halaman indeks</span></div>
+    <div class="stg-body">
+      <div class="grp"><em>Organisasi</em>
+        <div class="pg teal"><div class="nm">Bidang &amp; divisi</div><code>/divisi</code><div class="chips"><span>PublicPageFrame</span><span>grid divisi</span></div></div>
+        <div class="pg teal"><div class="nm">Pengurus</div><code>/kepengurusan</code><div class="chips"><span>LeadershipIndex</span></div></div>
+        <div class="pg teal"><div class="nm">Program kerja</div><code>/program-kerja</code><div class="chips"><span>ProgramCatalog</span></div></div>
+      </div>
+      <div class="grp"><em>Kabar</em>
+        <div class="pg teal"><div class="nm">Berita</div><code>/berita</code><div class="chips"><span>daftar artikel</span></div></div>
+        <div class="pg teal"><div class="nm">Agenda</div><code>/agenda</code><div class="chips"><span>PublicCard</span><span>EmptyState</span></div></div>
+        <div class="pg teal"><div class="nm">Pengumuman</div><code>/pengumuman</code><div class="chips"><span>PublicCard</span><span>EmptyState</span></div></div>
+      </div>
+      <div class="grp"><em>Media</em>
+        <div class="pg teal"><div class="nm">Galeri</div><code>/galeri</code><div class="chips"><span>PublicCard</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dn">klik kartu di halaman indeks</div>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>3 · Detail</b><span>rute [slug]</span></div>
+    <div class="stg-body">
+      <div class="pg purp"><span class="from">dari /divisi</span><div class="nm">Detail divisi</div><code>/divisi/[slug]</code><div class="chips"><span>PublicSection</span></div></div>
+      <div class="pg purp"><span class="from">dari /kepengurusan</span><div class="nm">Profil pengurus</div><code>/pengurus/[slug]</code><div class="chips"><span>PublicSection</span></div></div>
+      <div class="pg purp"><span class="from">dari /program-kerja</span><div class="nm">Detail proker</div><code>/program-kerja/[slug]</code><div class="chips"><span>ProgramDetailWorkspace</span></div></div>
+      <div class="pg purp"><span class="from">dari /berita</span><div class="nm">Artikel</div><code>/berita/[slug]</code><div class="chips"><span>PublicPageHeader</span></div></div>
+    </div>
+  </div>
+
+  <div class="dn">ajakan bertindak: CTA landing + tombol "Hubungi" di Header</div>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>4 · Aksi</b><span>konversi</span></div>
+    <div class="stg-body">
+      <div class="pg cor"><div class="nm">Aspirasi</div><code>/aspirasi</code><div class="chips"><span>AspirationForm</span></div></div>
+      <div class="pg cor"><div class="nm">Kontak</div><code>/kontak</code><div class="chips"><span>PublicCard</span></div></div>
+    </div>
+  </div>
+
+  <div class="admin-sep">
+    <div class="admin-note">⛁ Jalur terpisah — konten dari sini memasok Berita, Agenda, Pengumuman, Galeri, Pengurus, dan menampung kiriman Aspirasi di atas.</div>
+    <div class="stg">
+      <div class="stg-lbl"><b>Admin</b><span>CMS internal</span></div>
+      <div class="stg-body">
+        <div class="pg gry" style="flex:0 1 165px"><div class="nm">Login</div><code>/admin/login</code><div class="chips"><span>AdminLoginForm</span></div></div>
+        <div class="pg gry" style="flex:0 1 205px"><div class="nm">Dashboard</div><code>/admin</code><div class="chips"><span>AdminAuthGuard</span><span>AdminShell</span></div></div>
+        <div class="grp" style="flex:2"><em>Modul kelola (list → new / [id])</em>
+          <div class="stg-body" style="gap:8px">
+            <div class="pg gry"><div class="nm">Artikel</div><code>/admin/articles</code><div class="chips"><span>ContentList</span><span>ContentForm</span></div></div>
+            <div class="pg gry"><div class="nm">Event</div><code>/admin/events</code><div class="chips"><span>ContentList</span><span>ContentForm</span></div></div>
+            <div class="pg gry"><div class="nm">Pengumuman</div><code>/admin/announcements</code><div class="chips"><span>ContentList</span><span>ContentForm</span></div></div>
+            <div class="pg gry"><div class="nm">Aspirasi</div><code>/admin/aspirations</code><div class="chips"><span>AspirationsManager</span></div></div>
+            <div class="pg gry"><div class="nm">Galeri</div><code>/admin/gallery</code><div class="chips"><span>GalleryManager</span></div></div>
+            <div class="pg gry"><div class="nm">Pengurus</div><code>/admin/leaders</code><div class="chips"><span>OrganizationManager</span></div></div>
+            <div class="pg gry"><div class="nm">Pengaturan</div><code>/admin/settings</code><div class="chips"><span>AdminCollectionPage</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

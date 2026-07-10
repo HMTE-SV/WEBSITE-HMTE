@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peta audit UI/UX — alur situs HMTE</title>
+<style>
+  :root{--bg:#faf9f5;--surface:#fff;--text:#1a1a17;--text-2:#5f5e5a;--text-3:#888780;--border:#e3e1d9;--border-strong:#b4b2a9}
+  *{box-sizing:border-box}
+  body{margin:0;padding:36px 24px;background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.5}
+  .wrap{max-width:1150px;margin:0 auto}
+  h1{font-size:22px;font-weight:600;margin:0 0 4px}
+  .sub{color:var(--text-2);font-size:13px;margin:0 0 14px}
+  .leg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--text-2);margin-bottom:6px;align-items:center}
+  .leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  #recap{margin-left:auto;font-size:12px}
+  #recap b{font-weight:600}
+  .hint{font-size:12px;color:var(--text-3);margin:0 0 14px}
+  .stg{display:flex;gap:12px;margin:14px 0}
+  .stg-lbl{flex:0 0 96px;display:flex;flex-direction:column;justify-content:center;border-right:2px solid var(--border-strong);padding-right:10px}
+  .stg-lbl b{font-size:14px;font-weight:600}
+  .stg-lbl span{font-size:11px;color:var(--text-3)}
+  .stg-body{flex:1;display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start}
+  .pg{position:relative;border-radius:12px;padding:10px 12px;flex:1;min-width:240px;display:flex;flex-direction:column}
+  .pg .nm{font-size:13.5px;font-weight:600;padding-right:104px}
+  .pg code{font-family:Consolas,monospace;font-size:11.5px;display:inline-block;margin:1px 0 5px}
+  .pg ul{margin:0 0 6px;padding-left:16px;font-size:12px;line-height:1.55}
+  .pg .ix{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px}
+  .pg .ix span{font-size:11px;border-radius:999px;padding:1px 8px;background:rgba(255,255,255,.75);color:var(--text-2);border:1px solid var(--border)}
+  .pg .out{font-family:Consolas,monospace;font-size:11px;border-top:1px dashed currentColor;padding-top:5px;opacity:.9}
+  .st{position:absolute;top:9px;right:10px;font-size:11px;border-radius:999px;padding:2px 9px;background:#fff;cursor:pointer;font-family:inherit}
+  .nt{width:100%;margin-top:auto;border:1px dashed currentColor;background:rgba(255,255,255,.55);border-radius:6px;font:inherit;font-size:11.5px;line-height:1.45;padding:4px 7px;color:inherit;resize:vertical;min-height:34px}
+  .nt::placeholder{color:inherit;opacity:.5}
+  .dn{display:flex;align-items:center;gap:8px;color:var(--text-3);font-size:12px;margin:2px 0 2px 108px}
+  .dn::before{content:"↓";font-size:15px}
+  .teal{background:#e1f5ee;border:1.5px solid #5dcaa5;color:#0f6e56}.teal .nm{color:#085041}
+  .purp{background:#eeedfe;border:1.5px solid #afa9ec;color:#534ab7}.purp .nm{color:#3c3489}
+  .cor{background:#faece7;border:1.5px solid #f0997b;color:#993c1d}.cor .nm{color:#712b13}
+  .gry{background:var(--surface);border:1.5px solid var(--border-strong);color:var(--text-2)}.gry .nm{color:var(--text)}
+  .findings{border:1.5px dashed var(--border-strong);border-radius:12px;padding:12px 16px;margin-top:20px}
+  .findings h2{font-size:14px;font-weight:600;margin:0 0 6px}
+  .findings ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--text-2)}
+  @page{size:A4 landscape;margin:8mm}
+  @media print{
+    body{padding:0;background:#fff}
+    .pg,.findings{break-inside:avoid}
+    .hint{display:none}
+    .nt{background:#fff}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Peta audit UI/UX — alur situs HMTE</h1>
+  <p class="sub">Perjalanan pengunjung dari landing: section yang dilihat, interaksi yang tersedia, dan tautan keluar tiap halaman · WESBITE-HMTE3, branch alpha-dev</p>
+
+  <div class="leg">
+    <span><i style="background:#e1f5ee;border:1px solid #5dcaa5"></i>hub publik</span>
+    <span><i style="background:#eeedfe;border:1px solid #afa9ec"></i>detail dinamis [slug]</span>
+    <span><i style="background:#faece7;border:1px solid #f0997b"></i>titik aksi</span>
+    <span id="recap"></span>
+  </div>
+  <p class="hint">✎ Klik pil di kanan-atas kartu untuk ganti status audit (belum dicek → oke → perlu perbaikan → kritis). Ketik catatan langsung di kotak putus-putus. Semuanya tersimpan otomatis di browser dan ikut tercetak saat di-print ke PDF.</p>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>1 · Masuk</b><span>landing — route /</span></div>
+    <div class="stg-body">
+      <div class="pg teal"><button class="st" data-k="hero"></button>
+        <div class="nm">Hero</div><code>/ · section 1</code>
+        <ul><li>Carousel foto kegiatan (5 slide)</li><li>Identitas HMTE + LogoMark, tinggi layar penuh</li></ul>
+        <div class="ix"><span>carousel</span></div>
+        <textarea class="nt" data-k="hero" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="header"></button>
+        <div class="nm">Header (landing)</div><code>/ · melayang</code>
+        <ul><li>Dropdown Organisasi &amp; Kabar, menu mobile</li><li>Berubah tint/blur saat scroll</li><li>Tombol "Hubungi" → /kontak</li></ul>
+        <div class="ix"><span>dropdown</span><span>menu mobile</span><span>scroll state</span></div>
+        <textarea class="nt" data-k="header" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="newsagenda"></button>
+        <div class="nm">NewsAgenda</div><code>/ · section 2</code>
+        <ul><li>Tab kategori berita</li><li>Kartu sorotan besar + daftar item</li></ul>
+        <div class="ix"><span>tab</span></div>
+        <div class="out">→ /berita · /berita/[slug]</div>
+        <textarea class="nt" data-k="newsagenda" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="orgdir"></button>
+        <div class="nm">OrganizationDirectory</div><code>/ · section 3</code>
+        <ul><li>KabinetSection — pemilih 8 divisi, ada tahap konfirmasi</li><li>LeadershipDirectory — toggle grid/list + pencarian anggota</li><li>MemberDetailModal — IG, LinkedIn, email</li></ul>
+        <div class="ix"><span>pemilih divisi</span><span>pencarian</span><span>toggle tampilan</span><span>modal</span></div>
+        <div class="out">→ /pengurus/[slug] · sosial eksternal</div>
+        <textarea class="nt" data-k="orgdir" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="partners"></button>
+        <div class="nm">Partners</div><code>/ · section 4</code>
+        <ul><li>Ubin mitra &amp; pemangku kepentingan</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <textarea class="nt" data-k="partners" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="cta"></button>
+        <div class="nm">CTA</div><code>/ · section 5</code>
+        <ul><li>Dua tombol ajakan</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ /aspirasi · /kontak</div>
+        <textarea class="nt" data-k="cta" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="footer"></button>
+        <div class="nm">Footer</div><code>/ · section 6</code>
+        <ul><li>Kolom tautan ke semua halaman</li><li>Instagram + kanal aspirasi</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ semua rute publik</div>
+        <textarea class="nt" data-k="footer" rows="2" placeholder="Catatan audit…"></textarea></div>
+    </div>
+  </div>
+
+  <div class="dn">dropdown Header: Organisasi · Kabar · Galeri · Aspirasi — Footer juga menaut ke semuanya</div>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>2 · Jelajah</b><span>halaman indeks</span></div>
+    <div class="stg-body">
+      <div class="pg teal"><button class="st" data-k="divisi"></button>
+        <div class="nm">Bidang &amp; divisi</div><code>/divisi</code>
+        <ul><li>Header "Delapan ruang, satu gerak"</li><li>Grid kartu 8 divisi per bidang</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ /divisi/[slug]</div>
+        <textarea class="nt" data-k="divisi" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="kepengurusan"></button>
+        <div class="nm">Pengurus</div><code>/kepengurusan</code>
+        <ul><li>Header "Orang-orang di balik HMTE"</li><li>LeadershipIndex — grid kartu pengurus</li></ul>
+        <div class="ix"><span>filter divisi (?divisi=)</span><span>pencarian nama</span></div>
+        <div class="out">→ /pengurus/[slug]</div>
+        <textarea class="nt" data-k="kepengurusan" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="proker"></button>
+        <div class="nm">Program kerja</div><code>/program-kerja</code>
+        <ul><li>ProgramCatalog — daftar proker per divisi, anchor #division-x</li></ul>
+        <div class="ix"><span>pencarian</span><span>filter divisi</span><span>filter status</span></div>
+        <div class="out">→ /program-kerja/[slug]</div>
+        <textarea class="nt" data-k="proker" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="berita"></button>
+        <div class="nm">Berita</div><code>/berita</code>
+        <ul><li>Kartu sorotan (anchor #sorotan)</li><li>NewsroomFeed — daftar artikel</li></ul>
+        <div class="ix"><span>filter kategori</span><span>muat lebih banyak</span></div>
+        <div class="out">→ /berita/[slug]</div>
+        <textarea class="nt" data-k="berita" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="agenda"></button>
+        <div class="nm">Agenda</div><code>/agenda</code>
+        <ul><li>Daftar PublicCard event (tanggal + judul)</li><li>EmptyState "Belum ada agenda" bila kosong</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ (tidak ada — jalan buntu)</div>
+        <textarea class="nt" data-k="agenda" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="pengumuman"></button>
+        <div class="nm">Pengumuman</div><code>/pengumuman</code>
+        <ul><li>Daftar PublicCard pengumuman</li><li>EmptyState "Belum ada pengumuman" bila kosong</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ (tidak ada — jalan buntu)</div>
+        <textarea class="nt" data-k="pengumuman" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg teal"><button class="st" data-k="galeri"></button>
+        <div class="nm">Galeri</div><code>/galeri</code>
+        <ul><li>"Sorotan galeri" — grid kartu foto</li><li>Tanpa lightbox / halaman detail galeri sendiri</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ /berita/[slug] (kartu menaut ke artikel)</div>
+        <textarea class="nt" data-k="galeri" rows="2" placeholder="Catatan audit…"></textarea></div>
+    </div>
+  </div>
+
+  <div class="dn">klik kartu di halaman indeks</div>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>3 · Detail</b><span>rute [slug]</span></div>
+    <div class="stg-body">
+      <div class="pg purp"><button class="st" data-k="divisi-slug"></button>
+        <div class="nm">Detail divisi</div><code>/divisi/[slug]</code>
+        <ul><li>Hero divisi + breadcrumb ← /divisi</li><li>Nav anchor: #profil · #pengurus · #program-kerja</li><li>Section pengurus &amp; program kerja divisi</li></ul>
+        <div class="ix"><span>anchor nav</span></div>
+        <div class="out">→ /kepengurusan?divisi=X · /program-kerja#division-x</div>
+        <textarea class="nt" data-k="divisi-slug" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg purp"><button class="st" data-k="pengurus-slug"></button>
+        <div class="nm">Profil pengurus</div><code>/pengurus/[slug]</code>
+        <ul><li>Hero profil (peran, divisi)</li><li>"Program yang dijalankan" divisi</li><li>"Rekan di divisi" — kartu pengurus lain</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ /pengurus/[slug] lain · ← /kepengurusan?divisi=</div>
+        <textarea class="nt" data-k="pengurus-slug" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg purp"><button class="st" data-k="proker-slug"></button>
+        <div class="nm">Detail proker</div><code>/program-kerja/[slug]</code>
+        <ul><li>ProgramDetailWorkspace — hero program</li><li>Tab tampilan (ringkasan dll.)</li><li>Pemilih timeline, fokus, dokumen, penanggung jawab</li></ul>
+        <div class="ix"><span>tab</span><span>4 pemilih</span></div>
+        <div class="out">→ /divisi/[slug] · ← /program-kerja</div>
+        <textarea class="nt" data-k="proker-slug" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg purp"><button class="st" data-k="artikel"></button>
+        <div class="nm">Artikel</div><code>/berita/[slug]</code>
+        <ul><li>Header artikel (judul, meta)</li><li>Isi artikel</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">← /berita (tanpa artikel terkait)</div>
+        <textarea class="nt" data-k="artikel" rows="2" placeholder="Catatan audit…"></textarea></div>
+    </div>
+  </div>
+
+  <div class="dn">ajakan bertindak: CTA di landing + tombol "Hubungi" yang selalu ada di Header</div>
+
+  <div class="stg">
+    <div class="stg-lbl"><b>4 · Aksi</b><span>konversi</span></div>
+    <div class="stg-body">
+      <div class="pg cor"><button class="st" data-k="aspirasi"></button>
+        <div class="nm">Aspirasi</div><code>/aspirasi</code>
+        <ul><li>AspirationForm — dropdown kategori, pesan, nama + email, toggle anonim</li><li>Validasi + kirim ke Firestore, pesan sukses/gagal</li></ul>
+        <div class="ix"><span>form</span><span>toggle anonim</span><span>state loading</span></div>
+        <div class="out">→ (selesai di halaman — tanpa arahan lanjut)</div>
+        <textarea class="nt" data-k="aspirasi" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg cor"><button class="st" data-k="kontak"></button>
+        <div class="nm">Kontak</div><code>/kontak</code>
+        <ul><li>3 kartu: Instagram (eksternal), email, sekretariat</li><li>Target utama tombol "Hubungi" di Header</li></ul>
+        <div class="ix"><span>statis</span></div>
+        <div class="out">→ instagram.com/hmteugm</div>
+        <textarea class="nt" data-k="kontak" rows="2" placeholder="Catatan audit…"></textarea></div>
+      <div class="pg gry" style="flex:0 1 200px"><button class="st" data-k="notfound"></button>
+        <div class="nm">404</div><code>not-found</code>
+        <ul><li>"Halaman tidak ditemukan"</li></ul>
+        <div class="out">→ /</div>
+        <textarea class="nt" data-k="notfound" rows="2" placeholder="Catatan audit…"></textarea></div>
+    </div>
+  </div>
+
+  <div class="findings">
+    <h2>Temuan awal dari pemetaan (titik mulai audit)</h2>
+    <ul>
+      <li><b>/agenda dan /pengumuman jalan buntu</b> — tidak ada tautan lanjutan setelah user membaca, dan keduanya rawan tampil kosong (EmptyState) bila data belum diisi.</li>
+      <li><b>Kartu /galeri menaut ke artikel berita</b> — tidak ada lightbox atau halaman detail galeri; ekspektasi user melihat foto besar tidak terpenuhi.</li>
+      <li><b>/aspirasi berhenti setelah submit</b> — tidak ada arahan lanjut (kembali ke beranda, lihat aspirasi lain, dsb.) setelah pesan sukses.</li>
+      <li><b>/berita/[slug] tanpa artikel terkait</b> — pembaca selesai membaca lalu tidak ditawari konten lain; satu-satunya jalan adalah tombol kembali.</li>
+      <li><b>/kontak paling sederhana padahal target CTA utama</b> — tombol "Hubungi" di Header selalu terlihat, tapi mendarat di halaman berisi 3 kartu statis.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  var S=[["belum dicek","#888780"],["oke","#3b6d11"],["perlu perbaikan","#ba7517"],["kritis","#a32d2d"]];
+  function get(k){try{return +(localStorage.getItem("hmte-audit-"+k)||0)}catch(e){return 0}}
+  function set(k,v){try{localStorage.setItem("hmte-audit-"+k,v)}catch(e){}}
+  function recap(){
+    var c=[0,0,0,0];
+    document.querySelectorAll(".st").forEach(function(b){c[+b.dataset.i]++});
+    var el=document.getElementById("recap");
+    if(el){el.innerHTML='Rekap: <b style="color:#3b6d11">'+c[1]+' oke</b> · <b style="color:#ba7517">'+c[2]+' perlu perbaikan</b> · <b style="color:#a32d2d">'+c[3]+' kritis</b> · '+c[0]+' belum dicek'}
+  }
+  document.querySelectorAll(".st").forEach(function(b){
+    var i=get(b.dataset.k);
+    b.dataset.i=i;
+    function paint(){b.textContent=S[i][0];b.style.color=S[i][1];b.style.border="1px solid "+S[i][1]}
+    paint();
+    b.addEventListener("click",function(){i=(i+1)%4;b.dataset.i=i;set(b.dataset.k,i);paint();recap()});
+  });
+  document.querySelectorAll(".nt").forEach(function(t){
+    try{t.value=localStorage.getItem("hmte-note-"+t.dataset.k)||""}catch(e){}
+    t.addEventListener("input",function(){try{localStorage.setItem("hmte-note-"+t.dataset.k,t.value)}catch(e){}});
+  });
+  recap();
+})();
+</script>
+</body>
+</html>

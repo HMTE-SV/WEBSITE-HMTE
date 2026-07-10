@@ -3,6 +3,7 @@ import '../../css/hmte.css'
 import '../../css/landing-redesign.css'
 import '../../css/landing-v3.css'
 import '../../css/landing-about-v5.css'
+import '../../css/contact-postal.css'
 
 const siteUrl = 'https://website-hmte.vercel.app'
 const siteName = 'HMTE TRE SV UGM'
