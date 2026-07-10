@@ -54,6 +54,16 @@ export const getToKnowContent = {
   identity: 'Kabinet HMTE',
   period: 'Periode 2026',
   context: 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
+  prologue: {
+    kicker: 'Tentang HMTE',
+    titleLines: ['Tempat energi', 'mahasiswa bertemu.'],
+    body:
+      'Satu ruang bersama untuk bertumbuh, mencoba hal baru, dan membawa gagasan menjadi gerakan yang terasa.',
+  },
+  finale: {
+    line: 'Elektro, satu.',
+    caption: 'Kabinet HMTE · Periode 2026',
+  },
   steps: [
     {
       label: 'Siapa kami',

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
-import { EmptyState, PublicCard, PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
+import Image from 'next/image'
+import Link from 'next/link'
+import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
 import { announcements } from '@/data/announcements'
 
 export const metadata: Metadata = {
@@ -9,33 +11,79 @@ export const metadata: Metadata = {
 
 export default function AnnouncementsPage() {
   const publishedAnnouncements = announcements.filter((announcement) => announcement.status === 'published')
+  const [latestAnnouncement, ...archiveAnnouncements] = publishedAnnouncements.slice().reverse()
 
   return (
-    <PublicPageFrame>
-      <PublicPageHeader
-        kicker="Pengumuman"
-        title="Informasi resmi"
-        lead="Pengumuman organisasi, administrasi, dan kanal informasi yang perlu diketahui mahasiswa TRE."
-      />
-      <PublicSection title="Pengumuman terbaru">
-        {publishedAnnouncements.length > 0 ? (
-          <div className="public-list">
-            {publishedAnnouncements.map((announcement) => (
-              <PublicCard
-                eyebrow={announcement.date}
-                title={announcement.title}
-                body={announcement.excerpt}
-                key={announcement.id}
-              />
-            ))}
+    <PublicPageFrame activeHref="/pengumuman">
+      <section className="public-atmosphere-hero notice-atmosphere" aria-labelledby="dispatch-title">
+        <div className="atmosphere-geometry" aria-hidden="true"><span /><span /><i /></div>
+        <div className="atmosphere-shell atmosphere-grid">
+          <div className="atmosphere-copy">
+            <span className="atmosphere-kicker">Pengumuman resmi</span>
+            <h1 id="dispatch-title">Info yang perlu <em>dibaca.</em> Sekarang.</h1>
           </div>
-        ) : (
-          <EmptyState
-            title="Belum ada pengumuman"
-            body="Pengumuman resmi akan tampil setelah data dipublikasikan."
-          />
-        )}
-      </PublicSection>
+          <aside className="atmosphere-aside">
+            <p>Ruang singkat untuk kabar administrasi, kegiatan, dan hal yang perlu ditindaklanjuti oleh mahasiswa TRE.</p>
+            <dl className="atmosphere-stats" aria-label="Ringkasan pengumuman">
+              <div><dt>Terbit</dt><dd>{String(publishedAnnouncements.length).padStart(2, '0')}</dd></div>
+              <div><dt>Status</dt><dd>Aktif</dd></div>
+              <div><dt>Arsip</dt><dd>2026</dd></div>
+            </dl>
+          </aside>
+          <a className="atmosphere-cue" href="#daftar-pengumuman"><span>Gulir untuk membaca</span><b aria-hidden="true">↓</b></a>
+        </div>
+      </section>
+
+      <section className="dispatch-register" id="daftar-pengumuman" aria-labelledby="register-title">
+        <div className="dispatch-shell">
+          <div className="dispatch-register-intro">
+            <div>
+              <p className="dispatch-eyebrow">DAFTAR PEMBARUAN</p>
+              <h2 id="register-title">Yang sedang <em>berjalan.</em></h2>
+            </div>
+            <p>Disusun dari yang paling baru agar informasi penting tidak tenggelam di antara kabar lain.</p>
+          </div>
+
+          {latestAnnouncement ? (
+            <article className="dispatch-featured">
+              <div className="dispatch-featured-index" aria-hidden="true"><span>01</span><i /></div>
+              <div className="dispatch-featured-body">
+                <div className="dispatch-item-meta"><span>{latestAnnouncement.date}</span><span>UPDATE UTAMA</span></div>
+                <h3>{latestAnnouncement.title}</h3>
+                <p>{latestAnnouncement.excerpt}</p>
+              </div>
+              <div className="dispatch-featured-status"><span><i />TERBIT</span><b aria-hidden="true">↗</b></div>
+            </article>
+          ) : null}
+
+          {archiveAnnouncements.length > 0 ? (
+            <div className="dispatch-archive" aria-label="Arsip pengumuman">
+              {archiveAnnouncements.map((announcement, index) => (
+                <article className="dispatch-archive-row" key={announcement.id}>
+                  <span className="dispatch-archive-index">{String(index + 2).padStart(2, '0')}</span>
+                  <div className="dispatch-archive-title"><span>{announcement.date}</span><h3>{announcement.title}</h3></div>
+                  <p>{announcement.excerpt}</p>
+                  <span className="dispatch-archive-mark" aria-hidden="true">+</span>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
+          {!latestAnnouncement ? <EmptyState title="Belum ada pengumuman" body="Pengumuman resmi akan tampil setelah data dipublikasikan." /> : null}
+        </div>
+      </section>
+
+      <section className="dispatch-afterword" aria-label="Kanal aspirasi mahasiswa">
+        <div className="dispatch-shell dispatch-afterword-grid">
+          <div className="dispatch-afterword-photo"><Image src="/assets/ugm_socialization.png" alt="Mahasiswa mengikuti sesi pembelajaran" fill sizes="(max-width: 760px) 100vw, 38vw" /></div>
+          <div className="dispatch-afterword-copy">
+            <p className="dispatch-eyebrow">RUANG LAIN UNTUK DIDENGAR</p>
+            <h2>Ada hal yang tidak bisa menunggu pengumuman berikutnya?</h2>
+            <p>Untuk masukan akademik, fasilitas, organisasi, atau kesejahteraan, gunakan kanal aspirasi mahasiswa.</p>
+            <Link href="/aspirasi">Sampaikan aspirasi <span aria-hidden="true">→</span></Link>
+          </div>
+        </div>
+      </section>
     </PublicPageFrame>
   )
 }
