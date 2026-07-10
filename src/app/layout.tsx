@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import '../../css/hmte.css'
 import '../../css/landing-redesign.css'
 import '../../css/landing-v3.css'
-import '../../css/landing-about-v4.css'
+import '../../css/landing-about-v5.css'
 
 const siteUrl = 'https://website-hmte.vercel.app'
 const siteName = 'HMTE TRE SV UGM'

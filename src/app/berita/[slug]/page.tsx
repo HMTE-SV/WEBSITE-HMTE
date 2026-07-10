@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { PublicPageFrame, PublicPageHeader, PublicSection } from '@/components/site/PublicPage'
+import { PublicPageFrame } from '@/components/site/PublicPage'
 import { getAllArticles, getArticleBySlug } from '@/lib/content'
 
 type ArticleDetailPageProps = {
@@ -41,26 +41,90 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
     notFound()
   }
 
+  const relatedArticles = getAllArticles()
+    .filter((item) => item.slug !== article.slug && item.categoryKey === article.categoryKey)
+    .slice(0, 3)
+  const imageSrc = article.image.startsWith('/') ? article.image : `/${article.image}`
+
   return (
     <PublicPageFrame activeHref="/berita">
-      <PublicPageHeader
-        kicker={article.categoryLabel}
-        title={article.title}
-        lead={`${article.publisher} · ${article.timeAgo} · ${article.readTime}`}
-      />
-      <PublicSection>
-        <article className="article-detail">
-          <Image src={`/${article.image}`} alt={article.title} width={1400} height={788} priority />
-          <p>{article.excerpt}</p>
-          <p>
-            Konten lengkap berita ini akan dihubungkan ke database saat fase Firebase dan admin CMS
-            berjalan. Untuk saat ini, halaman detail memakai data lokal yang sudah bertipe.
-          </p>
-          <Link className="btn btn-secondary" href="/berita">
-            Kembali ke berita
-          </Link>
-        </article>
-      </PublicSection>
+      <article className="article-story">
+        <header className="article-story-hero">
+          <div className="public-shell">
+            <Link className="article-story-back" href="/berita">
+              <span aria-hidden="true">←</span> Kembali ke berita
+            </Link>
+            <div className="article-story-heading">
+              <span>{article.categoryLabel}</span>
+              <h1>{article.title}</h1>
+              <p>{article.excerpt}</p>
+              <div className="article-story-byline" aria-label="Informasi artikel">
+                <strong>{article.publisher}</strong>
+                <time>{article.timeAgo}</time>
+                <span>{article.readTime}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="public-shell article-story-media">
+          <figure>
+            <Image src={imageSrc} alt={article.title} fill priority sizes="(max-width: 760px) 100vw, 1200px" />
+            <figcaption>{article.categoryLabel} · Dokumentasi {article.publisher}</figcaption>
+          </figure>
+        </div>
+
+        <section className="article-story-body" aria-label="Isi berita">
+          <div className="public-shell article-story-body-grid">
+            <aside className="article-story-facts">
+              <span>Informasi publikasi</span>
+              <dl>
+                <div><dt>Penerbit</dt><dd>{article.publisher}</dd></div>
+                <div><dt>Kanal</dt><dd>{article.categoryLabel}</dd></div>
+                <div><dt>Terbit</dt><dd>{article.timeAgo}</dd></div>
+                <div><dt>Waktu baca</dt><dd>{article.readTime}</dd></div>
+              </dl>
+            </aside>
+            <div className="article-story-copy">
+              <p className="article-story-lead">{article.excerpt}</p>
+              <p>
+                Konten lengkap berita ini akan dihubungkan ke database saat fase Firebase dan admin CMS
+                berjalan. Untuk saat ini, halaman detail memakai data lokal yang sudah bertipe.
+              </p>
+              <div className="article-story-note">
+                <span>Catatan redaksi</span>
+                <p>Informasi pada halaman ini mengikuti arsip publikasi yang tersedia di situs HMTE.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {relatedArticles.length > 0 ? (
+          <section className="article-related" aria-labelledby="article-related-title">
+            <div className="public-shell">
+              <div className="article-related-heading">
+                <div>
+                  <span>Masih dalam kanal</span>
+                  <h2 id="article-related-title">Baca berikutnya</h2>
+                </div>
+                <Link href="/berita">Lihat semua berita</Link>
+              </div>
+              <div className="article-related-grid">
+                {relatedArticles.map((item, index) => (
+                  <Link href={`/berita/${item.slug}`} key={item.slug}>
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <div>
+                      <time>{item.timeAgo}</time>
+                      <h3>{item.title}</h3>
+                      <strong>Baca artikel <b aria-hidden="true">→</b></strong>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+      </article>
     </PublicPageFrame>
   )
 }
