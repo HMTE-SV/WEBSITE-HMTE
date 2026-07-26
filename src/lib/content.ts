@@ -17,6 +17,8 @@ export function getAllArticles() {
   ) as Record<ArticleCategoryKey, string>
 
   return Object.entries(articleCategories).flatMap(([categoryKey, group]) => {
+    if (!group) return []
+
     const typedCategoryKey = categoryKey as ArticleCategoryKey
     const articles: ArticleSummary[] = [group.featured, ...group.latest]
 

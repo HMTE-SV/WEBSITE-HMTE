@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AspirationForm } from '@/components/site/AspirationForm'
+import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { PublicPageFrame } from '@/components/site/PublicPage'
 
 export const metadata: Metadata = {
@@ -11,7 +12,11 @@ export const metadata: Metadata = {
 export default function AspirationsPage() {
   return (
     <PublicPageFrame activeHref="/aspirasi">
-      <section className="aspiration-hero" aria-labelledby="aspiration-title">
+      <section
+        className="aspiration-hero has-hero-backdrop"
+        aria-labelledby="aspiration-title"
+      >
+        <HeroBackdrop variant="arc" />
         <div className="public-shell aspiration-hero-grid">
           <div>
             <span className="aspiration-kicker">Kanal mahasiswa</span>

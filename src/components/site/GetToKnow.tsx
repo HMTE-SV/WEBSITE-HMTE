@@ -14,7 +14,7 @@ const CHAPTERS: Chapter[] = [
   { key: 'siapa', label: 'Siapa kami', at: 0.16, target: 0.29 },
   { key: 'visi', label: 'Visi', at: 0.4, target: 0.53 },
   { key: 'misi', label: 'Misi', at: 0.62, target: 0.74 },
-  { key: 'kabinet', label: 'Kabinet 2026', at: 0.8, target: 0.965 },
+  { key: 'kabinet', label: 'Abya Vistara', at: 0.8, target: 0.965 },
 ]
 
 const TEXT_WINDOWS = [
@@ -28,7 +28,7 @@ type Photo = { src: string; alt: string; variant: string; wide: Keyframe[]; comp
 const PHOTOS: Photo[] = [
   {
     src: '/assets/robotics_prestige.png',
-    alt: 'Tim mahasiswa menyiapkan robot untuk kompetisi robotika',
+    alt: 'Visual sementara untuk foto kolaborasi anggota HMTE',
     variant: 'a',
     wide: [
       { at: 0.0, x: 27, y: 15, r: 7, s: 0.55, o: 0.22, b: 9 },
@@ -46,7 +46,7 @@ const PHOTOS: Photo[] = [
   },
   {
     src: '/assets/ugm_socialization.png',
-    alt: 'Suasana forum mahasiswa Elektro di ruang kuliah',
+    alt: 'Visual sementara untuk foto ruang musyawarah HMTE',
     variant: 'b',
     wide: [
       { at: 0.0, x: -28, y: 31, r: -6, s: 0.52, o: 0.16, b: 9 },
@@ -64,7 +64,7 @@ const PHOTOS: Photo[] = [
   },
   {
     src: '/assets/solar_village.png',
-    alt: 'Mahasiswa memasang lampu tenaga surya dalam pengabdian masyarakat',
+    alt: 'Visual sementara untuk foto gerakan HMTE di lapangan',
     variant: 'c',
     wide: [
       { at: 0.3, x: -50, y: 6, r: -4, s: 0.8, o: 0, b: 7 },
@@ -85,7 +85,7 @@ const PHOTOS: Photo[] = [
   },
   {
     src: '/assets/smart_grid_dashboard.png',
-    alt: 'Pengujian dasbor smart grid di laboratorium elektro',
+    alt: 'Visual sementara untuk foto budaya belajar dan teknologi',
     variant: 'd',
     wide: [
       { at: 0.58, x: -30, y: 44, r: -7, s: 0.44, o: 0, b: 7 },
@@ -102,7 +102,7 @@ const PHOTOS: Photo[] = [
   },
   {
     src: '/assets/semiconductor_career.png',
-    alt: 'Mahasiswa di ruang bersih fasilitas semikonduktor',
+    alt: 'Visual sementara untuk foto pertumbuhan anggota HMTE',
     variant: 'e',
     wide: [
       { at: 0.58, x: 30, y: 44, r: 7, s: 0.44, o: 0, b: 7 },

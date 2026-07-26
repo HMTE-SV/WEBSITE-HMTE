@@ -1,23 +1,39 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { PublicPageFrame } from '@/components/site/PublicPage'
+import { HeroBackdrop } from '@/components/site/HeroBackdrop'
+import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
 import { articleTabs } from '@/data/articles'
-import { getAllArticles } from '@/lib/content'
+import { getPublishedArticleFeed, type PublicArticle } from '@/lib/article-data'
 import { NewsroomFeed } from './NewsroomFeed'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Berita HMTE TRE SV UGM',
   description: 'Kumpulan berita, prestasi, alumni, magang, proyek akhir, pendidikan, penelitian, dan pengabdian HMTE.',
 }
 
-export default function NewsPage() {
-  const articles = getAllArticles()
+export default async function NewsPage() {
+  let articles: PublicArticle[] = []
+  let loadError = false
+
+  try {
+    articles = await getPublishedArticleFeed()
+  } catch {
+    loadError = true
+  }
+
   const [featuredArticle, ...feedArticles] = articles
+  const publishedChannels = new Set(articles.map((article) => article.categoryKey)).size
 
   return (
     <PublicPageFrame activeHref="/berita">
-      <section className="newsroom-hero" aria-labelledby="newsroom-title">
+      <section
+        className="newsroom-hero has-hero-backdrop"
+        aria-labelledby="newsroom-title"
+      >
+        <HeroBackdrop variant="arc" />
         <div className="newsroom-shell newsroom-hero-grid">
           <div className="newsroom-hero-copy">
             <span className="newsroom-overline">Pusat kabar HMTE</span>
@@ -38,11 +54,11 @@ export default function NewsPage() {
               </div>
               <div>
                 <dt>Kanal</dt>
-                <dd>{articleTabs.length.toString().padStart(2, '0')}</dd>
+                <dd>{publishedChannels.toString().padStart(2, '0')}</dd>
               </div>
               <div>
                 <dt>Arsip</dt>
-                <dd>2026</dd>
+                <dd>{new Date().getFullYear()}</dd>
               </div>
             </dl>
           </div>
@@ -68,7 +84,7 @@ export default function NewsPage() {
             <Link className="newsroom-feature" href={`/berita/${featuredArticle.slug}`}>
               <div className="newsroom-feature-media">
                 <Image
-                  src={featuredArticle.image.startsWith('/') ? featuredArticle.image : `/${featuredArticle.image}`}
+                  src={featuredArticle.image}
                   alt={featuredArticle.title}
                   fill
                   priority
@@ -90,11 +106,18 @@ export default function NewsPage() {
                 </span>
               </article>
             </Link>
-          ) : null}
+          ) : (
+            <EmptyState
+              title={loadError ? 'Berita belum dapat dimuat' : 'Belum ada berita resmi'}
+              body={loadError
+                ? 'Koneksi ke arsip Firestore sedang bermasalah. Silakan coba kembali beberapa saat lagi.'
+                : 'Redaksi belum menerbitkan berita. Artikel yang masih berstatus draft tidak ditampilkan di halaman publik.'}
+            />
+          )}
         </div>
       </section>
 
-      <NewsroomFeed articles={feedArticles} tabs={articleTabs} />
+      {articles.length > 0 ? <NewsroomFeed articles={feedArticles} tabs={articleTabs} /> : null}
     </PublicPageFrame>
   )
 }

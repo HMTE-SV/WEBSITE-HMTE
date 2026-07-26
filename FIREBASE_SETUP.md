@@ -1,6 +1,7 @@
 # Firebase Setup
 
-This project is prepared for Firebase Authentication, Cloud Firestore, and Cloud Storage.
+This project uses Firebase Authentication and Cloud Firestore. Dynamic images are referenced from ImageKit so the
+website does not require Firebase Storage or the Blaze billing plan.
 
 ## 1. Create Firebase Project
 
@@ -15,7 +16,6 @@ Enable these Firebase products:
 
 - Authentication
 - Cloud Firestore
-- Cloud Storage
 
 For Authentication, enable the Email/Password sign-in provider. Other providers can be added later if HMTE needs them.
 
@@ -49,7 +49,6 @@ Use these helpers when building Firebase-backed features:
 - `getFirebaseClientApp()`
 - `getFirebaseAuth()`
 - `getFirebaseDb()`
-- `getFirebaseStorage()`
 - `hasFirebaseConfig()`
 
 The helpers initialize Firebase lazily. This keeps `next build` from crashing before runtime environment variables are available.
@@ -75,15 +74,73 @@ editor
 viewer
 ```
 
-Firestore-backed role enforcement will be added in the content model and security rules phases.
+Create the matching `adminUsers/{uid}` document described in section 8 before signing in. Authentication without an
+active admin profile is rejected by both the admin interface and Firestore Rules.
 
 ## 7. Deployment Notes
 
 When deploying to Vercel or Firebase App Hosting, add the same `NEXT_PUBLIC_FIREBASE_*` variables in the hosting provider environment settings.
 
-Production must also deploy Firestore and Storage security rules before admin content management is considered ready.
+Production must deploy Firestore security rules and indexes before admin content management is considered ready:
 
-## 8. Aspirasi Spam Strategy
+```powershell
+npx firebase-tools login
+npx firebase-tools deploy --only firestore:rules,firestore:indexes
+```
+
+The default project alias in `.firebaserc` points to `website-hmte-svugm`. Confirm the active account and project in
+the CLI before deploying.
+
+## 8. Admin authorization
+
+Authentication alone does not grant admin access. Every admin must also have a document at:
+
+```txt
+adminUsers/{firebase-auth-uid}
+```
+
+Required fields:
+
+```txt
+uid: string (must match the document ID and Firebase Authentication UID)
+email: string
+displayName: string
+role: "superadmin" | "editor" | "viewer"
+active: true
+```
+
+Firestore Rules enforce the following model:
+
+- `superadmin`: all admin content plus settings and admin-user management.
+- `editor`: content and organization CRUD, gallery references, and aspiration follow-up.
+- `viewer`: read-only access to admin content.
+- public visitors: only published content and active organization records; aspirations can only be created.
+
+## 9. Image references
+
+The gallery manager accepts HTTPS ImageKit URLs and stores the URL plus metadata in Firestore. ImageKit private keys
+must never use the `NEXT_PUBLIC_` prefix. A signed ImageKit upload endpoint can be added later without changing the
+Firestore content model.
+
+## 10. Berita dan editor artikel
+
+Berita disimpan di collection `articles`. Artikel baru selalu dapat disimpan sebagai `draft`, kemudian diterbitkan
+dari form editor atau daftar berita. Halaman publik hanya membaca dokumen dengan `status: "published"`.
+
+Field utama yang dikelola panel:
+
+```txt
+title, slug, excerpt, content, category, coverImage, status
+createdAt, updatedAt, publishedAt
+```
+
+`content` berisi HTML terbatas dari rich-text editor. HTML disanitasi kembali sebelum ditampilkan di halaman publik.
+Cover dan gambar di dalam artikel menggunakan URL HTTPS ImageKit atau Firebase Storage; file gambar tidak disimpan
+di dalam dokumen Firestore.
+
+Query publik memakai composite index `status + publishedAt` yang didefinisikan di `firestore.indexes.json`.
+
+## 11. Aspirasi Spam Strategy
 
 The public aspiration form writes to the `aspirations` collection. Before production launch, deploy Firestore rules so public users can only create documents and cannot list existing aspirations.
 

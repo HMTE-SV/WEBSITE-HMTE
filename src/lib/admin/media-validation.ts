@@ -40,3 +40,23 @@ export function validateArticleCoverImage(file: ImageLike): MediaValidationResul
 export function validateGalleryImage(file: ImageLike): MediaValidationResult {
   return validateImage(file, 5 * oneMb, 'Ukuran gambar galeri maksimal 5MB.')
 }
+
+export function validateGalleryImageUrl(value: string): MediaValidationResult {
+  const errors: string[] = []
+
+  try {
+    const url = new URL(value)
+    const supportedHosts = ['ik.imagekit.io', 'firebasestorage.googleapis.com']
+
+    if (url.protocol !== 'https:' || !supportedHosts.includes(url.hostname)) {
+      errors.push('URL gambar harus menggunakan HTTPS dari ImageKit.')
+    }
+  } catch {
+    errors.push('URL gambar tidak valid.')
+  }
+
+  return {
+    success: errors.length === 0,
+    errors,
+  }
+}

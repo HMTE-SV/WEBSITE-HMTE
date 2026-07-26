@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { organizationRolesByDivision } from '@/data/organization-roles'
 import { getDivisionHref, getLeaderHref } from '@/lib/organization-slugs'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 import { useDirectory } from './directory/DirectoryProvider'
@@ -30,6 +31,7 @@ export function LeadershipDirectory({
   const division = divisionsByCode[selectedDivision]
   const members = leadersByDivision[selectedDivision] ?? []
   const programs = programsByDivision[selectedDivision] ?? []
+  const roles = organizationRolesByDivision[selectedDivision]
 
   return (
     <article className="org-signal" key={selectedDivision} aria-live="polite">
@@ -44,32 +46,48 @@ export function LeadershipDirectory({
       <div className="org-signal-layout">
         <div className="org-signal-people">
           <div className="org-signal-label">
-            <strong>Orang-orang di baliknya</strong>
-            <span>{members.length} pengurus</span>
+            <strong>{members.length > 0 ? 'Orang-orang di baliknya' : 'Struktur peran'}</strong>
+            <span>{members.length > 0 ? `${members.length} pengurus` : `${roles.length} kelompok peran`}</span>
           </div>
           <div className="org-people-runway">
-            {members.slice(0, 6).map((member, index) => (
-              <Link
-                className="org-person"
-                style={{ '--person-index': index } as React.CSSProperties}
-                href={getLeaderHref(member)}
-                key={`${member.name}-${member.role}`}
-              >
-                <div className="org-person-photo">
-                  <MemberImage member={member} />
-                </div>
-                <div>
-                  <h4>{member.name}</h4>
-                  <p>{member.role}</p>
-                </div>
-              </Link>
-            ))}
+            {members.length > 0
+              ? members.slice(0, 6).map((member, index) => (
+                  <Link
+                    className="org-person"
+                    style={{ '--person-index': index } as React.CSSProperties}
+                    href={getLeaderHref(member)}
+                    key={`${member.name}-${member.role}`}
+                  >
+                    <div className="org-person-photo">
+                      <MemberImage member={member} />
+                    </div>
+                    <div>
+                      <h4>{member.name}</h4>
+                      <p>{member.role}</p>
+                    </div>
+                  </Link>
+                ))
+              : roles.slice(0, 6).map((role, index) => (
+                  <article
+                    className="org-person"
+                    style={{ '--person-index': index } as React.CSSProperties}
+                    key={role.name}
+                  >
+                    <div className="org-person-photo">
+                      <Image className="org-person-logo" src="/assets/logo-hmte.svg" alt="" width={96} height={44} />
+                    </div>
+                    <div>
+                      <h4>{role.name}</h4>
+                      <p>Nama pengurus belum tersedia</p>
+                    </div>
+                  </article>
+                ))}
           </div>
         </div>
 
         <aside className="org-signal-programs">
           <div className="org-signal-label">
-            <strong>Yang sedang dibangun</strong>
+            <strong>Program kerja</strong>
             <span>{programs.length} program</span>
           </div>
           <div className="org-signal-program-list">
@@ -86,9 +104,11 @@ export function LeadershipDirectory({
       </div>
 
       <footer className="org-signal-foot">
-        <p>Pindah divisi dari switchboard di atas—tanpa perlu kembali ke section lain.</p>
+        <p>Pilih unsur organisasi dari switchboard di atas untuk melihat peran dan program kerjanya.</p>
         <div>
-          <Link href={`/kepengurusan?divisi=${selectedDivision}`}>Semua pengurus</Link>
+          <Link href={`/kepengurusan?divisi=${selectedDivision}`}>
+            {members.length > 0 ? 'Semua pengurus' : 'Struktur lengkap'}
+          </Link>
           <Link href={getDivisionHref(selectedDivision)}>Profil {division.shortName}</Link>
         </div>
       </footer>

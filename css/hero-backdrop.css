@@ -1,0 +1,185 @@
+/* ============================================================
+   HERO BACKDROP
+   The navy field + gold light + geometric figure first built for
+   /berita, factored into a reusable layer. Paired with
+   src/components/site/HeroBackdrop.tsx — colour here, geometry there.
+   ============================================================ */
+
+.hero-backdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at var(--backdrop-light-x, 82%) var(--backdrop-light-y, 12%),
+      rgba(var(--hmte-gold-rgb), var(--backdrop-light-strength, 0.17)),
+      transparent 26%
+    ),
+    linear-gradient(135deg, var(--hmte-navy-deep), var(--hmte-navy) 62%, #062c5c);
+}
+
+/* Ruled mesh, faded out toward the foot so copy never sits on a hard grid. */
+.hero-backdrop[data-mesh='on']::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  opacity: 0.2;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: linear-gradient(to bottom, #000, transparent 80%);
+}
+
+.hero-backdrop-figure {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * The field's gold light is placed to agree with where each SVG form is lit,
+ * otherwise the page glow and the surface shading fight each other and the
+ * volume flattens out again.
+ */
+.hero-backdrop[data-variant='arc'] {
+  --backdrop-light-x: 82%;
+  --backdrop-light-y: 12%;
+}
+
+.hero-backdrop[data-variant='orbit'] {
+  --backdrop-light-x: 33%;
+  --backdrop-light-y: 25%;
+  --backdrop-light-strength: 0.15;
+}
+
+.hero-backdrop[data-variant='dome'] {
+  --backdrop-light-x: 41%;
+  --backdrop-light-y: 56%;
+  --backdrop-light-strength: 0.15;
+}
+
+.hero-backdrop[data-variant='crest'] {
+  --backdrop-light-x: 79%;
+  --backdrop-light-y: 21%;
+  --backdrop-light-strength: 0.18;
+}
+
+.hero-backdrop[data-variant='drift'] {
+  --backdrop-light-x: 29%;
+  --backdrop-light-y: 13%;
+  --backdrop-light-strength: 0.17;
+}
+
+/*
+ * Any section hosting a backdrop becomes the positioning context and lifts its
+ * own children above layer 0.
+ */
+.has-hero-backdrop {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--tre-off-white);
+}
+
+.has-hero-backdrop > *:not(.hero-backdrop) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Variant preview board (/lab/backdrop) ---- */
+
+.backdrop-lab {
+  min-height: 100svh;
+  padding: 120px 0 96px;
+  background: var(--tre-off-white);
+}
+
+.backdrop-lab-shell {
+  width: min(1240px, calc(100% - 64px));
+  margin-inline: auto;
+}
+
+.backdrop-lab-head h1 {
+  margin: 12px 0 0;
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.backdrop-lab-head > p {
+  max-width: 62ch;
+  margin: 14px 0 0;
+  color: var(--fg-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.backdrop-lab-list {
+  display: grid;
+  gap: 28px;
+  margin-top: 40px;
+}
+
+.backdrop-lab-item {
+  display: grid;
+  gap: 12px;
+}
+
+.backdrop-lab-item figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  color: var(--hmte-navy);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.backdrop-lab-item figcaption span {
+  color: var(--fg-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.backdrop-lab-frame {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: end;
+  min-height: 340px;
+  padding: 34px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--hmte-navy-rgb), 0.2);
+}
+
+.backdrop-lab-frame > strong {
+  position: relative;
+  z-index: 1;
+  max-width: 16ch;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+@media (max-width: 820px) {
+  .backdrop-lab-shell {
+    width: calc(100% - 36px);
+  }
+
+  .backdrop-lab-frame {
+    min-height: 260px;
+    padding: 22px;
+  }
+}

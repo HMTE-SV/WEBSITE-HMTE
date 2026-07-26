@@ -65,4 +65,20 @@ describe('admin content form validation', () => {
       errors: [],
     })
   })
+
+  it('rejects empty rich text and non-ImageKit covers', () => {
+    const result = validateArticleInput({
+      title: 'Berita HMTE',
+      slug: 'berita-hmte',
+      excerpt: 'Ringkasan berita.',
+      content: '<p></p>',
+      coverImage: 'https://example.com/cover.jpg',
+      category: 'berita-utama',
+      status: 'draft',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.errors).toContain('Isi artikel wajib diisi.')
+    expect(result.errors).toContain('URL gambar harus menggunakan HTTPS dari ImageKit.')
+  })
 })

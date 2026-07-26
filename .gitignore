@@ -34,3 +34,8 @@ src/components/site/Gallery.tsx
 # Audit screenshots/notes should not be committed.
 audit/
 .env*
+
+# Daftar anggota berisi NIM (nomor mahasiswa) 71 orang. Data pribadi, tidak
+# boleh masuk riwayat git — repo ini milik organisasi dan bisa dibuka banyak
+# pengurus. File tetap ada di disk untuk keperluan kerja, cuma tidak diikuti.
+ASSET/anggota-hmte.md

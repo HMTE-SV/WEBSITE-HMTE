@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { ProgramCatalog } from '@/components/site/ProgramCatalog'
-import { PublicPageFrame, PublicSection } from '@/components/site/PublicPage'
+import { PublicPageFrame } from '@/components/site/PublicPage'
 import { leadershipDivisionOrder } from '@/data/divisions'
 import { featuredProgramPresentations } from '@/data/program-presentations'
 import { getOrganizationData } from '@/lib/organization-data'
@@ -27,8 +28,9 @@ export default async function ProgramsPage() {
   const allPrograms = divisions.flatMap((division) => programsByDivision[division.code])
   const statusCounts = allPrograms.reduce(
     (counts, program) => ({ ...counts, [program.status]: counts[program.status] + 1 }),
-    { Selesai: 0, 'Sedang Berjalan': 0, Terencana: 0 } satisfies Record<ProgramStatus, number>,
+    { Terjadwal: 0, Berkala: 0 } satisfies Record<ProgramStatus, number>,
   )
+  const departmentProgramCount = allPrograms.length - programsByDivision.PH.length
   const featuredPrograms = featuredProgramPresentations.flatMap((presentation) => {
     const division = divisionsByCode[presentation.divisionCode]
     const program = programsByDivision[presentation.divisionCode].find(
@@ -40,80 +42,101 @@ export default async function ProgramsPage() {
 
   return (
     <PublicPageFrame activeHref="/program-kerja">
-      <section className="program-index-hero">
-        <div className="public-shell program-index-hero-layout">
-          <div className="program-index-intro">
-            <span className="program-index-kicker">Program Kerja · Kabinet 2026</span>
-            <h1>Kerja yang bisa diikuti, bukan sekadar daftar.</h1>
-            <p>
-              Telusuri program unggulan setiap bidang, lihat statusnya, lalu ikuti detail agenda, timeline,
-              dan dokumen pendukung dalam satu alur yang jelas.
-            </p>
+      <section
+        className="program-index-hero has-hero-backdrop"
+        aria-labelledby="programs-title"
+      >
+        <HeroBackdrop variant="dome" />
+        <div className="org-shell program-index-hero-shell">
+          <div className="program-index-hero-grid">
+            <div>
+              <p className="org-context">Program kerja · Abya Vistara 2026/2027</p>
+              <h1 id="programs-title">
+                Agenda yang mudah dicari,
+                <span>detail yang mudah dibuka.</span>
+              </h1>
+              <p>
+                Telusuri program per bidang, pola jadwal, dan halaman detail untuk setiap agenda.
+                Label menunjukkan pola pelaksanaan, bukan status realisasi.
+              </p>
+            </div>
+            <div className="program-index-hero-mark" aria-hidden="true">
+              <Image
+                src="/assets/abya-vistara/logo-kabinet.webp"
+                alt=""
+                width={180}
+                height={180}
+              />
+              <strong>{String(allPrograms.length).padStart(2, '0')}</strong>
+              <span>program tercatat</span>
+            </div>
           </div>
-          <div className="program-index-stats" aria-label="Ringkasan program kerja">
+
+          <dl className="org-meter" aria-label="Ringkasan program kerja">
             <div>
-              <strong>{allPrograms.length}</strong>
-              <span>Total program</span>
+              <dt>Program unggulan</dt>
+              <dd>{featuredPrograms.length}</dd>
             </div>
             <div>
-              <strong>{featuredPrograms.length}</strong>
-              <span>Program unggulan</span>
+              <dt>Program departemen</dt>
+              <dd>{departmentProgramCount}</dd>
             </div>
             <div>
-              <strong>{statusCounts['Sedang Berjalan']}</strong>
-              <span>Sedang berjalan</span>
+              <dt>Terjadwal</dt>
+              <dd>{statusCounts.Terjadwal}</dd>
             </div>
             <div>
-              <strong>{statusCounts.Selesai}</strong>
-              <span>Selesai</span>
+              <dt>Berkala</dt>
+              <dd>{statusCounts.Berkala}</dd>
             </div>
+          </dl>
+        </div>
+      </section>
+
+      <section className="tix-section" aria-labelledby="featured-title">
+        <div className="org-shell">
+          <div className="tix-heading">
+            <div>
+              <p className="org-context">Pilihan buku panduan</p>
+              <h2 id="featured-title">Tiga program unggulan.</h2>
+            </div>
+            <p>TORSI, HMTE Mengajar, dan Elektro Cup mendapat penjelasan khusus di buku panduan.</p>
+          </div>
+          <div className="tix-grid">
+            {featuredPrograms.map(({ division, presentation, program }) => (
+              <Link className="tix" href={getProgramHref(program)} key={division.code}>
+                <div className="tix-media">
+                  <Image
+                    src={presentation.image}
+                    alt={`Dokumentasi HMTE untuk ${program.name}`}
+                    fill
+                    sizes="(max-width: 760px) 100vw, 33vw"
+                  />
+                  <span className="tix-code">{division.shortName}</span>
+                </div>
+                <div className="tix-body">
+                  <h3>{program.name}</h3>
+                  <p>{presentation.tagline}</p>
+                  <div className="tix-foot">
+                    <span className={`org-status ${getStatusClass(program.status)}`}>
+                      <i aria-hidden="true" />
+                      {program.status}
+                    </span>
+                    <time>{program.date}</time>
+                    <b aria-hidden="true">↗</b>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      <PublicSection>
-        <div className="program-featured-heading">
-          <div>
-            <span className="public-label">Pilihan setiap bidang</span>
-            <h2>Program unggulan</h2>
-          </div>
-          <p>Satu program utama dari PH dan setiap bidang, lengkap dengan halaman kerja yang lebih mendalam.</p>
+      <section className="ledger" aria-labelledby="catalog-title">
+        <div className="org-shell">
+          <ProgramCatalog divisions={divisions} programsByDivision={programsByDivision} />
         </div>
-
-        <div className="program-featured-grid">
-          {featuredPrograms.map(({ division, presentation, program }, index) => (
-            <Link
-              className={index === 0 ? 'program-featured-card is-lead' : 'program-featured-card'}
-              href={getProgramHref(program)}
-              key={division.code}
-            >
-              <div className="program-featured-media">
-                <Image
-                  src={presentation.image}
-                  alt={`Dokumentasi ${program.name}`}
-                  fill
-                  sizes={index === 0 ? '(max-width: 760px) 100vw, 50vw' : '(max-width: 760px) 100vw, 25vw'}
-                />
-                <span className="program-featured-badge">Unggulan</span>
-                <span className={`program-featured-status ${getStatusClass(program.status)}`}>{program.status}</span>
-              </div>
-              <div className="program-featured-copy">
-                <span>{division.shortName}</span>
-                <h3>{program.name}</h3>
-                <p>{presentation.tagline}</p>
-                <div>
-                  <time>{program.date}</time>
-                  <strong>Buka halaman</strong>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </PublicSection>
-
-      <PublicSection>
-        <ProgramCatalog divisions={divisions} programsByDivision={programsByDivision} />
-      </PublicSection>
+      </section>
     </PublicPageFrame>
   )
 }

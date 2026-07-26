@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
 import { getAllArticles } from '@/lib/content'
 
@@ -16,7 +17,11 @@ export default function GalleryPage() {
 
   return (
     <PublicPageFrame activeHref="/galeri">
-      <section className="gallery-index-hero" aria-labelledby="gallery-title">
+      <section
+        className="gallery-index-hero has-hero-backdrop"
+        aria-labelledby="gallery-title"
+      >
+        <HeroBackdrop variant="crest" />
         <div className="public-shell gallery-index-hero-grid">
           <div>
             <span className="gallery-index-kicker">Arsip visual HMTE</span>
@@ -24,8 +29,8 @@ export default function GalleryPage() {
           </div>
           <div className="gallery-index-intro">
             <p>
-              Dokumentasi dari publikasi HMTE, DTEDI, Sekolah Vokasi, dan UGM—dirangkai
-              sebagai pintu masuk menuju cerita lengkapnya.
+              Galeri hanya akan memuat dokumentasi kegiatan HMTE yang telah diperiksa konteks,
+              kepemilikan, dan izin publikasinya.
             </p>
             <span>{String(galleryItems.length).padStart(2, '0')} sorotan terpilih</span>
           </div>
@@ -35,9 +40,9 @@ export default function GalleryPage() {
       <section className="gallery-archive" aria-labelledby="gallery-archive-title">
         <div className="public-shell">
           <div className="gallery-archive-heading">
-            <span>Dokumentasi 2026</span>
+            <span>Dokumentasi 2026/2027</span>
             <h2 id="gallery-archive-title">Sorotan galeri</h2>
-            <p>Pilih dokumentasi untuk membaca konteks kegiatan selengkapnya.</p>
+            <p>Setiap foto akan terhubung ke kegiatan atau publikasi yang menjelaskan konteksnya.</p>
           </div>
 
           {galleryItems.length > 0 ? (
@@ -70,7 +75,10 @@ export default function GalleryPage() {
               ))}
             </div>
           ) : (
-            <EmptyState title="Galeri belum tersedia" body="Dokumentasi akan tampil setelah publikasi diterbitkan." />
+            <EmptyState
+              title="Galeri belum tersedia"
+              body="Buku Panduan HMTE tidak memuat dokumentasi kegiatan aktual. Foto akan tampil setelah aset resmi dikumpulkan dan diverifikasi."
+            />
           )}
         </div>
       </section>

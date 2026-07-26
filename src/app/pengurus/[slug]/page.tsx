@@ -2,9 +2,14 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { PublicPageFrame, PublicSection } from '@/components/site/PublicPage'
+import { PublicPageFrame } from '@/components/site/PublicPage'
 import { getLocalOrganizationData, getOrganizationData } from '@/lib/organization-data'
-import { getDivisionHref, getLeaderHref, toOrganizationSlug } from '@/lib/organization-slugs'
+import {
+  getDivisionHref,
+  getLeaderHref,
+  getProgramHref,
+  toOrganizationSlug,
+} from '@/lib/organization-slugs'
 import type { Division, DivisionCode, Leader } from '@/types/content'
 
 type LeaderProfilePageProps = {
@@ -23,12 +28,19 @@ function findLeader(
   leadersByDivision: Record<DivisionCode, Leader[]>,
 ): LeaderWithDivision | undefined {
   for (const division of divisions) {
-    const leader = leadersByDivision[division.code].find((item) => toOrganizationSlug(item.name) === slug)
+    const leader = leadersByDivision[division.code].find(
+      (item) => toOrganizationSlug(item.name) === slug,
+    )
 
     if (leader) {
       return { leader, division, divisionCode: division.code }
     }
   }
+}
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return `${parts[0]?.[0] ?? ''}${parts.at(-1)?.[0] ?? ''}`.toUpperCase()
 }
 
 export function generateStaticParams() {
@@ -40,7 +52,10 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: LeaderProfilePageProps): Promise<Metadata> {
-  const [{ slug }, { divisions, leadersByDivision }] = await Promise.all([params, getOrganizationData()])
+  const [{ slug }, { divisions, leadersByDivision }] = await Promise.all([
+    params,
+    getOrganizationData(),
+  ])
   const result = findLeader(slug, divisions, leadersByDivision)
 
   if (!result) {
@@ -62,92 +77,106 @@ export default async function LeaderProfilePage({ params }: LeaderProfilePagePro
   }
 
   const { leader, division, divisionCode } = result
-  const teammates = organization.leadersByDivision[divisionCode].filter((item) => item.name !== leader.name).slice(0, 3)
+  const divisionPeers = organization.leadersByDivision[divisionCode].filter(
+    (item) => item.name !== leader.name,
+  )
+  const teammates = divisionPeers.slice(0, 4)
   const programs = organization.programsByDivision[divisionCode]
 
   return (
     <PublicPageFrame activeHref="/kepengurusan">
-      <section className="leader-profile-hero">
-        <div className="public-shell leader-profile-hero-content">
-          <Link href={`/kepengurusan?divisi=${divisionCode}`} className="division-profile-back">
-            Direktori Pengurus
-          </Link>
-          <div className="leader-profile-layout">
-            <div className="leader-profile-photo">
+      <section className="member-profile" aria-labelledby="member-name">
+        <div className="org-shell member-profile-shell">
+          <nav className="member-profile-nav" aria-label="Navigasi profil">
+            <Link href={`/kepengurusan?divisi=${divisionCode}`}>← Direktori {division.shortName}</Link>
+            <Link href={getDivisionHref(divisionCode)}>Profil bidang ↗</Link>
+          </nav>
+
+          <div className="member-profile-grid">
+            <figure className="member-profile-portrait">
               {leader.photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img className="organization-person-photo" src={leader.photo} alt={leader.name} />
+                <img src={leader.photo} alt={leader.name} />
               ) : (
-                <Image className="organization-logo-fallback" src="/assets/logo-hmte.svg" alt="Logo HMTE" width={260} height={116} />
+                <>
+                  <Image
+                    src="/assets/abya-vistara/logo-kabinet.webp"
+                    alt=""
+                    width={280}
+                    height={280}
+                    priority
+                  />
+                  <span aria-hidden="true">{getInitials(leader.name)}</span>
+                </>
               )}
-            </div>
-            <div className="leader-profile-copy">
-              <span>{division.shortName}</span>
-              <h1>{leader.name}</h1>
-              <p>{leader.role}</p>
-              <Link href={getDivisionHref(divisionCode)}>{division.name}</Link>
-            </div>
+              <figcaption>
+                <span>Angkatan</span>
+                <strong>{leader.batch ?? '—'}</strong>
+              </figcaption>
+            </figure>
+
+            <article className="member-profile-copy">
+              <p>{division.shortName} · Kabinet Abya Vistara</p>
+              <h1 id="member-name">{leader.name}</h1>
+              <strong>{leader.role}</strong>
+              <p>
+                {leader.bio ||
+                  `${leader.name} menjadi bagian dari ${division.name} dan ikut menjalankan agenda bidang selama periode 2026/2027.`}
+              </p>
+              <dl>
+                <div>
+                  <dt>Bidang</dt>
+                  <dd>{division.name}</dd>
+                </div>
+                <div>
+                  <dt>Rekan sebidang</dt>
+                  <dd>{divisionPeers.length} pengurus</dd>
+                </div>
+                <div>
+                  <dt>Program bidang</dt>
+                  <dd>{programs.length} program</dd>
+                </div>
+              </dl>
+            </article>
+
+            <aside className="member-profile-context">
+              <section>
+                <header>
+                  <span>Agenda bidang</span>
+                  <Link href={getDivisionHref(divisionCode)}>Lihat semua</Link>
+                </header>
+                <div className="member-profile-programs">
+                  {programs.slice(0, 4).map((program, index) => (
+                    <Link href={getProgramHref(program)} key={program.name}>
+                      <span>{String(index + 1).padStart(2, '0')}</span>
+                      <strong>{program.name}</strong>
+                      <small>{program.date}</small>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <header>
+                  <span>Rekan satu bidang</span>
+                  <Link href={`/kepengurusan?divisi=${divisionCode}`}>Direktori</Link>
+                </header>
+                <div className="member-profile-team">
+                  {teammates.map((teammate) => (
+                    <Link href={getLeaderHref(teammate)} key={teammate.name}>
+                      <span aria-hidden="true">{getInitials(teammate.name)}</span>
+                      <div>
+                        <strong>{teammate.name}</strong>
+                        <small>{teammate.role}</small>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            </aside>
           </div>
         </div>
       </section>
-
-      <PublicSection>
-        <div className="leader-profile-details">
-          <div>
-            <span className="public-label">Profil organisasi</span>
-            <h2>Peran di HMTE</h2>
-            <p>{leader.bio || `${leader.name} menjalankan peran sebagai ${leader.role} di ${division.name} dan berkolaborasi dalam pelaksanaan agenda bidang selama satu periode kepengurusan.`}</p>
-          </div>
-          <dl>
-            <div>
-              <dt>Bidang</dt>
-              <dd>{division.shortName}</dd>
-            </div>
-            <div>
-              <dt>Jabatan</dt>
-              <dd>{leader.role}</dd>
-            </div>
-            {leader.batch ? (
-              <div>
-                <dt>Angkatan</dt>
-                <dd>{leader.batch}</dd>
-              </div>
-            ) : null}
-            {leader.origin ? (
-              <div>
-                <dt>Asal</dt>
-                <dd>{leader.origin}</dd>
-              </div>
-            ) : null}
-          </dl>
-        </div>
-      </PublicSection>
-
-      <PublicSection title={`Program yang dijalankan ${division.shortName}`}>
-        <div className="leader-program-strip">
-          {programs.map((program) => (
-            <article key={program.name}>
-              <span>{program.status}</span>
-              <h3>{program.name}</h3>
-              <p>{program.desc}</p>
-              <time>{program.date}</time>
-            </article>
-          ))}
-        </div>
-      </PublicSection>
-
-      {teammates.length > 0 ? (
-        <PublicSection title={`Rekan di ${division.shortName}`}>
-          <div className="leader-teammates">
-            {teammates.map((teammate) => (
-              <Link href={getLeaderHref(teammate)} key={teammate.name}>
-                <span>{teammate.role}</span>
-                <strong>{teammate.name}</strong>
-              </Link>
-            ))}
-          </div>
-        </PublicSection>
-      ) : null}
     </PublicPageFrame>
   )
 }

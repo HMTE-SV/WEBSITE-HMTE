@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { validateGalleryImage, validateArticleCoverImage } from './media-validation'
+import {
+  validateArticleCoverImage,
+  validateGalleryImage,
+  validateGalleryImageUrl,
+} from './media-validation'
 
 describe('admin media validation', () => {
   it('accepts supported gallery images under 5MB', () => {
@@ -35,5 +39,17 @@ describe('admin media validation', () => {
 
     expect(result.success).toBe(false)
     expect(result.errors).toContain('Ukuran cover artikel maksimal 3MB.')
+  })
+
+  it('accepts HTTPS ImageKit URLs', () => {
+    expect(validateGalleryImageUrl('https://ik.imagekit.io/hmte/kegiatan.webp')).toEqual({
+      success: true,
+      errors: [],
+    })
+  })
+
+  it('rejects non-HTTPS and unrelated gallery URLs', () => {
+    expect(validateGalleryImageUrl('http://ik.imagekit.io/hmte/kegiatan.webp').success).toBe(false)
+    expect(validateGalleryImageUrl('https://example.com/kegiatan.webp').success).toBe(false)
   })
 })

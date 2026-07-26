@@ -1,0 +1,195 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function adminPath() {
+      return /databases/$(database)/documents/adminUsers/$(request.auth.uid);
+    }
+
+    function hasActiveAdminProfile() {
+      return isSignedIn()
+        && exists(adminPath())
+        && get(adminPath()).data.uid == request.auth.uid
+        && get(adminPath()).data.active == true
+        && get(adminPath()).data.role in ['superadmin', 'editor', 'viewer'];
+    }
+
+    function hasRole(roles) {
+      return hasActiveAdminProfile() && get(adminPath()).data.role in roles;
+    }
+
+    function isEditor() {
+      return hasRole(['superadmin', 'editor']);
+    }
+
+    function isSuperadmin() {
+      return hasRole(['superadmin']);
+    }
+
+    function isValidContentStatus(status) {
+      return status in ['draft', 'published', 'archived'];
+    }
+
+    function isPublished() {
+      return resource.data.status == 'published';
+    }
+
+    function isActivePublicRecord() {
+      return resource.data.active == true;
+    }
+
+    function hasValidWriteTimestamps() {
+      return request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function keepsCreatedAt() {
+      return request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validPublishableWrite() {
+      return isValidContentStatus(request.resource.data.status)
+        && hasValidWriteTimestamps();
+    }
+
+    function validPublishableUpdate() {
+      return isValidContentStatus(request.resource.data.status)
+        && keepsCreatedAt();
+    }
+
+    function validPublicAspiration() {
+      return request.resource.data.keys().hasOnly([
+          'category',
+          'message',
+          'senderName',
+          'senderEmail',
+          'isAnonymous',
+          'status',
+          'internalNotes',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.category is string
+        && request.resource.data.category in ['akademik', 'fasilitas', 'organisasi', 'kesejahteraan', 'lainnya']
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 20
+        && request.resource.data.message.size() <= 3000
+        && request.resource.data.senderName is string
+        && request.resource.data.senderName.size() <= 120
+        && request.resource.data.senderEmail is string
+        && request.resource.data.senderEmail.size() <= 254
+        && request.resource.data.isAnonymous is bool
+        && (request.resource.data.isAnonymous == false || (
+          request.resource.data.senderName == '' && request.resource.data.senderEmail == ''
+        ))
+        && (request.resource.data.isAnonymous == true || request.resource.data.senderName.size() > 0)
+        && request.resource.data.status == 'submitted'
+        && request.resource.data.internalNotes == ''
+        && hasValidWriteTimestamps();
+    }
+
+    function validAspirationUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'internalNotes',
+          'updatedAt'
+        ])
+        && request.resource.data.status in [
+          'submitted',
+          'reviewed',
+          'discussed',
+          'in_progress',
+          'resolved',
+          'archived'
+        ]
+        && request.resource.data.internalNotes is string
+        && request.resource.data.internalNotes.size() <= 5000
+        && keepsCreatedAt();
+    }
+
+    match /adminUsers/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isSuperadmin());
+      allow list: if isSuperadmin();
+      allow create, update, delete: if isSuperadmin();
+    }
+
+    match /articles/{documentId} {
+      allow read: if isPublished() || hasActiveAdminProfile();
+      allow create: if isEditor() && validPublishableWrite();
+      allow update: if isEditor() && validPublishableUpdate();
+      allow delete: if isEditor();
+    }
+
+    match /announcements/{documentId} {
+      allow read: if isPublished() || hasActiveAdminProfile();
+      allow create: if isEditor() && validPublishableWrite();
+      allow update: if isEditor() && validPublishableUpdate();
+      allow delete: if isEditor();
+    }
+
+    match /events/{documentId} {
+      allow read: if isPublished() || hasActiveAdminProfile();
+      allow create: if isEditor() && validPublishableWrite();
+      allow update: if isEditor() && validPublishableUpdate();
+      allow delete: if isEditor();
+    }
+
+    match /gallery/{documentId} {
+      allow read: if isPublished() || hasActiveAdminProfile();
+      allow create: if isEditor() && validPublishableWrite();
+      allow update: if isEditor() && validPublishableUpdate();
+      allow delete: if isEditor();
+    }
+
+    match /leaders/{documentId} {
+      allow read: if isActivePublicRecord() || hasActiveAdminProfile();
+      allow create: if isEditor() && hasValidWriteTimestamps();
+      allow update: if isEditor() && keepsCreatedAt();
+      allow delete: if isEditor();
+    }
+
+    match /divisions/{documentId} {
+      allow read: if isActivePublicRecord() || hasActiveAdminProfile();
+      allow create: if isEditor() && hasValidWriteTimestamps();
+      allow update: if isEditor() && keepsCreatedAt();
+      allow delete: if isEditor();
+    }
+
+    match /programs/{documentId} {
+      allow read: if isActivePublicRecord() || hasActiveAdminProfile();
+      allow create: if isEditor() && hasValidWriteTimestamps();
+      allow update: if isEditor() && keepsCreatedAt();
+      allow delete: if isEditor();
+    }
+
+    match /partners/{documentId} {
+      allow read: if isActivePublicRecord() || hasActiveAdminProfile();
+      allow create: if isEditor() && hasValidWriteTimestamps();
+      allow update: if isEditor() && keepsCreatedAt();
+      allow delete: if isEditor();
+    }
+
+    match /aspirations/{documentId} {
+      allow create: if validPublicAspiration() || (isEditor() && hasValidWriteTimestamps());
+      allow read: if hasActiveAdminProfile();
+      allow update: if isEditor() && validAspirationUpdate();
+      allow delete: if isSuperadmin();
+    }
+
+    match /settings/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if isSuperadmin() && hasValidWriteTimestamps();
+      allow update: if isSuperadmin() && keepsCreatedAt();
+      allow delete: if isSuperadmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

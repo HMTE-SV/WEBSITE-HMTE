@@ -19,7 +19,7 @@ function DivisionSwitches({ divisions }: { divisions: Division[] }) {
   const ordered = executive ? [executive, ...fields] : fields
 
   return (
-    <nav className="org-switches" aria-label="Pilih bidang atau divisi">
+    <nav className="org-switches" aria-label="Pilih Pengurus Harian atau departemen">
       {ordered.map((division, index) => {
         const isSelected = selectedDivision === division.code
 

@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { AdminEmptyState } from './AdminEmptyState'
+import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
+import { canAdminWrite } from '@/data/admin-nav'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import { listContentDocuments, updateContentDocument } from '@/lib/firebase/content-services'
 import type { AspirationDocument, AspirationStatus } from '@/types/firestore'
@@ -17,6 +19,8 @@ const aspirationStatuses: AspirationStatus[] = [
 ]
 
 export function AdminAspirationsManager() {
+  const session = useAdminSession()
+  const canWrite = canAdminWrite(session.role)
   const [items, setItems] = useState<AspirationDocument[]>([])
   const [error, setError] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -106,7 +110,7 @@ export function AdminAspirationsManager() {
                   Status
                   <select
                     value={item.status}
-                    disabled={busyId === item.id}
+                    disabled={!canWrite || busyId === item.id}
                     onChange={(event) =>
                       void updateAspiration(item.id, {
                         status: event.target.value as AspirationStatus,
@@ -124,6 +128,7 @@ export function AdminAspirationsManager() {
                   Catatan internal
                   <textarea
                     defaultValue={item.internalNotes || ''}
+                    disabled={!canWrite}
                     rows={3}
                     onBlur={(event) =>
                       void updateAspiration(item.id, {

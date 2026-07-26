@@ -1,0 +1,495 @@
+/* ============================================================
+   AGENDA YEAR BOARD
+   Twelve-month matrix for /agenda — paired with
+   src/components/site/AgendaYear.tsx
+   ============================================================ */
+
+.agenda-year {
+  display: grid;
+  gap: 26px;
+  margin-top: 34px;
+}
+
+/* ---- Controls ---- */
+
+.agenda-year-controls {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.agenda-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  border: 1px solid var(--hmte-navy);
+  background: var(--hmte-navy);
+}
+
+.agenda-filter button {
+  min-height: 38px;
+  padding: 0 15px;
+  border: 0;
+  color: var(--fg-muted);
+  background: var(--tre-paper);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 200ms var(--ease-out),
+    background-color 240ms var(--ease-out);
+}
+
+.agenda-filter button:hover {
+  color: var(--hmte-navy);
+  background: #fff;
+}
+
+.agenda-filter button.is-active {
+  color: #fff;
+  background: var(--hmte-navy-deep);
+  box-shadow: inset 0 -3px 0 var(--hmte-gold);
+}
+
+.agenda-year-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.agenda-year-readout strong {
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.agenda-year-reset {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--hmte-gold);
+  color: var(--hmte-navy);
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* ---- Month ribbon ---- */
+
+.agenda-ribbon {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--hmte-navy);
+  background: var(--hmte-navy);
+}
+
+.agenda-ribbon button {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  min-width: 0;
+  padding: 14px 4px 12px;
+  overflow: hidden;
+  border: 0;
+  color: var(--fg-muted);
+  background: var(--tre-paper);
+  cursor: pointer;
+  transition:
+    color 220ms var(--ease-out),
+    background-color 260ms var(--ease-out);
+}
+
+/* Density: the meter grows from the foot in proportion to that month's load. */
+.agenda-ribbon-meter {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: var(--fill, 0%);
+  background: rgba(var(--hmte-gold-rgb), 0.24);
+  transition: height 420ms var(--ease-out), background-color 260ms var(--ease-out);
+}
+
+.agenda-ribbon-label,
+.agenda-ribbon button strong {
+  position: relative;
+  z-index: 1;
+}
+
+.agenda-ribbon-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agenda-ribbon button strong {
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.agenda-ribbon button:hover:not(:disabled) {
+  background: #fff;
+}
+
+.agenda-ribbon button:disabled {
+  color: var(--fg-faint);
+  cursor: default;
+}
+
+.agenda-ribbon button:disabled strong {
+  color: var(--fg-faint);
+}
+
+.agenda-ribbon button.is-active {
+  color: #cbd8e8;
+  background: var(--hmte-navy-deep);
+}
+
+.agenda-ribbon button.is-active strong {
+  color: #fff;
+}
+
+.agenda-ribbon button.is-active .agenda-ribbon-meter {
+  background: rgba(var(--hmte-gold-rgb), 0.42);
+}
+
+/* ---- Matrix ---- */
+
+.agenda-matrix {
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(var(--hmte-navy-rgb), 0.2);
+  background: #fff;
+  list-style: none;
+}
+
+.agenda-matrix-head,
+.agenda-matrix-trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px 232px 96px;
+  gap: 16px;
+  align-items: center;
+}
+
+.agenda-matrix-head {
+  padding: 10px 18px;
+  border-bottom: 2px solid var(--hmte-navy);
+}
+
+.agenda-matrix-head .agenda-matrix-strip i {
+  display: grid;
+  place-items: center;
+  height: auto;
+  border: 0;
+  background: none;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.agenda-matrix-head .agenda-matrix-strip i.is-active {
+  color: var(--hmte-gold-deep);
+}
+
+.agenda-matrix-row {
+  border-bottom: 1px solid rgba(var(--hmte-navy-rgb), 0.13);
+}
+
+.agenda-matrix-row:last-child {
+  border-bottom: 0;
+}
+
+.agenda-matrix-trigger {
+  width: 100%;
+  min-height: 62px;
+  padding: 12px 18px;
+  border: 0;
+  color: var(--hmte-navy);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 240ms var(--ease-out);
+}
+
+.agenda-matrix-trigger:hover {
+  background: rgba(var(--hmte-gold-rgb), 0.07);
+}
+
+.agenda-matrix-row[data-open='true'] .agenda-matrix-trigger {
+  background: rgba(var(--hmte-navy-rgb), 0.045);
+}
+
+.agenda-matrix-name {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.agenda-matrix-name small {
+  overflow: hidden;
+  color: var(--fg-muted);
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agenda-matrix-tag {
+  justify-self: start;
+  padding: 4px 8px;
+  border: 1px solid rgba(var(--hmte-navy-rgb), 0.28);
+  color: var(--hmte-navy);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+.agenda-matrix-strip {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.agenda-matrix-strip i {
+  height: 22px;
+  border: 1px solid rgba(var(--hmte-navy-rgb), 0.12);
+  background: transparent;
+  transition:
+    background-color 240ms var(--ease-out),
+    border-color 240ms var(--ease-out);
+}
+
+.agenda-matrix-strip i.is-on {
+  border-color: transparent;
+  background: var(--hmte-gold);
+}
+
+/* The chosen month stays legible whether or not the programme occupies it. */
+.agenda-matrix-strip i.is-focus {
+  border-color: rgba(var(--hmte-navy-rgb), 0.45);
+}
+
+.agenda-matrix-strip i.is-on.is-focus {
+  border-color: var(--hmte-navy-deep);
+  background: var(--hmte-gold);
+}
+
+.agenda-matrix-cadence {
+  justify-self: end;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.agenda-matrix-detail {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 0 18px 20px 18px;
+  background: rgba(var(--hmte-navy-rgb), 0.045);
+}
+
+.agenda-matrix-detail p {
+  max-width: 76ch;
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.agenda-matrix-detail a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--hmte-navy);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--hmte-gold);
+  padding-bottom: 3px;
+}
+
+.agenda-matrix-detail a:hover {
+  color: var(--hmte-gold-deep);
+}
+
+.agenda-year-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 44px 18px;
+  border: 1px solid rgba(var(--hmte-navy-rgb), 0.2);
+  color: var(--fg-muted);
+  background: #fff;
+  font-size: 13px;
+}
+
+.agenda-year-empty button {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--hmte-gold);
+  color: var(--hmte-navy);
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agenda-filter button:focus-visible,
+.agenda-ribbon button:focus-visible,
+.agenda-matrix-trigger:focus-visible,
+.agenda-year-reset:focus-visible,
+.agenda-year-empty button:focus-visible {
+  outline: 3px solid var(--hmte-gold);
+  outline-offset: -3px;
+}
+
+/* ---- Programmes the source never gave a month ---- */
+
+.agenda-undated {
+  margin-top: 44px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(var(--hmte-navy-rgb), 0.2);
+}
+
+.agenda-undated h3 {
+  margin: 0;
+  color: var(--hmte-navy);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.agenda-undated > p {
+  max-width: 62ch;
+  margin: 10px 0 0;
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+.agenda-undated ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1px;
+  margin: 18px 0 0;
+  padding: 0;
+  border: 1px solid rgba(var(--hmte-navy-rgb), 0.18);
+  background: rgba(var(--hmte-navy-rgb), 0.18);
+  list-style: none;
+}
+
+.agenda-undated li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 15px;
+  background: #fff;
+}
+
+.agenda-undated strong {
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.agenda-undated span {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+@media (max-width: 1040px) {
+  .agenda-matrix-head,
+  .agenda-matrix-trigger {
+    grid-template-columns: minmax(0, 1fr) 74px 176px;
+  }
+
+  .agenda-matrix-cadence {
+    display: none;
+  }
+
+  .agenda-matrix-strip i {
+    height: 18px;
+  }
+}
+
+/*
+ * Below this the twelve-cell strip stops being readable, so the row falls back
+ * to the prose month label that already sits under the title.
+ */
+@media (max-width: 720px) {
+  .agenda-ribbon {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .agenda-matrix-head {
+    display: none;
+  }
+
+  .agenda-matrix-trigger {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .agenda-matrix-strip {
+    display: none;
+  }
+
+  .agenda-matrix-name small {
+    white-space: normal;
+  }
+
+  .agenda-matrix-detail {
+    padding: 0 14px 18px;
+  }
+
+  .agenda-year-controls {
+    align-items: start;
+  }
+}

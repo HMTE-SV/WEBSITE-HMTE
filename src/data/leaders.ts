@@ -1,340 +1,91 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import type { DivisionCode, Leader } from '@/types/content'
 
-export const leadersByDivision = {
-  "PH": [
-    {
-      "name": "Muhammad Reyhan",
-      "role": "Ketua Himpunan",
-      "photo": ""
-    },
-    {
-      "name": "Aulia Salsabila",
-      "role": "Wakil Ketua Himpunan",
-      "photo": ""
-    },
-    {
-      "name": "Dian Permata",
-      "role": "Sekretaris Umum I",
-      "photo": ""
-    },
-    {
-      "name": "Fahri Ramadhan",
-      "role": "Sekretaris Umum II",
-      "photo": ""
-    },
-    {
-      "name": "Gita Gutawa",
-      "role": "Bendahara Umum I",
-      "photo": ""
-    },
-    {
-      "name": "Haryo Yudanto",
-      "role": "Bendahara Umum II",
-      "photo": ""
-    },
-    {
-      "name": "Indah Cahyani",
-      "role": "Kepala Biro Rumah Tangga",
-      "photo": ""
-    },
-    {
-      "name": "Joko Susilo",
-      "role": "Staff Khusus Kepengurusan",
-      "photo": ""
-    }
-  ],
-  "KOMINFO": [
-    {
-      "name": "Ahmad Fauzi",
-      "role": "Ketua Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Bunga Citra",
-      "role": "Sekretaris Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Citra Lestari",
-      "role": "Staff Ahli Media",
-      "photo": ""
-    },
-    {
-      "name": "Dwi Cahyo",
-      "role": "Staff Ahli Website",
-      "photo": ""
-    },
-    {
-      "name": "Eko Prasetyo",
-      "role": "Staff Hubungan Media",
-      "photo": ""
-    },
-    {
-      "name": "Fitriani",
-      "role": "Staff Hubungan Media",
-      "photo": ""
-    },
-    {
-      "name": "Gilang Ramadhan",
-      "role": "Staff Kreatif",
-      "photo": ""
-    },
-    {
-      "name": "Hani Rahmawati",
-      "role": "Staff Kreatif",
-      "photo": ""
-    }
-  ],
-  "IPTEK": [
-    {
-      "name": "Irfan Bachdim",
-      "role": "Ketua Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Julia Perez",
-      "role": "Sekretaris Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Kevin Sanjaya",
-      "role": "Staff Ahli Riset",
-      "photo": ""
-    },
-    {
-      "name": "Lestari Indah",
-      "role": "Staff Ahli Kompetisi",
-      "photo": ""
-    },
-    {
-      "name": "Muhammad Rizky",
-      "role": "Staff Robotika",
-      "photo": ""
-    },
-    {
-      "name": "Nabila Putri",
-      "role": "Staff Embedded System",
-      "photo": ""
-    },
-    {
-      "name": "Oki Setiana",
-      "role": "Staff IoT",
-      "photo": ""
-    },
-    {
-      "name": "Putu Gede",
-      "role": "Staff Edukasi IPTEK",
-      "photo": ""
-    }
-  ],
-  "PSDM": [
-    {
-      "name": "Qori Sandioriva",
-      "role": "Ketua Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Rian D'Masiv",
-      "role": "Sekretaris Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Sinta Nuriyah",
-      "role": "Staff Ahli Kaderisasi",
-      "photo": ""
-    },
-    {
-      "name": "Taufik Hidayat",
-      "role": "Staff Ahli Karakter",
-      "photo": ""
-    },
-    {
-      "name": "Umi Kalsum",
-      "role": "Staff Pelatihan",
-      "photo": ""
-    },
-    {
-      "name": "Verrel Bramasta",
-      "role": "Staff Minat Internal",
-      "photo": ""
-    },
-    {
-      "name": "Wulan Guritno",
-      "role": "Staff Evaluasi Nilai",
-      "photo": ""
-    },
-    {
-      "name": "Yayan Ruhian",
-      "role": "Staff Mentor Kader",
-      "photo": ""
-    }
-  ],
-  "PHAL": [
-    {
-      "name": "Zaskia Adya",
-      "role": "Ketua Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Aliando Syarief",
-      "role": "Sekretaris Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Bella Shofie",
-      "role": "Staff Ahli Internal SV",
-      "photo": ""
-    },
-    {
-      "name": "Chicco Jerikho",
-      "role": "Staff Ahli Eksternal UGM",
-      "photo": ""
-    },
-    {
-      "name": "Deddy Corbuzier",
-      "role": "Staff Hubungan Alumni",
-      "photo": ""
-    },
-    {
-      "name": "El Rumi",
-      "role": "Staff Hubungan Himpunan",
-      "photo": ""
-    },
-    {
-      "name": "Fatin Shidqia",
-      "role": "Staff Kerjasama Industri",
-      "photo": ""
-    },
-    {
-      "name": "Gading Marten",
-      "role": "Staff Hubungan Masyarakat",
-      "photo": ""
-    }
-  ],
-  "MINKAT": [
-    {
-      "name": "Hamish Daud",
-      "role": "Ketua Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Isyana Sarasvati",
-      "role": "Sekretaris Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Joe Taslim",
-      "role": "Staff Ahli Olahraga",
-      "photo": ""
-    },
-    {
-      "name": "Kartika Putri",
-      "role": "Staff Ahli Seni",
-      "photo": ""
-    },
-    {
-      "name": "Lukman Sardi",
-      "role": "Staff Penyelenggara Event",
-      "photo": ""
-    },
-    {
-      "name": "Maudy Ayunda",
-      "role": "Staff Bakat Musik",
-      "photo": ""
-    },
-    {
-      "name": "Nicholas Saputra",
-      "role": "Staff Koordinator E-Sports",
-      "photo": ""
-    },
-    {
-      "name": "Olga Syahputra",
-      "role": "Staff Kreatif & Minat",
-      "photo": ""
-    }
-  ],
-  "KASTRAD": [
-    {
-      "name": "Prilly Latuconsina",
-      "role": "Ketua Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Raditya Dika",
-      "role": "Sekretaris Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Raisa Andriana",
-      "role": "Staff Ahli Advokasi",
-      "photo": ""
-    },
-    {
-      "name": "Sule Sutisna",
-      "role": "Staff Ahli Kajian Isu",
-      "photo": ""
-    },
-    {
-      "name": "Tora Sudiro",
-      "role": "Staff Advokasi Mahasiswa",
-      "photo": ""
-    },
-    {
-      "name": "Uus Rizky",
-      "role": "Staff Analisis Kebijakan",
-      "photo": ""
-    },
-    {
-      "name": "Vino G. Bastian",
-      "role": "Staff Publikasi Aksi",
-      "photo": ""
-    },
-    {
-      "name": "Widi Mulia",
-      "role": "Staff Hubungan Advokat",
-      "photo": ""
-    }
-  ],
-  "KEWIRUS": [
-    {
-      "name": "Yuki Kato",
-      "role": "Ketua Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Zainal Abidin",
-      "role": "Sekretaris Bidang",
-      "photo": ""
-    },
-    {
-      "name": "Adipati Dolken",
-      "role": "Staff Ahli Bisnis Mandiri",
-      "photo": ""
-    },
-    {
-      "name": "Chelsea Islan",
-      "role": "Staff Ahli Kemitraan",
-      "photo": ""
-    },
-    {
-      "name": "Dude Harlino",
-      "role": "Staff Inkubasi Kewirausahaan",
-      "photo": ""
-    },
-    {
-      "name": "Chelsea Olivia",
-      "role": "Staff Pengelola Merchandising",
-      "photo": ""
-    },
-    {
-      "name": "Glenn Alinskie",
-      "role": "Staff Promosi & Penjualan",
-      "photo": ""
-    },
-    {
-      "name": "Herjunot Ali",
-      "role": "Staff Kreatif Usaha",
-      "photo": ""
-    }
-  ]
-} satisfies Record<DivisionCode, Leader[]>
+const divisionCodes = new Set<DivisionCode>([
+  'PH',
+  'PSDM',
+  'PHAL',
+  'MINKAT',
+  'KOMINFO',
+  'IPTEK',
+  'KEWIRUS',
+  'KASTRAD',
+])
+
+const rolePriority: Record<string, number> = {
+  'Ketua Umum': 100,
+  'Sekretaris Jendral': 95,
+  'Kepala Divisi': 90,
+  Bendahara: 80,
+  'Sekretaris 1': 75,
+  'Sekretaris 2': 74,
+  'Staff Divisi': 10,
+}
+
+function normalizeName(value: string) {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map((part) => {
+      if (part.length === 0 || part !== part.toLowerCase()) return part
+      return `${part[0].toUpperCase()}${part.slice(1)}`
+    })
+    .join(' ')
+}
+
+function getRolePriority(role: string) {
+  return rolePriority[role] ?? 0
+}
+
+export function parseMemberRoster(source: string) {
+  const memberMaps = Object.fromEntries(
+    [...divisionCodes].map((code) => [code, new Map<string, Leader>()]),
+  ) as Record<DivisionCode, Map<string, Leader>>
+
+  source
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      // Column 2 of the roster is the NIM. It is read past and deliberately
+      // dropped — nothing downstream may carry it.
+      const [rawName, , rawBatch, rawDivision, rawRole] = line
+        .split('\t')
+        .map((value) => value.trim())
+      const divisionCode = rawDivision?.toUpperCase() as DivisionCode
+
+      if (!rawName || !rawRole || !divisionCodes.has(divisionCode)) return
+
+      const name = normalizeName(rawName)
+      const key = name.toLocaleLowerCase('id-ID')
+      const candidate: Leader = {
+        name,
+        role: rawRole,
+        photo: '',
+        batch: rawBatch || undefined,
+      }
+      const existing = memberMaps[divisionCode].get(key)
+
+      if (!existing || getRolePriority(candidate.role) > getRolePriority(existing.role)) {
+        memberMaps[divisionCode].set(key, candidate)
+      }
+    })
+
+  return Object.fromEntries(
+    [...divisionCodes].map((code) => [
+      code,
+      [...memberMaps[code].values()].sort(
+        (first, second) =>
+          getRolePriority(second.role) - getRolePriority(first.role) ||
+          first.name.localeCompare(second.name, 'id-ID'),
+      ),
+    ]),
+  ) as Record<DivisionCode, Leader[]>
+}
+
+const rosterPath = path.join(process.cwd(), 'ASSET', 'anggota-hmte.md')
+const rosterSource = fs.readFileSync(rosterPath, 'utf8')
+
+export const leadersByDivision = parseMemberRoster(rosterSource)

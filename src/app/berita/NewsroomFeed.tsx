@@ -103,7 +103,7 @@ export function NewsroomFeed({ articles, tabs }: NewsroomFeedProps) {
               <article>
                 <div className="newsroom-card-media">
                   <Image
-                    src={article.image.startsWith('/') ? article.image : `/${article.image}`}
+                    src={article.image}
                     alt={article.title}
                     fill
                     sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"

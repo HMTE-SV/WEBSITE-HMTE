@@ -1,164 +1,279 @@
 import type { DivisionCode, Program } from '@/types/content'
 
 export const programsByDivision = {
-  "PH": [
+  PH: [
     {
-      "name": "Rapat Kerja Himpunan",
-      "desc": "Penyusunan dan pengesahan seluruh program kerja pengurus HMTE periode 2026.",
-      "status": "Selesai",
-      "date": "Juni 2026"
+      name: 'Musta dan Sertijab',
+      desc: 'Agenda Musta dan Sertijab yang tercantum dalam kalender kerja Pengurus Harian.',
+      status: 'Terjadwal',
+      date: 'Februari',
+      months: [2],
     },
     {
-      "name": "Musyawarah Besar (Mubes)",
-      "desc": "Forum laporan pertanggungjawaban akhir periode serta pemilihan Ketua Himpunan baru.",
-      "status": "Terencana",
-      "date": "Desember 2026"
+      name: 'Raker 26/27',
+      desc: 'Rapat kerja HMTE Periode 2026/2027 yang tercantum dalam kalender kerja Pengurus Harian.',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
     },
     {
-      "name": "Evaluasi Tengah Periode",
-      "desc": "Peninjauan kinerja tengah periode seluruh divisi dan evaluasi keuangan.",
-      "status": "Terencana",
-      "date": "September 2026"
-    }
+      name: 'SOTM',
+      desc: 'Agenda SOTM yang dijadwalkan empat kali dalam kalender kerja Pengurus Harian.',
+      status: 'Berkala',
+      date: 'Maret, Juni, September, dan Desember',
+      months: [3, 6, 9, 12],
+    },
+    {
+      name: 'Evaluasi Bulanan',
+      desc: 'Evaluasi berkala Pengurus Harian yang tercantum setiap bulan sepanjang periode.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
   ],
-  "KOMINFO": [
+  PSDM: [
     {
-      "name": "Pemberitaan & Media Sosial",
-      "desc": "Diseminasi informasi kegiatan, info akademik, dan prestasi via Instagram/TikTok.",
-      "status": "Sedang Berjalan",
-      "date": "Sepanjang Periode"
+      name: 'TORSI',
+      desc: 'Training Organization and Study for Engineering: pembekalan organisasi, kepemimpinan, administrasi, tata kelola kegiatan, proposal, dan LPJ bagi pengurus HMTE.',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
     },
     {
-      "name": "Portal Website HMTE",
-      "desc": "Pengembangan fitur direktori interaktif dan publikasi konten berita terkini.",
-      "status": "Sedang Berjalan",
-      "date": "Sepanjang Periode"
+      name: 'IGNITE (Initial Gathering of New Electro)',
+      desc: 'Penyambutan dan pengenalan lingkungan akademik, budaya kemahasiswaan, dan HMTE kepada mahasiswa baru TRE.',
+      status: 'Terjadwal',
+      date: 'Agustus',
+      months: [8],
     },
     {
-      "name": "Buletin Elektro",
-      "desc": "Penerbitan artikel edukasi, riset, dan opini kemahasiswaan dalam format majalah digital.",
-      "status": "Terencana",
-      "date": "Mulai Juli 2026"
-    }
+      name: 'Open House',
+      desc: 'Pengenalan profil, struktur, fungsi departemen, program kerja, dan kegiatan HMTE kepada mahasiswa baru.',
+      status: 'Terjadwal',
+      date: 'Agustus',
+      months: [8],
+    },
+    {
+      name: 'Open Recruitment',
+      desc: 'Rangkaian sosialisasi, pendaftaran, seleksi, dan penetapan anggota baru HMTE.',
+      status: 'Terjadwal',
+      date: 'Februari-Maret',
+      months: [2, 3],
+    },
+    {
+      name: 'Farewell Party',
+      desc: 'Kegiatan apresiasi bagi pengurus yang menyelesaikan masa bakti sekaligus penanda estafet kepengurusan.',
+      status: 'Terjadwal',
+      date: 'Desember',
+      months: [12],
+    },
+    {
+      name: 'Formasi',
+      desc: 'Pembinaan, monitoring, dan pendampingan anggota HMTE yang dilaksanakan secara berkelanjutan selama satu periode.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
   ],
-  "IPTEK": [
+  PHAL: [
     {
-      "name": "Mechanical Fair UGM",
-      "desc": "Penyelenggaraan kompetisi robotika nasional bergengsi berkolaborasi dengan SV UGM.",
-      "status": "Selesai",
-      "date": "Maret 2026"
+      name: 'Kunjungan Industri',
+      desc: 'Kunjungan untuk mengamati penerapan ilmu dan teknologi, sistem kerja, serta budaya kerja di industri yang relevan dengan TRE.',
+      status: 'Terjadwal',
+      date: 'Agustus',
+      months: [8],
     },
     {
-      "name": "Workshop Embedded & IoT",
-      "desc": "Pelatihan intensif perancangan sirkuit mikroelektronika dan pemrograman mikrokontroler.",
-      "status": "Sedang Berjalan",
-      "date": "Juni 2026"
+      name: 'Studi Banding',
+      desc: 'Pertukaran informasi, pengalaman, dan praktik pengelolaan organisasi bersama organisasi mahasiswa atau institusi lain.',
+      status: 'Terjadwal',
+      date: 'Juli-Agustus',
+      months: [7, 8],
     },
     {
-      "name": "Electro Research Camp",
-      "desc": "Fasilitasi pembimbingan dan inkubasi karya tulis ilmiah / proyek tugas akhir mahasiswa.",
-      "status": "Terencana",
-      "date": "Oktober 2026"
-    }
+      name: 'Reuni Alumni',
+      desc: 'Wadah silaturahmi, penguatan jejaring, dan berbagi pengalaman antara alumni, mahasiswa, program studi, dan HMTE.',
+      status: 'Terjadwal',
+      date: 'Juli-Agustus',
+      months: [7, 8],
+    },
+    {
+      name: 'PHAL Camp',
+      desc: 'Kegiatan kebersamaan untuk mempererat hubungan, solidaritas, dan sinergi antaranggota HMTE.',
+      status: 'Terjadwal',
+      date: 'Agustus',
+      months: [8],
+    },
   ],
-  "PSDM": [
+  MINKAT: [
     {
-      "name": "LDKM Elektro",
-      "desc": "Latihan Dasar Kepemimpinan Mahasiswa untuk menumbuhkan jiwa kepemimpinan anggota baru.",
-      "status": "Terencana",
-      "date": "September 2026"
+      name: 'Elektro Cup',
+      desc: 'Wadah pengembangan minat, bakat, dan sportivitas melalui perlombaan olahraga, seni, dan e-sport bagi mahasiswa TRE.',
+      status: 'Terjadwal',
+      date: 'September',
+      months: [9],
     },
     {
-      "name": "Makrab Elektro",
-      "desc": "Malam keakraban lintas angkatan untuk mempererat hubungan mahasiswa aktif TRE UGM.",
-      "status": "Terencana",
-      "date": "November 2026"
+      name: 'Kontingen TGES',
+      desc: 'Penjaringan, persiapan, dan pendampingan mahasiswa yang mewakili TRE dalam berbagai cabang perlombaan TGES.',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
     },
     {
-      "name": "Kaderisasi & Evaluasi",
-      "desc": "Manajemen keaktifan anggota, konseling, dan pembagian sistem mentor internal.",
-      "status": "Sedang Berjalan",
-      "date": "Sepanjang Periode"
-    }
+      name: 'Excel Night',
+      desc: 'Kegiatan apresiasi atas prestasi, dedikasi, dan kontribusi mahasiswa bagi HMTE maupun Program Studi TRE.',
+      status: 'Terjadwal',
+      date: 'Desember',
+      months: [12],
+    },
   ],
-  "PHAL": [
+  KOMINFO: [
     {
-      "name": "Company Visit",
-      "desc": "Kunjungan industri mahasiswa elektro ke perusahaan teknologi dan manufaktur terkemuka.",
-      "status": "Terencana",
-      "date": "Agustus 2026"
+      name: 'Rilis Kabinet & Grand Design',
+      desc: 'Publikasi resmi nama kabinet, logo dan filosofinya, struktur kepengurusan, serta arah gerak HMTE.',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
     },
     {
-      "name": "Studi Banding Himpunan",
-      "desc": "Kunjungan diskusi berbagi program kerja dengan himpunan elektro universitas mitra.",
-      "status": "Selesai",
-      "date": "Mei 2026"
+      name: 'Foto Kabinet',
+      desc: 'Dokumentasi resmi seluruh pengurus untuk publikasi, pengenalan pengurus, administrasi, dan media informasi HMTE.',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
     },
     {
-      "name": "Database Alumni & Mitra",
-      "desc": "Sinkronisasi database alumni elektro UGM untuk menunjang info karir dan magang.",
-      "status": "Sedang Berjalan",
-      "date": "Sepanjang Periode"
-    }
+      name: 'Life Outside HMTE',
+      desc: 'Publikasi profil dan pengalaman mahasiswa TRE yang berprestasi atau berkontribusi di luar HMTE.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
+    {
+      name: 'Form Order',
+      desc: 'Sistem pengajuan kebutuhan desain, publikasi, dokumentasi, dan media informasi dari seluruh departemen HMTE.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
+    {
+      name: 'Live Report dan Dokumentasi',
+      desc: 'Publikasi aktual, pengambilan foto dan video, serta pengarsipan dokumentasi pada setiap kegiatan resmi HMTE.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
+    {
+      name: 'Hari Besar',
+      desc: 'Publikasi konten edukatif dan informatif untuk memperingati hari besar nasional maupun internasional.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
   ],
-  "MINKAT": [
+  IPTEK: [
     {
-      "name": "Electro League",
-      "desc": "Penyelenggaraan turnamen olahraga futsal, basket, dan bulutangkis internal mahasiswa.",
-      "status": "Selesai",
-      "date": "April 2026"
+      name: 'HMTE Mengajar',
+      desc: 'Pengenalan dunia Teknik Elektro kepada siswa SMA/SMK melalui materi, demonstrasi teknologi, dan berbagi pengalaman perkuliahan.',
+      status: 'Terjadwal',
+      date: 'Oktober',
+      months: [10],
     },
     {
-      "name": "Electro Art Night",
-      "desc": "Panggung ekspresi seni, musik, dan kreativitas mahasiswa menyambut mahasiswa baru.",
-      "status": "Terencana",
-      "date": "Oktober 2026"
+      name: 'Mading IPTEK',
+      desc: 'Media publikasi edukatif mengenai ilmu pengetahuan, teknologi, inovasi, dan perkembangan bidang Teknik Elektro.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     },
     {
-      "name": "E-Sports Cup",
-      "desc": "Penyelenggaraan turnamen game Mobile Legends dan Valorant antar mahasiswa SV UGM.",
-      "status": "Terencana",
-      "date": "Juli 2026"
-    }
+      name: 'Website HMTE',
+      desc: 'Pengelolaan dan pengembangan pusat informasi digital resmi yang memuat profil, program kerja, berita, dan dokumentasi HMTE.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
+    {
+      name: 'Kepelatihan IPTEK',
+      desc: 'Pelatihan teknologi, perangkat lunak, dan keterampilan teknis yang mendukung kegiatan akademik serta dunia profesional.',
+      status: 'Terjadwal',
+      date: 'September-November',
+      months: [9, 10, 11],
+    },
+    {
+      name: 'IPTEK Mengajar',
+      desc: 'Kelas belajar, diskusi, pembahasan materi, dan pelatihan sebagai wadah berbagi pengetahuan serta pendampingan akademik.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
+    {
+      name: 'Bank Soal',
+      desc: 'Penghimpunan dan pengelolaan soal ujian, kuis, latihan, serta referensi pembahasan sebagai bahan belajar mahasiswa TRE.',
+      status: 'Berkala',
+      date: 'April, Juni, Oktober, dan Desember',
+      months: [4, 6, 10, 12],
+    },
   ],
-  "KASTRAD": [
+  KEWIRUS: [
     {
-      "name": "Electro Speak Up",
-      "desc": "Kanal penyerapan aspirasi fasilitas lab, kurikulum, dan masalah akademik mahasiswa.",
-      "status": "Sedang Berjalan",
-      "date": "Juni 2026"
+      name: 'Korsa Himpunan Mahasiswa Teknik Elektro (HMTE)',
+      desc: 'Perencanaan, pengadaan, dan pendistribusian korsa sebagai atribut resmi serta identitas anggota HMTE.',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
     },
     {
-      "name": "Kajian Isu Energi",
-      "desc": "Penyusunan kajian kritis mengenai transisi energi dan potensi kendaraan listrik Indonesia.",
-      "status": "Selesai",
-      "date": "Mei 2026"
+      name: 'Awul-Awul',
+      desc: 'Pengelolaan dan penjualan pakaian layak pakai untuk pengembangan kewirausahaan, keberlanjutan, dan penggalangan dana organisasi.',
+      status: 'Terjadwal',
+      date: 'September',
+      months: [9],
     },
     {
-      "name": "Advokasi UKT & Beasiswa",
-      "desc": "Pendampingan keringanan biaya kuliah (UKT) dan penyaluran info beasiswa mahasiswa.",
-      "status": "Sedang Berjalan",
-      "date": "Sepanjang Periode"
-    }
+      name: 'Merchandise',
+      desc: 'Perancangan, produksi, dan penjualan produk yang mencerminkan identitas HMTE sesuai kebutuhan.',
+      status: 'Terjadwal',
+      date: 'Agustus',
+      months: [8],
+    },
+    {
+      name: 'Danusan',
+      desc: 'Penjualan produk untuk melatih pengelolaan usaha dan mendukung kemandirian finansial HMTE.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    },
   ],
-  "KEWIRUS": [
+  KASTRAD: [
     {
-      "name": "Electro Store",
-      "desc": "Penyediaan merchandise resmi HMTE (jaket, kaos, lanyard) sebagai sumber pendanaan mandiri.",
-      "status": "Sedang Berjalan",
-      "date": "Sepanjang Periode"
+      name: 'Kastrad Berbagi',
+      desc: 'Penyebaran informasi akademik, pengalaman mahasiswa, beasiswa, kompetisi, dan peluang pengembangan diri.',
+      status: 'Berkala',
+      date: 'Januari-Desember',
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     },
     {
-      "name": "Workshop Technopreneur",
-      "desc": "Seminar kewirausahaan berbasis teknologi digital bagi mahasiswa vokasi.",
-      "status": "Terencana",
-      "date": "September 2026"
+      name: 'Heregistrasi Mahasiswa Baru',
+      desc: 'Informasi, pendampingan, dan panduan tahapan administrasi awal bagi mahasiswa baru Program Studi TRE.',
+      status: 'Terjadwal',
+      date: 'April, Juni, dan Juli',
+      months: [4, 6, 7],
     },
     {
-      "name": "Inkubasi Usaha Mahasiswa",
-      "desc": "Pemberian dana hibah stimulan kecil dan bimbingan bagi bisnis rintisan mahasiswa.",
-      "status": "Terencana",
-      "date": "Agustus 2026"
-    }
-  ]
+      name: 'Riset Prodi',
+      desc: 'Penghimpunan dan analisis aspirasi, saran, serta evaluasi mahasiswa untuk disampaikan kepada program studi.',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
+    },
+    {
+      name: 'Academic Series',
+      desc: 'Sosialisasi, seminar, webinar, atau sesi berbagi untuk pembekalan dan pengembangan wawasan akademik mahasiswa TRE.',
+      status: 'Terjadwal',
+      date: 'Maret-April dan Agustus',
+      months: [3, 4, 8],
+    },
+  ],
 } satisfies Record<DivisionCode, Program[]>

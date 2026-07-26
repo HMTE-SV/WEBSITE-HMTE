@@ -12,7 +12,7 @@ export const siteNav = [
   {
     label: 'Organisasi',
     children: [
-      { label: 'Bidang & Divisi', href: '/divisi' },
+      { label: 'Pengurus & Departemen', href: '/divisi' },
       { label: 'Pengurus', href: '/kepengurusan' },
       { label: 'Program Kerja', href: '/program-kerja' },
     ],
@@ -28,118 +28,119 @@ export const siteNav = [
 ] satisfies NavItem[]
 
 export const heroActivityImages = [
-  { src: '/assets/ugm_socialization.png', alt: 'Mahasiswa mengikuti seminar keinsinyuran di ruang kuliah' },
-  { src: '/assets/robotics_prestige.png', alt: 'Tim mahasiswa menyiapkan robot untuk kompetisi robotika' },
-  { src: '/assets/smart_grid_dashboard.png', alt: 'Pengujian dasbor smart grid di laboratorium elektro' },
-  { src: '/assets/solar_village.png', alt: 'Mahasiswa memasang lampu tenaga surya dalam pengabdian masyarakat' },
-  { src: '/assets/semiconductor_career.png', alt: 'Mahasiswa di ruang bersih fasilitas semikonduktor' },
+  { src: '/assets/abya-vistara/kegiatan-01.webp', alt: 'Anggota HMTE berinteraksi dalam kegiatan kebersamaan' },
+  { src: '/assets/abya-vistara/kegiatan-02.webp', alt: 'Barisan anggota HMTE mengikuti permainan kelompok' },
+  { src: '/assets/abya-vistara/kegiatan-03.webp', alt: 'Anggota HMTE tertawa bersama dalam kegiatan luar ruang' },
+  { src: '/assets/abya-vistara/kabinet-01.webp', alt: 'Foto Kabinet Abya Vistara di halaman kampus UGM' },
+  { src: '/assets/abya-vistara/kabinet-02.webp', alt: 'Jajaran Kabinet Abya Vistara mengenakan jaket himpunan' },
+  { src: '/assets/abya-vistara/kabinet-03.webp', alt: 'Foto bersama pengurus HMTE periode 2026/2027' },
 ]
 
 export const heroIdentity = {
   name: 'Himpunan Mahasiswa Teknik Elektro',
-  context: 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
+  context: 'Program Studi Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
   tagline:
-    'Ruang kabar, agenda, dan dokumentasi kegiatan: dari himpunan, untuk mahasiswa.',
-  ctaLabel: 'Jelajahi kabar terbaru',
-  ctaHref: '#kabar',
+    'Rumah bertumbuh yang nyaman, inovatif, dan produktif untuk berkembang bersama serta memberi dampak lebih luas.',
+  ctaLabel: 'Kenali Abya Vistara',
+  ctaHref: '#tentang',
 }
 
 export const newsAgendaIntro = {
-  title: 'Kabar yang terus bergerak',
+  title: 'Ruang kabar HMTE',
   lead:
-    'Cerita kegiatan, prestasi, peluang, dan gagasan mahasiswa Elektro—dikurasi agar yang penting tidak lewat begitu saja.',
+    'Publikasi resmi kegiatan, prestasi, peluang, dan gagasan mahasiswa akan hadir setelah informasinya diverifikasi oleh pengurus.',
 }
 
 export const getToKnowContent = {
-  identity: 'Kabinet HMTE',
-  period: 'Periode 2026',
-  context: 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
+  identity: 'Kabinet Abya Vistara',
+  period: 'Periode 2026/2027',
+  context: 'Program Studi Teknologi Rekayasa Elektro · Sekolah Vokasi UGM',
   prologue: {
     kicker: 'Tentang HMTE',
-    titleLines: ['Tempat energi', 'mahasiswa bertemu.'],
+    titleLines: ['Rumah untuk', 'bertumbuh bersama.'],
     body:
-      'Satu ruang bersama untuk bertumbuh, mencoba hal baru, dan membawa gagasan menjadi gerakan yang terasa.',
+      'HMTE adalah organisasi kemahasiswaan resmi di bawah Program Studi Teknologi Rekayasa Elektro, Sekolah Vokasi, Universitas Gadjah Mada.',
   },
   finale: {
-    line: 'Elektro, satu.',
-    caption: 'Kabinet HMTE · Periode 2026',
+    line: 'Abya Vistara.',
+    caption: 'Kabinet HMTE · Periode 2026/2027',
   },
   steps: [
     {
       label: 'Siapa kami',
-      title: 'Bukan sekadar kepengurusan.',
+      title: 'Wadah mahasiswa Teknologi Rekayasa Elektro.',
       body:
-        'HMTE adalah ruang temu mahasiswa Elektro untuk belajar bersama, menguji gagasan, dan mengubah kebutuhan sehari-hari menjadi gerakan yang nyata.',
+        'HMTE menjadi ruang pengembangan diri, penyaluran aspirasi, forum diskusi, dan inkubator gagasan yang melengkapi proses pendidikan formal mahasiswa.',
     },
     {
       label: 'Visi',
-      title: 'Ruang tumbuh yang saling menguatkan.',
+      title: 'Nyaman. Inovatif. Produktif.',
       body:
-        'Kami ingin setiap mahasiswa merasa punya tempat untuk berkembang—secara teknis, sosial, maupun personal—tanpa harus berjalan sendirian.',
+        'Menjadikan HMTE sebagai rumah bertumbuh yang nyaman, inovatif, dan produktif untuk berkembang bersama, serta memberikan kontribusi dan dampak yang lebih luas bagi anggota, lingkungan kampus, dan masyarakat.',
     },
     {
       label: 'Misi',
-      title: 'Belajar. Bergerak. Membawa dampak.',
+      title: 'Terbuka. Relevan. Kolaboratif. Berdampak.',
       body:
-        'Menghubungkan pengembangan kompetensi, advokasi mahasiswa, ekspresi minat, dan kolaborasi menjadi pengalaman organisasi yang relevan dan bisa dirasakan.',
+        'Membangun lingkungan yang suportif dan inklusif; mengoptimalkan media informasi; menghadirkan pengembangan diri yang relevan; memberi pengalaman organisasi yang bermakna bagi mahasiswa baru; serta mendorong program kolaboratif yang berdampak.',
     },
   ],
 }
 
 export const kabinetIntro = {
-  title: 'Bidang',
-  mutedTitle: ' & divisi',
+  title: 'Pengurus Harian',
+  mutedTitle: ' & departemen',
   lead:
-    'Kabinet HMTE TRE SV UGM digerakkan Pengurus Harian dan tujuh bidang yang bekerja kolaboratif untuk menjalankan organisasi, mengembangkan potensi anggota, dan mempererat hubungan internal maupun eksternal.',
+    'Kabinet Abya Vistara menyatukan Pengurus Harian dan tujuh departemen. Delapan unsur ini bergerak selaras, dengan Pengurus Harian sebagai pusat koordinasi dan penjaga arah organisasi.',
 }
 
 export const leadershipIntro = {
   titleNumber: '08',
-  titleLabel: 'BIDANG',
+  titleLabel: 'UNSUR',
   lead:
-    'Delapan bidang kabinet HMTE TRE SV UGM (termasuk Pengurus Harian), masing-masing diisi oleh pengurus yang berkomitmen menjalankan program kerja selama satu periode kepengurusan.',
+    'Struktur Kabinet Abya Vistara terdiri atas Pengurus Harian dan tujuh departemen yang menjalankan arah kerja HMTE periode 2026/2027.',
 }
 
 export const partnersIntro = {
-  titleLineOne: 'Alumni, mitra,',
+  titleLineOne: 'Koordinasi, relasi,',
   titleMuted: 'dan ruang',
   titleLineThree: 'kolaborasi',
   lead:
-    'Jejaring HMTE menghubungkan mahasiswa, pengurus, alumni, dosen pembina, mitra kegiatan, sponsor, dan relasi industri di lingkungan Teknologi Rekayasa Elektro Sekolah Vokasi UGM.',
+    'Struktur dan program Kabinet Abya Vistara menghubungkan mahasiswa, pengurus, unsur pendamping, ketua angkatan, BSO, alumni, dan mitra kegiatan.',
 }
 
 export const partnerTiles = [
   {
     label: 'Mahasiswa Elektro',
-    role: 'Anggota himpunan, pusat seluruh kegiatan',
+    role: 'Mahasiswa Program Studi Teknologi Rekayasa Elektro',
   },
   {
-    label: 'Pengurus HMTE',
-    role: 'Penggerak program kerja lintas bidang',
+    label: 'Pengurus Harian',
+    role: 'Pusat koordinasi Kabinet Abya Vistara',
+  },
+  {
+    label: 'Tujuh Departemen',
+    role: 'Pelaksana bidang kerja dan program departemen',
+  },
+  {
+    label: 'Dewan Penasihat & Pelindung',
+    role: 'Unsur pendamping dalam struktur organisasi',
+  },
+  {
+    label: 'Ketua Angkatan',
+    role: 'Unsur koordinasi yang tercantum pada struktur',
+  },
+  {
+    label: 'BSO',
+    role: 'Badan semi otonom dalam jalur koordinasi',
   },
   {
     label: 'Alumni',
-    role: 'Jejaring karier dan mentoring lintas angkatan',
-  },
-  {
-    label: 'Dosen Pembina',
-    role: 'Pendamping arah organisasi dan akademik',
+    role: 'Terhubung melalui program reuni dan hubungan alumni',
   },
   {
     label: 'Mitra Kegiatan',
-    role: 'Kolaborator acara, pelatihan, dan kompetisi',
-  },
-  {
-    label: 'Relasi Industri',
-    role: 'Kanal magang, kunjungan, dan praktik industri',
-  },
-  {
-    label: 'Sponsor',
-    role: 'Pendukung pendanaan dan fasilitas kegiatan',
-  },
-  {
-    label: 'Masyarakat',
-    role: 'Penerima manfaat program pengabdian',
+    role: 'Ruang kolaborasi, studi banding, dan kunjungan industri',
   },
 ] satisfies PartnerTile[]
 
@@ -157,10 +158,10 @@ export const ctaContent = {
 
 export const footerContent = {
   addressLines: [
-    ['Himpunan Mahasiswa Teknik Elektro', 'Teknologi Rekayasa Elektro · Sekolah Vokasi UGM'],
-    ['Departemen Teknik Elektro dan Informatika', 'Universitas Gadjah Mada'],
+    ['Himpunan Mahasiswa Teknik Elektro', 'Program Studi Teknologi Rekayasa Elektro · Sekolah Vokasi UGM'],
+    ['Kabinet Abya Vistara', 'Periode 2026/2027'],
   ],
-  bottomLeft: '© 2026 HMTE TRE SV UGM · SEKOLAH VOKASI UNIVERSITAS GADJAH MADA',
+  bottomLeft: '© 2026 HMTE TRE SV UGM · KABINET ABYA VISTARA',
   bottomRight: 'ELEKTRO... SATU!!!',
 }
 
@@ -170,10 +171,10 @@ export const footerColumns = [
     "links": [
       {
         "label": "Tentang",
-        "href": "/kontak"
+        "href": "/#tentang"
       },
       {
-        "label": "Bidang & Divisi",
+        "label": "Pengurus & Departemen",
         "href": "/divisi"
       },
       {
@@ -213,6 +214,10 @@ export const footerColumns = [
       {
         "label": "@hmteugm",
         "href": "https://www.instagram.com/hmteugm"
+      },
+      {
+        "label": "hmte.ugm.ac.id",
+        "href": "https://hmte.ugm.ac.id"
       },
       {
         "label": "Aspirasi mahasiswa",

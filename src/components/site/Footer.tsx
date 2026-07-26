@@ -5,18 +5,36 @@ export function Footer() {
   return (
     <footer className="tre-footer" id="site-footer">
       <div className="container">
+        <div className="ftr-masthead">
+          <div className="ftr-lockup">
+            <Image
+              src="/assets/logo-hmte.svg"
+              alt="HMTE TRE SV UGM"
+              width={132}
+              height={39}
+              className="ftr-logo"
+            />
+            <span className="ftr-lockup-rule" aria-hidden="true" />
+            <Image
+              src="/assets/abya-vistara/logo-kabinet.webp"
+              alt="Logo Kabinet Abya Vistara"
+              width={128}
+              height={128}
+              className="ftr-cabinet-logo"
+            />
+            <span className="ftr-cabinet-name">
+              <small>Kabinet</small>
+              <strong>Abya Vistara</strong>
+            </span>
+          </div>
+          <p className="ftr-masthead-note">
+            Situs resmi Himpunan Mahasiswa Teknik Elektro
+            <span>Sekolah Vokasi, Universitas Gadjah Mada</span>
+          </p>
+        </div>
+
         <div className="top">
           <div className="col">
-            <div className="ftr-brand">
-              <div className="ftr-bar"></div>
-              <Image
-                src="/assets/logo-hmte.svg"
-                alt="HMTE TRE SV UGM"
-                width={132}
-                height={39}
-                className="ftr-logo"
-              />
-            </div>
             {footerContent.addressLines.map((lines) => (
               <p className="addr" key={lines.join('|')}>
                 {lines.map((line, index) => (

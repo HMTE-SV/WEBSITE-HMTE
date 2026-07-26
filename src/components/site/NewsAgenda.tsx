@@ -17,13 +17,14 @@ function articleSlug(article: ArticleSummary) {
 }
 
 export function NewsAgenda() {
-  const [activeTab, setActiveTab] = useState<ArticleCategoryKey>('berita-utama')
+  const availableTabs = articleTabs.filter((tab) => articleCategories[tab.key])
+  const [activeTab, setActiveTab] = useState<ArticleCategoryKey>(availableTabs[0]?.key ?? 'berita-utama')
   const [activeIndex, setActiveIndex] = useState(0)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
   const group = articleCategories[activeTab]
-  const articles = useMemo(() => [group.featured, ...group.latest], [group])
+  const articles = useMemo(() => (group ? [group.featured, ...group.latest] : []), [group])
   const activeArticle = articles[activeIndex]
-  const nextIndex = (activeIndex + 1) % articles.length
+  const nextIndex = articles.length > 0 ? (activeIndex + 1) % articles.length : 0
 
   function selectCategory(category: ArticleCategoryKey) {
     setActiveTab(category)
@@ -31,7 +32,7 @@ export function NewsAgenda() {
   }
 
   function handleTabKeydown(event: React.KeyboardEvent<HTMLButtonElement>, index: number) {
-    const lastIndex = articleTabs.length - 1
+    const lastIndex = availableTabs.length - 1
     let nextTabIndex: number | null = null
 
     if (event.key === 'ArrowRight') nextTabIndex = index === lastIndex ? 0 : index + 1
@@ -42,8 +43,36 @@ export function NewsAgenda() {
     if (nextTabIndex === null) return
 
     event.preventDefault()
-    selectCategory(articleTabs[nextTabIndex].key)
+    selectCategory(availableTabs[nextTabIndex].key)
     tabRefs.current[nextTabIndex]?.focus()
+  }
+
+  if (!activeArticle) {
+    return (
+      <section className="news-deck" id="kabar" aria-labelledby="news-deck-title">
+        <div className="news-deck-shell">
+          <header className="news-deck-head">
+            <h2 id="news-deck-title">Kabar resmi dimulai dari data yang benar.</h2>
+            <div>
+              <p>{newsAgendaIntro.lead}</p>
+              <Link href="/agenda">Lihat agenda program</Link>
+            </div>
+          </header>
+          <div className="news-deck-empty">
+            <span>Arsip berita · belum diterbitkan</span>
+            <h3>Tidak ada berita sampel yang ditampilkan.</h3>
+            <p>
+              Buku Panduan HMTE 2026/2027 memuat arah organisasi dan program kerja, bukan berita kegiatan.
+              Artikel akan tampil setelah judul, isi, tanggal, dan dokumentasinya terverifikasi.
+            </p>
+            <div>
+              <Link href="/program-kerja">Jelajahi program kerja</Link>
+              <Link href="/pengumuman">Buka pengumuman</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -58,7 +87,7 @@ export function NewsAgenda() {
         </header>
 
         <div className="news-deck-tabs" role="tablist" aria-label="Kategori berita">
-          {articleTabs.map((tab, index) => {
+          {availableTabs.map((tab, index) => {
             const isActive = tab.key === activeTab
 
             return (
@@ -123,7 +152,7 @@ export function NewsAgenda() {
           <aside className="news-deck-queue" aria-label="Pilih berita dalam kategori ini">
             <div className="news-deck-queue-head">
               <span>Pilih cerita</span>
-              <span>{articleTabs.find((tab) => tab.key === activeTab)?.label}</span>
+              <span>{availableTabs.find((tab) => tab.key === activeTab)?.label}</span>
             </div>
             {articles.map((article, index) => (
               <button

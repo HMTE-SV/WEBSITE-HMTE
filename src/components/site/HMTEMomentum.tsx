@@ -24,48 +24,48 @@ type MomentTile = {
 const moments: MomentTile[] = [
   {
     src: '/assets/ugm_socialization.png',
-    alt: 'Mahasiswa mengikuti seminar keinsinyuran di ruang kuliah',
-    label: 'Sosialisasi & seminar',
+    alt: 'Visual sementara untuk dokumentasi seminar atau sosialisasi HMTE',
+    label: 'Seminar / sosialisasi',
     size: 'tall',
     drift: -46,
     rotate: -1.3,
   },
   {
     src: '/assets/robotics_prestige.png',
-    alt: 'Tim mahasiswa menyiapkan robot untuk kompetisi robotika',
-    label: 'Tim robotika',
+    alt: 'Visual sementara untuk dokumentasi kompetisi atau pengerjaan karya',
+    label: 'Kompetisi / karya',
     size: 'base',
     drift: 34,
     rotate: 1.1,
   },
   {
     src: '/assets/smart_grid_dashboard.png',
-    alt: 'Pengujian dasbor smart grid di laboratorium elektro',
-    label: 'Riset smart grid',
+    alt: 'Visual sementara untuk dokumentasi riset atau laboratorium',
+    label: 'Riset / laboratorium',
     size: 'base',
     drift: -18,
     rotate: -0.7,
   },
   {
     src: '/assets/solar_village.png',
-    alt: 'Mahasiswa memasang lampu tenaga surya dalam pengabdian masyarakat',
-    label: 'Pengabdian desa',
+    alt: 'Visual sementara untuk dokumentasi pengabdian atau HMTE Mengajar',
+    label: 'Pengabdian / HMTE Mengajar',
     size: 'tall',
     drift: 42,
     rotate: 1.4,
   },
   {
     src: '/assets/semiconductor_career.png',
-    alt: 'Mahasiswa di ruang bersih fasilitas semikonduktor',
-    label: 'Kunjungan industri',
+    alt: 'Visual sementara untuk dokumentasi jejaring atau kunjungan',
+    label: 'Jejaring / kunjungan',
     size: 'base',
     drift: -30,
     rotate: -1,
   },
   {
     src: '/assets/ugm_socialization.png',
-    alt: 'Suasana kebersamaan pengurus HMTE di sela kegiatan',
-    label: 'Momen bersama',
+    alt: 'Visual sementara untuk dokumentasi kebersamaan Kabinet Abya Vistara',
+    label: 'Kebersamaan kabinet',
     size: 'grand',
     drift: 22,
     rotate: 0.6,
@@ -133,11 +133,11 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
     >
       <div className="moment-wall-shell">
         <header className="moment-wall-head">
-          <span className="moment-wall-kicker">HMTE dalam gerak</span>
-          <h2 id="moment-wall-title">Yang kami jalani, yang kami rawat.</h2>
+          <span className="moment-wall-kicker">Ruang dokumentasi</span>
+          <h2 id="moment-wall-title">Foto resmi akan menempati ruang ini.</h2>
           <p>
-            Bukan deretan logo mitra — ini dinding kenangan yang terus bertambah. Momen-momen yang lahir
-            dari kerja bersama satu periode kepengurusan.
+            Visual yang tampil saat ini masih sementara. Dokumentasi aktual Kabinet Abya Vistara
+            periode 2026/2027 akan dipasang setelah aset dan izin publikasinya tersedia.
           </p>
         </header>
 
@@ -174,8 +174,8 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
             className="moment-tile moment-tile--quote"
             style={{ '--drift': '-24px', '--tile-delay': '330ms' } as React.CSSProperties}
           >
-            <p>Setiap momen adalah bukti kami bergerak.</p>
-            <span>Kabinet HMTE · Periode 2026</span>
+            <p>Dokumentasi resmi akan ditempatkan di ruang ini.</p>
+            <span>Kabinet Abya Vistara · Periode 2026/2027</span>
           </div>
 
           {moments.slice(3).map((moment, index) => (
@@ -209,9 +209,11 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
 
         <footer className="moment-wall-foot">
           <p>
-            Dinding ini dibangun oleh <strong>{members.length} pengurus</strong> di{' '}
-            <strong>{divisions.length} bidang</strong>, lewat <strong>{programs.length} program kerja</strong>{' '}
-            dalam satu periode.
+            Kabinet ini bergerak melalui <strong>{divisions.length} unsur organisasi</strong> dan{' '}
+            <strong>{programs.length} program kerja</strong>.{' '}
+            {members.length > 0
+              ? `${members.length} nama pengurus telah tercatat.`
+              : 'Daftar nama pengurus menunggu data resmi berikutnya.'}
           </p>
           <Link href="/galeri">
             Buka galeri lengkap <span aria-hidden="true">→</span>
