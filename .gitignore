@@ -39,3 +39,9 @@ audit/
 # boleh masuk riwayat git — repo ini milik organisasi dan bisa dibuka banyak
 # pengurus. File tetap ada di disk untuk keperluan kerja, cuma tidak diikuti.
 ASSET/anggota-hmte.md
+
+# Modul yatim sejak /agenda memakai getOrganizationData(); tidak ada yang
+# meng-import. Lock file Windows dari watcher `next dev` menghalangi penghapusan
+# fisiknya. Diabaikan supaya `git add -A` tidak melacaknya lagi.
+# Hapus dengan `del src\data\events.ts` setelah dev server dimatikan.
+src/data/events.ts

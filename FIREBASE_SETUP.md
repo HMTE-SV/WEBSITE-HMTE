@@ -27,10 +27,20 @@ Create `.env.local` from `.env.example`:
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
+
+NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=
+NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=
+IMAGEKIT_PRIVATE_KEY=
 ```
+
+`NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` is intentionally absent. Firebase Storage is not used anywhere — images
+are served by ImageKit — so requiring a bucket would only cause the site to fall back to local data because of a
+variable nothing reads.
+
+`IMAGEKIT_PRIVATE_KEY` must never carry the `NEXT_PUBLIC_` prefix. Anything with that prefix is compiled into the
+browser bundle, which would hand every visitor the ability to sign uploads to our media account.
 
 Fill each value from the Firebase Web App config.
 
@@ -55,7 +65,46 @@ The helpers initialize Firebase lazily. This keeps `next build` from crashing be
 
 ## 5. Admin SDK
 
-Do not add Firebase Admin SDK until a server-side feature needs it. Admin SDK requires private service account credentials, so it should be introduced only when the server-side authorization model is defined.
+**Decided: the Admin SDK will be added in Phase 1** (see `docs/RENCANA_ADMIN_PANEL.md`, decision D2). The earlier
+version of this section forbade it, on the mistaken assumption that server-side Firebase means Cloud Functions and
+therefore the Blaze plan. It does not: the Admin SDK is a plain Node library that runs inside our own Next.js
+server, so it works on Spark.
+
+It is needed for five things, none of which the client SDK can do safely:
+
+1. Setting custom claims (the role model in §5.3 of the plan)
+2. `verifyIdToken()` on route handlers
+3. Signing ImageKit upload requests without exposing the private key
+4. Triggering `revalidateTag()` only for genuinely authenticated admins
+5. Running seed and migration scripts
+
+Credentials go in `FIREBASE_SERVICE_ACCOUNT_JSON` as a server-only environment variable — never with a
+`NEXT_PUBLIC_` prefix, and never as a file inside the repository. On Vercel, set it in the dashboard for all three
+environments (Production, Preview, Development).
+
+## 5b. Emulator and Rules Tests
+
+Firestore Rules are the only real barrier protecting the data: page-level authorization lives in the browser
+(`AdminAuthGuard`), so anyone can bypass the UI and talk to Firestore directly. That makes rules a piece of code
+that must be tested like any other, which is why `npm test` runs the rules suite and not just the unit tests.
+
+**Prerequisite: Java (JDK 17 or newer).** The Firestore emulator is a Java program. Install it once:
+
+```txt
+winget install Microsoft.OpenJDK.21
+```
+
+Then open a new terminal so `java` is on the PATH.
+
+```txt
+npm test          # unit tests, then rules tests
+npm run test:unit # unit tests only, no emulator needed
+npm run test:rules # boots the emulator, runs tests/rules, shuts it down
+npm run emulator  # keeps the emulator running for manual exploration
+```
+
+The suite runs against a throwaway project ID on port 8080 and never touches the real Firebase project. Test data
+is wiped between test cases, so a failing run leaves nothing behind.
 
 ## 6. Initial Admin Account
 
@@ -135,7 +184,7 @@ createdAt, updatedAt, publishedAt
 ```
 
 `content` berisi HTML terbatas dari rich-text editor. HTML disanitasi kembali sebelum ditampilkan di halaman publik.
-Cover dan gambar di dalam artikel menggunakan URL HTTPS ImageKit atau Firebase Storage; file gambar tidak disimpan
+Cover dan gambar di dalam artikel menggunakan URL HTTPS ImageKit; file gambar tidak disimpan
 di dalam dokumen Firestore.
 
 Query publik memakai composite index `status + publishedAt` yang didefinisikan di `firestore.indexes.json`.

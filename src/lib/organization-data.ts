@@ -43,6 +43,29 @@ function emptyDivisionRecord<T>() {
   return record
 }
 
+/**
+ * Membersihkan `months` yang datang dari Firestore.
+ *
+ * Dipisah jadi fungsi sendiri karena peta dua belas bulan di /agenda memakai
+ * angka ini langsung sebagai indeks kolom: satu nilai 0, 13, atau duplikat
+ * sudah cukup untuk membuat barisnya salah gambar. Dokumen lama yang dibuat
+ * sebelum field ini ada juga akan masuk ke sini sebagai `undefined`, dan itu
+ * ditangani sebagai daftar kosong — program tetap tampil di /program-kerja,
+ * hanya tidak punya tanda di peta bulan.
+ */
+export function normalizeProgramMonths(months: unknown): number[] {
+  if (!Array.isArray(months)) {
+    return []
+  }
+
+  const valid = months.filter(
+    (month): month is number =>
+      typeof month === 'number' && Number.isInteger(month) && month >= 1 && month <= 12,
+  )
+
+  return [...new Set(valid)].sort((first, second) => first - second)
+}
+
 function mergeLeaderRecords(
   localLeaders: Record<DivisionCode, Leader[]>,
   remoteLeaders: Record<DivisionCode, Leader[]>,
@@ -128,6 +151,7 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
         programsByDivision[program.divisionCode].push({
           date: program.date,
           desc: program.desc,
+          months: normalizeProgramMonths(program.months),
           name: program.name,
           status: program.status,
         })
