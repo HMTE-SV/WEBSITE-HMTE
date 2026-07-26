@@ -613,6 +613,7 @@
 .admin-dashboard .admin-field textarea,
 .admin-auth-page .admin-field input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--admin-line-strong); border-radius: 5px; background: white; color: var(--admin-ink); font: inherit; font-size: 11px; }
 .admin-dashboard .admin-field textarea { min-height: 100px; padding: 12px; line-height: 1.6; resize: vertical; }
+.admin-dashboard .admin-field-hint { margin: 0; color: var(--admin-muted); font-size: 10px; line-height: 1.5; }
 .admin-dashboard .admin-field input:focus,
 .admin-dashboard .admin-field select:focus,
 .admin-dashboard .admin-field textarea:focus,

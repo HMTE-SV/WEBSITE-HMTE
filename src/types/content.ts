@@ -51,15 +51,6 @@ export type Announcement = {
   status: ContentStatus
 }
 
-export type EventItem = {
-  id: string
-  title: string
-  excerpt: string
-  date: string
-  location?: string
-  status: ContentStatus
-}
-
 export type Division = {
   code: DivisionCode
   name: string

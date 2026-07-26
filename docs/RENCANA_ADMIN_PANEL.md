@@ -439,13 +439,13 @@ Tiga detail di aturan artikel yang gampang terlewat, dan ketiganya penting:
 
 ## 6. Rencana bertahap
 
-### Fase 0 — Perbaiki yang rusak *(blocker, kerjakan lebih dulu)*
+### Fase 0 — Perbaiki yang rusak *(blocker, kerjakan lebih dulu)* — **DIKERJAKAN 2026-07-26**
 
-1. **Tambah `months` ke `ProgramDocument` + mapping** (F1). Tanpa ini, migrasi program ke Firestore mengosongkan `/agenda`.
-2. **Hapus** `src/lib/firebase/storage.ts` + `getFirebaseStorage()` (K1, F4 — sudah diputuskan di §4.5, Firebase Storage tidak dipakai).
-3. Pasang **Firebase Emulator** + `@firebase/rules-unit-testing`, tulis test rules untuk tiap collection dan tiap peran. Masukkan ke `npm test` (K4).
-4. Nyalakan lagi `reactStrictMode` dan perbaiki bug yang muncul (F9).
-5. Hapus kode yatim: `src/data/events.ts` dan tipe `EventItem` (sisa dari rework agenda; gagal dihapus karena file terkunci watcher `next dev`).
+1. ✅ **Tambah `months` ke `ProgramDocument` + mapping** (F1). Tanpa ini, migrasi program ke Firestore mengosongkan `/agenda`. Ikut: `parseProgramMonths()`/`formatProgramMonths()` di `organization-crud.ts`, `normalizeProgramMonths()` di `organization-data.ts`, isian bulan di `AdminOrganizationManager`, dan lima test.
+2. ✅ **Hapus** `src/lib/firebase/storage.ts` + `getFirebaseStorage()` (K1, F4). Ikut: `storagePath` dilepas dari `GalleryDocument`, `storageBucket` dilepas dari `hasFirebaseConfig()`, dan `firebasestorage.googleapis.com` dilepas dari `remotePatterns`.
+3. ⚠️ Pasang **Firebase Emulator** + `@firebase/rules-unit-testing`, tulis test rules untuk tiap collection dan tiap peran. Masukkan ke `npm test` (K4). — Konfigurasi dan 35 kasus tes sudah ditulis di `tests/rules/`, `npm test` sudah menjalankannya. **Belum pernah dijalankan** karena emulator butuh Java dan JDK belum terpasang di mesin developer.
+4. ✅ Nyalakan lagi `reactStrictMode` (F9).
+5. ✅ Hapus kode yatim: `src/data/events.ts` dan tipe `EventItem`. Tipe sudah hilang; berkas `events.ts` dikosongkan dan dilepas dari git, tapi file fisiknya masih terkunci watcher `next dev` — hapus dengan `del src\data\events.ts` setelah dev server mati.
 
 ### Fase 1 — Fondasi server & kuota
 

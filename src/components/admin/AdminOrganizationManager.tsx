@@ -364,6 +364,21 @@ export function AdminOrganizationManager() {
                     <input id="org-desc" value={values.desc} onChange={(event) => updateField('desc', event.target.value)} />
                   </div>
                 </div>
+                <div className="admin-field">
+                  <label htmlFor="org-months">Bulan pelaksanaan</label>
+                  <input
+                    id="org-months"
+                    value={values.months}
+                    onChange={(event) => updateField('months', event.target.value)}
+                    placeholder="3, 6, 9, 12"
+                    aria-describedby="org-months-hint"
+                  />
+                  <p className="admin-field-hint" id="org-months-hint">
+                    Angka 1-12 dipisah koma. Ini yang menggambar tanda program di peta dua belas
+                    bulan halaman Agenda — kalau dikosongkan, program tetap terbit tapi tidak muncul
+                    di peta.
+                  </p>
+                </div>
               </>
             ) : null}
 

@@ -19,6 +19,8 @@ export type OrganizationFormValues = {
   email: string
   instagram: string
   linkedin: string
+  /** Bulan pelaksanaan program sebagai teks, mis. "3, 6, 9, 12". */
+  months: string
   name: string
   order: string
   photo: string
@@ -58,6 +60,28 @@ function parseOrder(value: string) {
   return Number.isFinite(order) ? order : 0
 }
 
+/**
+ * Mengubah isian bulan ("3, 6, 9, 12") jadi angka terurut tanpa duplikat.
+ *
+ * Nilai di luar 1-12 dibuang diam-diam, bukan dijadikan error, karena peta dua
+ * belas bulan di /agenda memakai angka ini sebagai indeks kolom — satu nilai
+ * liar merusak gambar seluruh baris. Fase 2 akan mengganti isian teks ini
+ * dengan pemilih dua belas kotak sehingga nilai di luar rentang tidak mungkin
+ * lagi diketik.
+ */
+export function parseProgramMonths(value: string): number[] {
+  const parsed = value
+    .split(',')
+    .map((part) => Number.parseInt(part.trim(), 10))
+    .filter((month) => Number.isInteger(month) && month >= 1 && month <= 12)
+
+  return [...new Set(parsed)].sort((first, second) => first - second)
+}
+
+export function formatProgramMonths(months: number[] | undefined): string {
+  return (months || []).join(', ')
+}
+
 export function getEmptyOrganizationFormValues(kind: OrganizationKind): OrganizationFormValues {
   return {
     active: true,
@@ -70,6 +94,7 @@ export function getEmptyOrganizationFormValues(kind: OrganizationKind): Organiza
     email: '',
     instagram: '',
     linkedin: '',
+    months: '',
     name: '',
     order: '0',
     photo: '',
@@ -114,6 +139,7 @@ export function buildOrganizationPayload(kind: OrganizationKind, values: Organiz
     date: values.date.trim(),
     desc: values.desc.trim(),
     divisionCode: values.divisionCode,
+    months: parseProgramMonths(values.months),
     name: values.name.trim(),
     status: values.programStatus,
   } satisfies Omit<ProgramDocument, 'id' | 'createdAt' | 'updatedAt'>
@@ -162,6 +188,7 @@ export function organizationDocumentToFormValues(
     date: program.date,
     desc: program.desc,
     divisionCode: program.divisionCode,
+    months: formatProgramMonths(program.months),
     name: program.name,
     order: String(program.order),
     programStatus: program.status,

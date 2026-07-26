@@ -62,7 +62,6 @@ export type GalleryDocument = PublishableDocument & {
   alt: string
   caption?: string
   order: number
-  storagePath?: string
 }
 
 export type LeaderDocument = FirestoreDocument & {
@@ -94,7 +93,15 @@ export type ProgramDocument = FirestoreDocument & {
   desc: string
   divisionCode: DivisionCode
   status: ProgramStatus
+  /** Label bulan yang bisa dibaca manusia, mis. "Maret, Juni, September". */
   date: string
+  /**
+   * Bulan pelaksanaan sebagai angka 1-12. Wajib ikut tersimpan: peta dua belas
+   * bulan di /agenda sepenuhnya bergantung pada field ini, dan `date` yang
+   * berupa teks bebas tidak bisa diurai balik jadi angka. Tanpa ini, program
+   * yang dipindah ke Firestore akan hilang dari halaman agenda.
+   */
+  months: number[]
   active: boolean
   order: number
 }
