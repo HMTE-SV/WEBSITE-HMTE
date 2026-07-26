@@ -3,48 +3,46 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PublicPageFrame } from '@/components/site/PublicPage'
-import { getAllArticles, getArticleBySlug } from '@/lib/content'
+import { getPublishedArticleBySlug, getPublishedArticleFeed } from '@/lib/article-data'
+
+export const dynamic = 'force-dynamic'
 
 type ArticleDetailPageProps = {
-  params: Promise<{
-    slug: string
-  }>
-}
-
-export function generateStaticParams() {
-  return getAllArticles().map((article) => ({
-    slug: article.slug,
-  }))
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: ArticleDetailPageProps): Promise<Metadata> {
   const { slug } = await params
-  const article = getArticleBySlug(slug)
 
-  if (!article) {
+  try {
+    const article = await getPublishedArticleBySlug(slug)
+
+    if (!article) return { title: 'Berita tidak ditemukan' }
+
     return {
-      title: 'Berita tidak ditemukan',
+      title: `${article.title} | HMTE TRE SV UGM`,
+      description: article.excerpt,
+      openGraph: {
+        title: article.title,
+        description: article.excerpt,
+        images: [article.image],
+        type: 'article',
+      },
     }
-  }
-
-  return {
-    title: `${article.title} | HMTE TRE SV UGM`,
-    description: article.excerpt,
+  } catch {
+    return { title: 'Berita HMTE TRE SV UGM' }
   }
 }
 
 export default async function ArticleDetailPage({ params }: ArticleDetailPageProps) {
   const { slug } = await params
-  const article = getArticleBySlug(slug)
+  const article = await getPublishedArticleBySlug(slug)
 
-  if (!article) {
-    notFound()
-  }
+  if (!article) notFound()
 
-  const relatedArticles = getAllArticles()
+  const relatedArticles = (await getPublishedArticleFeed())
     .filter((item) => item.slug !== article.slug && item.categoryKey === article.categoryKey)
     .slice(0, 3)
-  const imageSrc = article.image.startsWith('/') ? article.image : `/${article.image}`
 
   return (
     <PublicPageFrame activeHref="/berita">
@@ -60,7 +58,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
               <p>{article.excerpt}</p>
               <div className="article-story-byline" aria-label="Informasi artikel">
                 <strong>{article.publisher}</strong>
-                <time>{article.timeAgo}</time>
+                <time dateTime={article.dateIso || undefined}>{article.publishedLabel}</time>
                 <span>{article.readTime}</span>
               </div>
             </div>
@@ -69,7 +67,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
 
         <div className="public-shell article-story-media">
           <figure>
-            <Image src={imageSrc} alt={article.title} fill priority sizes="(max-width: 760px) 100vw, 1200px" />
+            <Image src={article.image} alt={article.title} fill priority sizes="(max-width: 760px) 100vw, 1200px" />
             <figcaption>{article.categoryLabel} · Dokumentasi {article.publisher}</figcaption>
           </figure>
         </div>
@@ -81,19 +79,16 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
               <dl>
                 <div><dt>Penerbit</dt><dd>{article.publisher}</dd></div>
                 <div><dt>Kanal</dt><dd>{article.categoryLabel}</dd></div>
-                <div><dt>Terbit</dt><dd>{article.timeAgo}</dd></div>
+                <div><dt>Terbit</dt><dd>{article.publishedLabel}</dd></div>
                 <div><dt>Waktu baca</dt><dd>{article.readTime}</dd></div>
               </dl>
             </aside>
             <div className="article-story-copy">
               <p className="article-story-lead">{article.excerpt}</p>
-              <p>
-                Konten lengkap berita ini akan dihubungkan ke database saat fase Firebase dan admin CMS
-                berjalan. Untuk saat ini, halaman detail memakai data lokal yang sudah bertipe.
-              </p>
+              <div className="article-rich-content" dangerouslySetInnerHTML={{ __html: article.contentHtml }} />
               <div className="article-story-note">
                 <span>Catatan redaksi</span>
-                <p>Informasi pada halaman ini mengikuti arsip publikasi yang tersedia di situs HMTE.</p>
+                <p>Informasi pada halaman ini diterbitkan melalui panel redaksi HMTE TRE SV UGM.</p>
               </div>
             </div>
           </div>
@@ -103,21 +98,14 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
           <section className="article-related" aria-labelledby="article-related-title">
             <div className="public-shell">
               <div className="article-related-heading">
-                <div>
-                  <span>Masih dalam kanal</span>
-                  <h2 id="article-related-title">Baca berikutnya</h2>
-                </div>
+                <div><span>Masih dalam kanal</span><h2 id="article-related-title">Baca berikutnya</h2></div>
                 <Link href="/berita">Lihat semua berita</Link>
               </div>
               <div className="article-related-grid">
                 {relatedArticles.map((item, index) => (
                   <Link href={`/berita/${item.slug}`} key={item.slug}>
                     <span>{String(index + 1).padStart(2, '0')}</span>
-                    <div>
-                      <time>{item.timeAgo}</time>
-                      <h3>{item.title}</h3>
-                      <strong>Baca artikel <b aria-hidden="true">→</b></strong>
-                    </div>
+                    <div><time>{item.publishedLabel}</time><h3>{item.title}</h3><strong>Baca artikel <b aria-hidden="true">→</b></strong></div>
                   </Link>
                 ))}
               </div>

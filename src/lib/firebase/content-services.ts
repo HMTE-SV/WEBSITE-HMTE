@@ -57,6 +57,14 @@ export async function createContentDocument<T extends FirestoreDocument>(
   data: CreateDocumentInput<T>,
 ) {
   const payload = withCreateTimestamps(data) as DocumentData
+
+  if (
+    ['announcements', 'events', 'articles', 'gallery'].includes(collectionName) &&
+    'status' in data
+  ) {
+    payload.publishedAt = data.status === 'published' ? serverTimestamp() : null
+  }
+
   const documentRef = await addDoc(collection(getFirebaseDb(), collectionName), payload)
   return documentRef.id
 }
@@ -67,7 +75,25 @@ export async function updateContentDocument<T extends FirestoreDocument>(
   data: UpdateDocumentInput<T>,
 ) {
   const payload = withUpdateTimestamp(data) as DocumentData
-  await updateDoc(doc(getFirebaseDb(), collectionName, id), payload)
+  const documentRef = doc(getFirebaseDb(), collectionName, id)
+
+  if (
+    ['announcements', 'events', 'articles', 'gallery'].includes(collectionName) &&
+    'status' in data
+  ) {
+    if (data.status === 'published') {
+      const currentDocument = await getDoc(documentRef)
+      const currentData = currentDocument.data()
+
+      if (currentData?.status !== 'published' || !currentData.publishedAt) {
+        payload.publishedAt = serverTimestamp()
+      }
+    } else {
+      payload.publishedAt = null
+    }
+  }
+
+  await updateDoc(documentRef, payload)
 }
 
 export async function deleteContentDocument(collectionName: FirestoreCollectionName, id: string) {
@@ -110,6 +136,14 @@ export function listPublishedEvents(maxItems?: number) {
 
 export function listPublishedArticles(maxItems?: number) {
   return listPublishedDocuments<ArticleDocument>('articles', 'publishedAt', maxItems)
+}
+
+export async function isArticleSlugAvailable(slug: string, excludedDocumentId?: string) {
+  const snapshot = await getDocs(
+    query(collection(getFirebaseDb(), 'articles'), where('slug', '==', slug), limit(2)),
+  )
+
+  return snapshot.docs.every((documentSnapshot) => documentSnapshot.id === excludedDocumentId)
 }
 
 export function listPublishedGalleryItems(maxItems?: number) {

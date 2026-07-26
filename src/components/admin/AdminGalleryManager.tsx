@@ -3,22 +3,25 @@
 import Image from 'next/image'
 import { useCallback, useEffect, useState } from 'react'
 import { AdminEmptyState } from './AdminEmptyState'
+import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
-import { validateGalleryImage } from '@/lib/admin/media-validation'
+import { canAdminWrite } from '@/data/admin-nav'
+import { validateGalleryImageUrl } from '@/lib/admin/media-validation'
 import {
   createContentDocument,
   deleteContentDocument,
   listContentDocuments,
 } from '@/lib/firebase/content-services'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
-import { deleteImageFromStorage, uploadImageToStorage } from '@/lib/firebase/storage'
 import type { GalleryDocument } from '@/types/firestore'
 
 export function AdminGalleryManager() {
+  const session = useAdminSession()
+  const canWrite = canAdminWrite(session.role)
   const [items, setItems] = useState<GalleryDocument[]>([])
   const [title, setTitle] = useState('')
   const [caption, setCaption] = useState('')
-  const [file, setFile] = useState<File | null>(null)
+  const [imageUrl, setImageUrl] = useState('')
   const [error, setError] = useState('')
   const [feedback, setFeedback] = useState('')
   const [isLoading, setIsLoading] = useState(hasFirebaseConfig())
@@ -54,17 +57,12 @@ export function AdminGalleryManager() {
     }
   }, [loadGallery])
 
-  async function handleUpload(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
     setFeedback('')
 
-    if (!file) {
-      setError('Pilih gambar terlebih dahulu.')
-      return
-    }
-
-    const validation = validateGalleryImage(file)
+    const validation = validateGalleryImageUrl(imageUrl.trim())
 
     if (!validation.success) {
       setError(validation.errors.join(' '))
@@ -74,25 +72,19 @@ export function AdminGalleryManager() {
     setIsUploading(true)
 
     try {
-      const uploaded = await uploadImageToStorage({
-        file,
-        folder: 'gallery',
-      })
-
       await createContentDocument<GalleryDocument>('gallery', {
-        alt: title.trim() || file.name,
+        alt: title.trim(),
         caption: caption.trim(),
-        imageUrl: uploaded.downloadUrl,
+        imageUrl: imageUrl.trim(),
         order: Date.now(),
         status: 'published',
-        storagePath: uploaded.path,
-        title: title.trim() || file.name,
+        title: title.trim(),
       })
 
       setTitle('')
       setCaption('')
-      setFile(null)
-      setFeedback('Gambar galeri berhasil diunggah.')
+      setImageUrl('')
+      setFeedback('Gambar galeri berhasil ditambahkan.')
       await loadGallery()
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'Gagal mengunggah gambar.')
@@ -114,12 +106,7 @@ export function AdminGalleryManager() {
 
     try {
       await deleteContentDocument('gallery', item.id)
-
-      if (item.storagePath) {
-        await deleteImageFromStorage(item.storagePath)
-      }
-
-      setFeedback('Gambar berhasil dihapus.')
+      setFeedback('Data gambar berhasil dihapus dari Firestore. File asli di ImageKit tidak ikut dihapus.')
       await loadGallery()
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus gambar.')
@@ -131,31 +118,39 @@ export function AdminGalleryManager() {
   return (
     <AdminShell
       activeHref="/admin/gallery"
-      description="Upload dan kelola foto kegiatan HMTE."
+      description="Kelola referensi foto kegiatan HMTE dari ImageKit."
       kicker="Galeri"
       title="Kelola galeri"
     >
       {!hasFirebaseConfig() ? (
         <AdminEmptyState
-          body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat upload gambar ke Firebase Storage."
+          body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat mengelola referensi gambar di Firestore."
           kicker="Konfigurasi"
           title="Firebase belum siap."
         />
       ) : (
         <>
-          <form className="admin-content-form" onSubmit={handleUpload}>
+          {canWrite ? (
+            <form className="admin-content-form" onSubmit={handleCreate}>
             <div className="admin-form-grid">
               <div className="admin-field">
                 <label htmlFor="gallery-title">Judul gambar</label>
-                <input id="gallery-title" value={title} onChange={(event) => setTitle(event.target.value)} />
+                <input
+                  id="gallery-title"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  required
+                />
               </div>
               <div className="admin-field">
-                <label htmlFor="gallery-file">File gambar</label>
+                <label htmlFor="gallery-image-url">URL ImageKit</label>
                 <input
-                  id="gallery-file"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(event) => setFile(event.target.files?.[0] || null)}
+                  id="gallery-image-url"
+                  type="url"
+                  value={imageUrl}
+                  onChange={(event) => setImageUrl(event.target.value)}
+                  placeholder="https://ik.imagekit.io/..."
+                  required
                 />
               </div>
             </div>
@@ -176,10 +171,17 @@ export function AdminGalleryManager() {
             {feedback ? <p className="admin-form-success">{feedback}</p> : null}
             <div className="admin-form-actions">
               <button className="admin-primary-button" type="submit" disabled={isUploading}>
-                {isUploading ? 'Mengunggah...' : 'Upload gambar'}
+                {isUploading ? 'Menyimpan...' : 'Tambah gambar'}
               </button>
             </div>
-          </form>
+            </form>
+          ) : (
+            <AdminEmptyState
+              body="Role viewer dapat melihat galeri, tetapi tidak dapat menambah atau menghapus referensi gambar."
+              kicker="Akses"
+              title="Mode lihat saja"
+            />
+          )}
 
           {isLoading ? (
             <AdminEmptyState body="Mohon tunggu sebentar." kicker="Memuat" title="Mengambil data galeri..." />
@@ -196,9 +198,11 @@ export function AdminGalleryManager() {
                   <div>
                     <strong>{item.title}</strong>
                     {item.caption ? <p>{item.caption}</p> : null}
-                    <button type="button" onClick={() => void handleDelete(item)} disabled={busyId === item.id}>
-                      Hapus
-                    </button>
+                    {canWrite ? (
+                      <button type="button" onClick={() => void handleDelete(item)} disabled={busyId === item.id}>
+                        Hapus
+                      </button>
+                    ) : null}
                   </div>
                 </article>
               ))}

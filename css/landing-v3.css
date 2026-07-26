@@ -257,6 +257,71 @@
   color: var(--hmte-navy);
 }
 
+.news-deck-empty {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, .42fr) minmax(0, 1.1fr);
+  gap: 18px clamp(36px, 7vw, 110px);
+  min-height: 360px;
+  margin-top: clamp(46px, 6vw, 78px);
+  padding: clamp(34px, 5vw, 72px);
+  overflow: hidden;
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px) 0 0 / 72px 72px,
+    var(--hmte-navy);
+  border-top: 4px solid var(--hmte-gold);
+}
+
+.news-deck-empty > span {
+  align-self: start;
+  color: var(--hmte-gold);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.news-deck-empty h3 {
+  max-width: 14ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(38px, 4.5vw, 66px);
+  font-weight: 500;
+  line-height: .96;
+  letter-spacing: -.045em;
+}
+
+.news-deck-empty > p {
+  grid-column: 2;
+  max-width: 62ch;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, .72);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.news-deck-empty > div {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: end;
+  margin-top: 18px;
+}
+
+.news-deck-empty a {
+  padding-bottom: 5px;
+  color: #fff;
+  border-bottom: 1px solid var(--hmte-gold);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
 .news-deck-tabs {
   display: flex;
   gap: 8px;
@@ -864,7 +929,7 @@
 }
 
 .moment-wall::before {
-  content: 'MEMORI 2026';
+  content: 'MEMORI 2026/2027';
   position: absolute;
   top: 42px;
   right: -0.04em;
@@ -1038,6 +1103,18 @@
   .news-deck-head h2,
   .org-switchboard-head h2 {
     font-size: clamp(48px, 14vw, 66px);
+  }
+
+  .news-deck-empty {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    margin-inline: -16px;
+    padding: 34px 24px 40px;
+  }
+
+  .news-deck-empty > p,
+  .news-deck-empty > div {
+    grid-column: 1;
   }
 
   .news-deck-tabs {

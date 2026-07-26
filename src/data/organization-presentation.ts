@@ -1,13 +1,12 @@
 import type { DivisionCode } from '@/types/content'
 
 export const divisionVisuals = {
-  PH: '/assets/ugm_socialization.png',
-  KOMINFO: '/assets/semiconductor_career.png',
-  IPTEK: '/assets/robotics_prestige.png',
-  PSDM: '/assets/ugm_socialization.png',
-  PHAL: '/assets/solar_village.png',
-  MINKAT: '/assets/robotics_prestige.png',
-  KASTRAD: '/assets/smart_grid_dashboard.png',
-  KEWIRUS: '/assets/solar_village.png',
+  PH: '/assets/abya-vistara/kabinet-01.webp',
+  PSDM: '/assets/abya-vistara/kegiatan-02.webp',
+  PHAL: '/assets/abya-vistara/kabinet-02.webp',
+  MINKAT: '/assets/abya-vistara/kegiatan-03.webp',
+  KOMINFO: '/assets/abya-vistara/kabinet-03.webp',
+  IPTEK: '/assets/abya-vistara/kegiatan-01.webp',
+  KEWIRUS: '/assets/abya-vistara/kegiatan-02.webp',
+  KASTRAD: '/assets/abya-vistara/kabinet-02.webp',
 } satisfies Record<DivisionCode, string>
-

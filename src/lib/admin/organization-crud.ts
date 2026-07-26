@@ -44,7 +44,7 @@ export const organizationCrudConfigs = {
   divisions: {
     collectionName: 'divisions',
     kind: 'divisions',
-    label: 'Divisi',
+    label: 'Unsur Organisasi',
   },
   programs: {
     collectionName: 'programs',
@@ -73,7 +73,7 @@ export function getEmptyOrganizationFormValues(kind: OrganizationKind): Organiza
     name: '',
     order: '0',
     photo: '',
-    programStatus: 'Terencana',
+    programStatus: 'Terjadwal',
     role: '',
     shortName: kind === 'divisions' ? 'PH' : '',
   }

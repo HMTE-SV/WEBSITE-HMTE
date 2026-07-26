@@ -141,48 +141,16 @@
   margin-inline: auto;
 }
 
+/*
+ * Field, mesh and arc now come from the shared <HeroBackdrop variant="arc" />
+ * layer — see css/hero-backdrop.css. Only the box metrics stay here.
+ */
 .newsroom-hero {
-  position: relative;
   min-height: 94svh;
   padding: 164px 0 52px;
-  overflow: hidden;
-  color: var(--tre-off-white);
-  background:
-    radial-gradient(circle at 82% 12%, rgba(var(--hmte-gold-rgb), 0.17), transparent 26%),
-    linear-gradient(135deg, var(--hmte-navy-deep), var(--hmte-navy) 62%, #062c5c);
-}
-
-.newsroom-hero::before {
-  position: absolute;
-  inset: 0;
-  content: '';
-  opacity: 0.2;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 88px 88px;
-  mask-image: linear-gradient(to bottom, black, transparent 80%);
-}
-
-.newsroom-hero::after {
-  position: absolute;
-  right: -14vw;
-  bottom: -35vw;
-  width: 72vw;
-  aspect-ratio: 1;
-  content: '';
-  border: 1px solid rgba(var(--hmte-gold-rgb), 0.22);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 8vw rgba(var(--hmte-gold-rgb), 0.025),
-    0 0 0 18vw rgba(var(--hmte-gold-rgb), 0.018);
-  pointer-events: none;
 }
 
 .newsroom-hero-grid {
-  position: relative;
-  z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.55fr);
   grid-template-rows: 1fr auto;
@@ -1326,6 +1294,36 @@
   border: 1px solid rgba(var(--hmte-navy-rgb), 0.12);
   border-radius: 14px;
   overflow: hidden;
+}
+
+.program-workspace-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  min-height: 340px;
+  padding: clamp(28px, 5vw, 64px);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background:
+    linear-gradient(135deg, rgba(var(--hmte-gold-rgb), 0.08), transparent 42%),
+    #fbfaf7;
+}
+
+.program-workspace-empty strong {
+  max-width: 18ch;
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+
+.program-workspace-empty p {
+  max-width: 58ch;
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .program-document-list,
@@ -5733,9 +5731,10 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
    FOOTER (DARK)
    ============================================================ */
 .tre-footer {
+  position: relative;
   background: var(--tre-black-deep);
   color: var(--tre-paper);
-  padding: 80px 0 40px;
+  padding: 0 0 40px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -5745,11 +5744,94 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   padding-inline: var(--gutter);
 }
 
+/* Masthead: HMTE identity on the left, cabinet identity beside it. */
+.ftr-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+  padding: 44px 0 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.ftr-lockup {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.ftr-logo {
+  width: 132px;
+  height: auto;
+  display: block;
+  flex-shrink: 0;
+}
+
+.ftr-lockup-rule {
+  width: 1px;
+  height: 44px;
+  flex-shrink: 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.28) 22%,
+    rgba(255, 255, 255, 0.28) 78%,
+    transparent
+  );
+}
+
+.ftr-cabinet-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ftr-cabinet-name {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ftr-cabinet-name small {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hmte-gold);
+}
+
+.ftr-cabinet-name strong {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: #fff;
+}
+
+.ftr-masthead-note {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ftr-masthead-note span {
+  color: rgba(255, 255, 255, 0.36);
+}
+
 .tre-footer .top {
   display: grid;
   grid-template-columns: 1.6fr 1fr 1fr 1fr;
   gap: 48px;
-  padding-bottom: 64px;
+  padding: 52px 0 56px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -5781,25 +5863,9 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   opacity: 1;
 }
 
-.ftr-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.ftr-bar {
-  width: 3px;
-  height: 24px;
-  background: var(--hmte-gold);
-  flex-shrink: 0;
-  border-radius: 2px;
-}
-
-.ftr-logo {
-  width: 132px;
-  height: auto;
-  display: block;
+.tre-footer .col:first-child .addr:first-child {
+  padding-left: 14px;
+  border-left: 2px solid var(--hmte-gold);
 }
 
 .tre-footer .addr {
@@ -6138,11 +6204,21 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
     width: clamp(250px, 58vw, 340px);
   }
 
+  .ftr-masthead {
+    gap: 24px;
+    padding: 34px 0 30px;
+  }
+
+  .ftr-masthead-note {
+    text-align: left;
+  }
+
   .tre-footer .top {
     grid-template-columns: 1fr 1fr;
     gap: 32px;
+    padding: 38px 0 42px;
   }
-  
+
   .tre-footer .bottom {
     flex-direction: column;
     gap: 12px;
@@ -6324,6 +6400,27 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 
   .tre-footer .top {
     grid-template-columns: 1fr;
+  }
+
+  .ftr-lockup {
+    gap: 14px;
+  }
+
+  .ftr-logo {
+    width: 108px;
+  }
+
+  .ftr-lockup-rule {
+    height: 36px;
+  }
+
+  .ftr-cabinet-logo {
+    width: 42px;
+    height: 42px;
+  }
+
+  .ftr-cabinet-name strong {
+    font-size: 16px;
   }
 
   .kep-members-grid {
@@ -9377,16 +9474,16 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 .hero-scroll-slide {
   margin: 0;
   opacity: 0;
-  transform: scale(1.045);
+  transform: scale(1.045) translate3d(0, 1.6%, 0);
   transition:
-    opacity 700ms var(--ease-in-out),
-    transform 1.8s var(--ease-out);
-  will-change: opacity, transform;
+    opacity 640ms var(--ease-in-out),
+    transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hero-scroll-slide.is-active {
   opacity: var(--hero-photo-opacity);
-  transform: scale(1);
+  transform: scale(1) translate3d(0, 0, 0);
+  will-change: opacity, transform;
 }
 
 .hero-scroll-slide-image {
@@ -9398,26 +9495,33 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 .hero-scroll-wall {
   z-index: 0;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 7px;
   padding: 7px;
-  opacity: var(--hero-wall-opacity);
   transform: scale(var(--hero-wall-scale));
   filter: saturate(0.78);
-  transition: opacity 120ms linear;
-  will-change: opacity, transform;
+  will-change: transform;
 }
 
+/*
+ * Each tile resolves on its own slice of the wall progress, so the wallpaper
+ * assembles piece by piece behind the logo instead of arriving as one block.
+ */
 .hero-scroll-wall-tile {
+  --tile-start: calc(var(--wall-tile-index) * 0.06);
+  --tile-progress: clamp(0, calc((var(--hero-wall-progress) - var(--tile-start)) / 0.6), 1);
   position: relative;
   min-width: 0;
   min-height: 0;
   margin: 0;
   overflow: hidden;
+  opacity: var(--tile-progress);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 4px;
-  transform: translateY(var(--hero-wall-shift));
+  transform:
+    translateY(calc((1 - var(--tile-progress)) * 34px))
+    scale(calc(0.955 + var(--tile-progress) * 0.045));
 }
 
 .hero-scroll-wall-image {
@@ -9525,8 +9629,8 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   }
 
   .hero-scroll-wall {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
     gap: 5px;
     padding: 5px;
   }
@@ -11531,18 +11635,19 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 .agenda-timeline-location strong { display: block; margin-top: 11px; color: var(--hmte-navy); font-size: 12px; line-height: 1.55; }
 
 /* Gallery: image-led archive instead of a generic card grid. */
-.gallery-index-hero { padding: 160px var(--public-gutter) 82px; background: #e9e5dc; }
+.gallery-index-hero { padding: 160px var(--public-gutter) 82px; }
 .gallery-index-hero-grid {
   display: grid;
   grid-template-columns: minmax(0,1.2fr) minmax(300px,.48fr);
   gap: 48px 110px;
   align-items: end;
 }
-.gallery-index-kicker { color: var(--hmte-gold-deep); }
+/* Inverted onto the shared navy backdrop — was a light #e9e5dc panel. */
+.gallery-index-kicker { color: var(--hmte-gold); }
 .gallery-index-hero h1 {
   max-width: 11ch;
   margin: 23px 0 0;
-  color: var(--hmte-navy);
+  color: var(--tre-off-white);
   font-family: var(--font-display);
   font-size: clamp(57px,7vw,94px);
   font-weight: 600;
@@ -11551,13 +11656,13 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   text-wrap: balance;
 }
 .gallery-index-intro { padding-bottom: 5px; }
-.gallery-index-intro p { max-width: 40ch; margin: 0; color: var(--fg-muted); line-height: 1.75; }
+.gallery-index-intro p { max-width: 40ch; margin: 0; color: rgba(255,255,255,.68); line-height: 1.75; }
 .gallery-index-intro > span {
   display: block;
   margin-top: 28px;
   padding-top: 16px;
-  color: var(--hmte-navy);
-  border-top: 1px solid rgba(var(--hmte-navy-rgb),.22);
+  color: #fff;
+  border-top: 1px solid rgba(255,255,255,.22);
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 800;
@@ -11662,9 +11767,9 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 .article-related-grid h3 { margin: 13px 0 28px; color: var(--tre-off-white); font-family: var(--font-display); font-size: 21px; line-height: 1.15; letter-spacing: -.025em; }
 
 /* Aspiration: reassuring, simple, and form-first. */
-.aspiration-hero { position: relative; overflow: hidden; padding: 162px var(--public-gutter) 86px; color: var(--tre-off-white); background: #081938; }
-.aspiration-hero::after { position: absolute; right: -9vw; bottom: -42%; width: 42vw; aspect-ratio: 1; content: ''; border: 1px solid rgba(255,255,255,.1); border-radius: 50%; box-shadow: 0 0 0 80px rgba(255,255,255,.025), 0 0 0 160px rgba(255,255,255,.018); }
-.aspiration-hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0,1fr) minmax(330px,.5fr); gap: 50px 110px; align-items: end; }
+/* Field and figure come from <HeroBackdrop variant="orbit" />. */
+.aspiration-hero { padding: 162px var(--public-gutter) 86px; }
+.aspiration-hero-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(330px,.5fr); gap: 50px 110px; align-items: end; }
 .aspiration-hero h1 { max-width: 10ch; margin: 24px 0 0; color: var(--tre-off-white); font-family: var(--font-display); font-size: clamp(58px,7.4vw,94px); font-weight: 600; line-height: .89; letter-spacing: -.04em; text-wrap: balance; }
 .aspiration-hero h1 + p { max-width: 53ch; margin: 30px 0 0; color: rgba(255,255,255,.66); font-size: 16px; line-height: 1.75; }
 .aspiration-guides { margin: 0; padding: 0; list-style: none; border-top: 1px solid rgba(255,255,255,.2); }
@@ -11812,26 +11917,9 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 }
 
 /* Atmospheric hero system inspired by the newsroom, with route-specific geometry. */
+/* Field, mesh and figure come from the shared <HeroBackdrop /> layer. */
 .public-atmosphere-hero {
-  position: relative;
   min-height: 820px;
-  overflow: hidden;
-  color: var(--tre-off-white);
-  background:
-    radial-gradient(circle at 84% 14%, rgba(var(--hmte-gold-rgb),.16), transparent 24%),
-    linear-gradient(132deg, #06132f 0%, #0a1c43 54%, #112d5d 100%);
-}
-
-.public-atmosphere-hero::before {
-  position: absolute;
-  inset: 0;
-  content: '';
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px);
-  background-size: 116px 116px;
-  mask-image: linear-gradient(110deg, black, transparent 80%);
 }
 
 .atmosphere-shell {
@@ -11894,74 +11982,7 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
 .atmosphere-cue b { color: var(--hmte-gold); font-size: 24px; font-weight: 400; transition: transform var(--dur-base) var(--ease-out); }
 .atmosphere-cue:hover b { transform: translateY(5px); }
 
-.atmosphere-geometry,
-.atmosphere-geometry > * { position: absolute; pointer-events: none; }
-.atmosphere-geometry { z-index: 1; inset: 0; }
-
-/* Agenda: horizon arcs and a single glowing calendar node. */
-.agenda-atmosphere .atmosphere-geometry span:first-child {
-  right: -190px;
-  bottom: -470px;
-  width: 1120px;
-  height: 920px;
-  border: 1px solid rgba(var(--hmte-gold-rgb),.26);
-  border-radius: 50%;
-  background: linear-gradient(145deg, rgba(255,255,255,.07), transparent 54%);
-  transform: rotate(-8deg);
-}
-.agenda-atmosphere .atmosphere-geometry span:nth-child(2) {
-  right: 180px;
-  bottom: -500px;
-  width: 760px;
-  height: 760px;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 50%;
-  box-shadow: 0 0 120px rgba(var(--hmte-gold-rgb),.06);
-}
-.agenda-atmosphere .atmosphere-geometry i {
-  right: 18%;
-  bottom: 25%;
-  width: 9px;
-  height: 9px;
-  background: var(--hmte-gold);
-  border-radius: 50%;
-  box-shadow: 0 0 0 8px rgba(var(--hmte-gold-rgb),.09), 0 0 44px 14px rgba(var(--hmte-gold-rgb),.25);
-}
-
-/* Noticeboard: offset signal ellipses and a diagonal gold transmission. */
-.notice-atmosphere {
-  background:
-    radial-gradient(ellipse at 72% 35%, rgba(var(--hmte-gold-rgb),.13), transparent 30%),
-    linear-gradient(118deg, #05122d 0%, #0b204a 58%, #102c5b 100%);
-}
-.notice-atmosphere .atmosphere-geometry span:first-child {
-  top: -340px;
-  right: -180px;
-  width: 880px;
-  height: 1180px;
-  border: 1px solid rgba(var(--hmte-gold-rgb),.24);
-  border-radius: 50%;
-  background: linear-gradient(150deg, rgba(255,255,255,.075), transparent 46%);
-  transform: rotate(26deg);
-}
-.notice-atmosphere .atmosphere-geometry span:nth-child(2) {
-  top: -250px;
-  right: 240px;
-  width: 490px;
-  height: 940px;
-  border: 1px solid rgba(255,255,255,.09);
-  border-radius: 50%;
-  transform: rotate(26deg);
-}
-.notice-atmosphere .atmosphere-geometry i {
-  top: 23%;
-  right: 18%;
-  width: 270px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(var(--hmte-gold-rgb),.9), transparent);
-  box-shadow: 0 0 28px rgba(var(--hmte-gold-rgb),.32);
-  transform: rotate(-31deg);
-}
+/* Hero geometry now comes from <HeroBackdrop /> — see css/hero-backdrop.css. */
 
 .public-atmosphere-hero a:focus-visible { outline: 3px solid var(--hmte-gold); outline-offset: 5px; }
 
@@ -11971,8 +11992,6 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   .atmosphere-grid { grid-template-columns: minmax(0,1fr) minmax(260px,.48fr); gap: 52px; padding-top: 165px; }
   .atmosphere-copy h1 { font-size: clamp(58px,9vw,78px); }
   .atmosphere-aside > p { font-size: 14px; }
-  .agenda-atmosphere .atmosphere-geometry span:first-child { right: -440px; }
-  .notice-atmosphere .atmosphere-geometry span:first-child { right: -430px; }
 }
 
 @media (max-width: 700px) {
@@ -11987,12 +12006,6 @@ p, .feat-excerpt, .card-excerpt, .kabinet-desc, .curr-lead, .detail-bio p {
   .atmosphere-stats { margin-top: 28px; }
   .atmosphere-stats dd { font-size: 21px; }
   .atmosphere-cue { grid-column: auto; }
-  .agenda-atmosphere .atmosphere-geometry span:first-child { right: -570px; bottom: -520px; }
-  .agenda-atmosphere .atmosphere-geometry span:nth-child(2) { display: none; }
-  .agenda-atmosphere .atmosphere-geometry i { right: 12%; bottom: 19%; }
-  .notice-atmosphere .atmosphere-geometry span:first-child { top: -430px; right: -600px; }
-  .notice-atmosphere .atmosphere-geometry span:nth-child(2) { display: none; }
-  .notice-atmosphere .atmosphere-geometry i { top: 18%; right: -25px; width: 190px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

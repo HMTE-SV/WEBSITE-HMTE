@@ -21,10 +21,9 @@ type CatalogProgram = Program & {
 type StatusFilter = ProgramStatus | 'ALL'
 
 const statusOptions: Array<{ label: string; value: StatusFilter }> = [
-  { label: 'Semua status', value: 'ALL' },
-  { label: 'Berjalan', value: 'Sedang Berjalan' },
-  { label: 'Terencana', value: 'Terencana' },
-  { label: 'Selesai', value: 'Selesai' },
+  { label: 'Semua pola', value: 'ALL' },
+  { label: 'Terjadwal', value: 'Terjadwal' },
+  { label: 'Berkala', value: 'Berkala' },
 ]
 
 function getStatusClass(status: ProgramStatus) {
@@ -72,26 +71,32 @@ export function ProgramCatalog({ divisions, programsByDivision }: ProgramCatalog
   }
 
   return (
-    <div className="program-catalog">
-      <div className="program-catalog-toolbar">
+    <div className="program-ledger">
+      <div className="ledger-toolbar">
         <div>
-          <span className="public-label">Direktori program</span>
-          <h2>Semua program kerja</h2>
-          <p>{visiblePrograms.length} dari {programs.length} program ditampilkan</p>
+          <p className="org-eyebrow">Buku agenda</p>
+          <h2 id="catalog-title">
+            Semua program <em>kerja.</em>
+          </h2>
         </div>
-        <label className="program-catalog-search">
-          <span className="sr-only">Cari program kerja</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Cari nama atau deskripsi program"
-          />
-        </label>
+        <div className="ledger-toolbar-side">
+          <label className="roster-search">
+            <span className="sr-only">Cari program kerja</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Cari nama atau deskripsi program"
+            />
+          </label>
+          <span className="ledger-result">
+            {visiblePrograms.length} / {programs.length} program
+          </span>
+        </div>
       </div>
 
-      <div className="program-catalog-controls">
-        <div className="program-division-filters" role="group" aria-label="Filter bidang program kerja">
+      <div className="ledger-filters">
+        <div className="ledger-filter-group" role="group" aria-label="Filter bidang program kerja">
           <button
             type="button"
             className={activeDivision === 'ALL' ? 'is-active' : undefined}
@@ -113,7 +118,7 @@ export function ProgramCatalog({ divisions, programsByDivision }: ProgramCatalog
           ))}
         </div>
 
-        <div className="program-status-filters" role="group" aria-label="Filter status program kerja">
+        <div className="ledger-filter-group" role="group" aria-label="Filter pola jadwal program kerja">
           {statusOptions.map((option) => (
             <button
               type="button"
@@ -129,31 +134,43 @@ export function ProgramCatalog({ divisions, programsByDivision }: ProgramCatalog
       </div>
 
       {visiblePrograms.length > 0 ? (
-        <div className="program-catalog-list">
+        <div className="ledger-list">
           {visiblePrograms.map((program, index) => (
-            <article className="program-catalog-item" key={`${program.divisionCode}-${program.name}`}>
-              <span className="program-catalog-number">{String(index + 1).padStart(2, '0')}</span>
-              <div className="program-catalog-main">
-                <div className="program-catalog-meta">
+            <Link
+              className="ledger-row"
+              href={getProgramHref(program)}
+              aria-label={`Buka detail ${program.name}`}
+              key={`${program.divisionCode}-${program.name}`}
+            >
+              <span className="ledger-number" aria-hidden="true">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <div className="ledger-main">
+                <div>
                   <span>{program.divisionShortName}</span>
                   {program.featured ? <strong>Unggulan</strong> : null}
                 </div>
                 <h3>{program.name}</h3>
                 <p>{program.desc}</p>
               </div>
-              <div className="program-catalog-side">
-                <span className={`program-status-pill ${getStatusClass(program.status)}`}>{program.status}</span>
+              <div className="ledger-side">
+                <span className={`org-status ${getStatusClass(program.status)}`}>
+                  <i aria-hidden="true" />
+                  {program.status}
+                </span>
                 <time>{program.date}</time>
-                {program.featured ? <Link href={getProgramHref(program)}>Buka detail</Link> : null}
+                <span className="ledger-open">Buka detail ↗</span>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       ) : (
-        <div className="program-catalog-empty">
+        <div className="ledger-empty">
           <strong>Program tidak ditemukan</strong>
           <p>Coba kata kunci atau kombinasi filter yang berbeda.</p>
-          <button type="button" onClick={resetFilters}>Reset filter</button>
+          <button type="button" onClick={resetFilters}>
+            Reset filter
+          </button>
         </div>
       )}
     </div>

@@ -5,7 +5,7 @@ import { PublicPageFrame } from '@/components/site/PublicPage'
 
 export const metadata: Metadata = {
   title: 'Kontak HMTE TRE SV UGM',
-  description: 'Kirim kabar, ide, atau aspirasi ke HMTE TRE SV UGM — kartu pos digital dari Yogyakarta.',
+  description: 'Kanal resmi HMTE Program Studi Teknologi Rekayasa Elektro Sekolah Vokasi UGM.',
 }
 
 export default function ContactPage() {
@@ -15,15 +15,15 @@ export default function ContactPage() {
         <div className="postal-airmail" aria-hidden="true" />
         <div className="postal-shell postal-hero-grid">
           <div className="postal-hero-copy">
-            <p className="postal-eyebrow">Korespondensi · HMTE TRE SV UGM</p>
+            <p className="postal-eyebrow">Kanal resmi · Kabinet Abya Vistara</p>
             <h1 id="contact-title">
               Apa kabar?
               <br />
               <em>Ceritakan.</em>
             </h1>
             <p className="postal-lead">
-              Anggap halaman ini kartu pos yang selalu terbuka: untuk ide, kolaborasi, keluhan yang perlu
-              dibenahi, atau sekadar sapaan. Alamatnya sudah kami tuliskan — kamu tinggal mengisi pesannya.
+              Temukan kanal HMTE yang tercantum dalam Buku Panduan 2026/2027, atau gunakan formulir
+              aspirasi di website untuk menyampaikan masukan kepada pengurus.
             </p>
             <a className="postal-hint" href="#cara-kirim">
               <span>Tiga cara mengirim</span>
@@ -34,14 +34,14 @@ export default function ContactPage() {
           <div className="postal-hero-card" aria-hidden="true">
             <div className="postcard">
               <p className="postcard-note">
-                Halo! Kabar sekecil apa pun boleh dikirim — kami senang membacanya.
+                Untuk Himpunan Mahasiswa Teknik Elektro, Kabinet Abya Vistara.
               </p>
               <i className="postcard-divider" />
               <div className="postcard-address">
                 <span>Kepada:</span>
-                <b>HMTE TRE SV UGM</b>
+                <b>Program Studi Teknologi Rekayasa Elektro</b>
                 <b>Sekolah Vokasi UGM</b>
-                <b>Yogyakarta, Indonesia</b>
+                <b>Periode 2026/2027</b>
               </div>
               <div className="postcard-stamp">
                 <div className="postcard-stamp-inner">
@@ -54,9 +54,9 @@ export default function ContactPage() {
                 <span>
                   Yogyakarta
                   <br />
-                  55281
+                  Abya Vistara
                   <br />
-                  2026
+                  2026/2027
                 </span>
               </div>
               <svg className="postcard-cancel" viewBox="0 0 88 26" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
@@ -78,7 +78,7 @@ export default function ContactPage() {
               <br />
               pesanmu <em>sampai.</em>
             </h2>
-            <p>Tidak semua pesan lewat pintu yang sama — pilih yang paling pas, sisanya kami antarkan.</p>
+            <p>Dua kanal publik berasal dari buku panduan; formulir aspirasi tersedia sebagai fitur website.</p>
           </div>
 
           <div className="postal-mail-grid">
@@ -86,7 +86,7 @@ export default function ContactPage() {
               <figure>
                 <Image
                   src="/assets/robotics_prestige.png"
-                  alt="Tim mahasiswa menyiapkan robot untuk kompetisi robotika"
+                  alt="Visual sementara untuk kartu Instagram HMTE"
                   fill
                   sizes="(max-width: 1024px) 100vw, 56vw"
                 />
@@ -101,7 +101,7 @@ export default function ContactPage() {
               <div className="mail-item-meta">
                 <span>Kartu pos publik</span>
                 <h3>Instagram — @hmteugm</h3>
-                <p>Dokumentasi kegiatan, pengumuman, dan kabar terbaru. Sapa kami lewat komentar atau DM.</p>
+                <p>Akun Instagram yang tercantum dalam buku panduan. Akun X menggunakan handle yang sama.</p>
                 <b>
                   Kunjungi profil <i aria-hidden="true">↗</i>
                 </b>
@@ -117,8 +117,8 @@ export default function ContactPage() {
                 <span>Surat tertutup</span>
                 <h3>Kanal Aspirasi</h3>
                 <p>
-                  Akademik, fasilitas, organisasi, atau kesejahteraan — tulis dengan nama atau anonim,
-                  semuanya dibaca pengurus.
+                  Gunakan formulir internal website untuk menyampaikan aspirasi akademik, fasilitas,
+                  organisasi, atau kesejahteraan, dengan nama atau secara anonim.
                 </p>
                 <div className="envelope-lines" aria-hidden="true">
                   <span>u.p. Pengurus HMTE</span>
@@ -131,22 +131,22 @@ export default function ContactPage() {
               </div>
             </Link>
 
-            <article className="mail-item mail-address">
+            <a className="mail-item mail-address" href="https://hmte.ugm.ac.id" target="_blank" rel="noreferrer">
               <div className="mail-address-block">
-                <span>Titik temu</span>
-                <h3>Sekolah Vokasi UGM</h3>
-                <p>Departemen Teknik Elektro dan Informatika, Universitas Gadjah Mada — Yogyakarta.</p>
+                <span>Kanal web resmi</span>
+                <h3>hmte.ugm.ac.id</h3>
+                <p>Website yang tercantum dalam buku panduan. LinkedIn: Himpunan Mahasiswa Teknik Elektro (HMTE) UGM.</p>
               </div>
               <i className="mail-address-route" aria-hidden="true" />
               <div className="mail-address-coords">
-                <b>7°46&apos; LS — 110°22&apos; BT</b>
+                <b>@hmteugm</b>
                 <span>
-                  Yogyakarta
+                  Instagram · X
                   <br />
-                  Indonesia
+                  Buka situs resmi ↗
                 </span>
               </div>
-            </article>
+            </a>
           </div>
         </div>
       </section>
@@ -157,9 +157,9 @@ export default function ContactPage() {
             P.S.
           </span>
           <h2 id="ps-title">
-            Tidak perlu menunggu alasan besar — <em>satu pesan kecil</em> sudah cukup untuk memulai.
+            Gunakan kanal yang paling sesuai untuk <em>pesan atau kebutuhanmu.</em>
           </h2>
-          <p>Kirim lewat jalur mana pun. Kalau ternyata salah alamat, kami yang meneruskannya ke ruang yang tepat.</p>
+          <p>Rincian respons dan tindak lanjut dapat dikonfirmasi langsung kepada pengurus melalui kanal resmi.</p>
         </div>
       </section>
     </PublicPageFrame>

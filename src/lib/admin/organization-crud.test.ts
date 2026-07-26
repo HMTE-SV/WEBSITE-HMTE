@@ -34,7 +34,7 @@ describe('admin organization CRUD helpers', () => {
       desc: 'Pelatihan embedded system.',
       date: 'Juni 2026',
       divisionCode: 'IPTEK',
-      programStatus: 'Sedang Berjalan',
+      programStatus: 'Berkala',
       order: '4',
       active: false,
     })
@@ -42,7 +42,7 @@ describe('admin organization CRUD helpers', () => {
     expect(payload).toMatchObject({
       name: 'Workshop IoT',
       divisionCode: 'IPTEK',
-      status: 'Sedang Berjalan',
+      status: 'Berkala',
       order: 4,
       active: false,
     })

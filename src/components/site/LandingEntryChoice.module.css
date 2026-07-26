@@ -1,0 +1,1024 @@
+.entryLayer {
+  --entry-deep: #030d21;
+  --entry-navy: #071a3a;
+  --entry-wave: #0d3267;
+  --entry-blue: #57b9e8;
+  --entry-gold: #f5b82e;
+  --entry-ink: #f7f9fc;
+  --entry-muted: #aebbd0;
+  --entry-hover: #153d75;
+  /* Slow, weighted curves — the entry sequence should read as deliberate. */
+  --entry-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --entry-ease-wave: cubic-bezier(0.68, 0, 0.16, 1);
+  position: fixed;
+  z-index: var(--z-modal, 80);
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--entry-ink);
+  background: var(--entry-deep);
+  isolation: isolate;
+}
+
+.entryLayer:focus {
+  outline: none;
+}
+
+/* Curtain lift when the visitor chooses the scroll story. */
+.entryLayer[data-mode='experience'][data-phase='idle'] {
+  visibility: hidden;
+  opacity: 0;
+  transform: translate3d(0, -101%, 0);
+  pointer-events: none;
+  transition:
+    transform 820ms cubic-bezier(0.7, 0, 0.14, 1),
+    opacity 380ms 300ms ease-in,
+    visibility 0s linear 820ms;
+}
+
+/*
+ * After the skip sequence the wave has already handed the page over, so the
+ * spent layer must disappear instantly instead of sliding up over live content.
+ */
+.entryLayer[data-mode='skip'][data-phase='idle'] {
+  visibility: hidden;
+  opacity: 0;
+  transform: translate3d(0, -101%, 0);
+  pointer-events: none;
+  transition: none;
+}
+
+.entryLayer[data-phase='covering'],
+.entryLayer[data-phase='confirming'],
+.entryLayer[data-phase='revealing'] {
+  pointer-events: none;
+}
+
+.entryLayer[data-phase='confirming'] {
+  background: var(--entry-wave);
+}
+
+.entryLayer[data-phase='revealing'] {
+  background: transparent;
+}
+
+.ambientGrid,
+.signalField {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ambientGrid {
+  inset: 0;
+  opacity: 0.24;
+  background-image:
+    linear-gradient(rgba(119, 165, 220, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(119, 165, 220, 0.12) 1px, transparent 1px);
+  background-size: clamp(44px, 5vw, 76px) clamp(44px, 5vw, 76px);
+  mask-image: radial-gradient(circle at 50% 42%, #000 0%, transparent 72%);
+}
+
+.signalField {
+  top: 48%;
+  left: 50%;
+  width: min(82vw, 880px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(245, 184, 46, 0.12);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.signalField::before,
+.signalField::after {
+  position: absolute;
+  border: 1px solid rgba(87, 185, 232, 0.09);
+  border-radius: inherit;
+  content: '';
+}
+
+.signalField::before {
+  inset: 14%;
+}
+
+.signalField::after {
+  inset: 29%;
+}
+
+/* ---- Arrival: staggered entrance so the screen assembles, not appears ---- */
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .ambientGrid {
+  animation: field-in 1200ms 120ms ease-out both;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .signalField {
+  animation: rings-in 1400ms 180ms var(--entry-ease-out) both;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .entryHeader {
+  animation: entry-drop 700ms 80ms var(--entry-ease-out) both;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .cabinetMark {
+  animation: mark-in 900ms 220ms var(--entry-ease-out) both;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .arrivalCopy > * {
+  animation: entry-rise 760ms var(--entry-ease-out) both;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .arrivalCopy > *:nth-child(1) {
+  animation-delay: 360ms;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .arrivalCopy > *:nth-child(2) {
+  animation-delay: 440ms;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .arrivalCopy > *:nth-child(3) {
+  animation-delay: 530ms;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .actions {
+  animation: entry-rise 820ms 640ms var(--entry-ease-out) both;
+}
+
+.entryLayer[data-mode='choice'][data-phase='idle'] .entryFoot {
+  animation: entry-rise 700ms 800ms var(--entry-ease-out) both;
+}
+
+.entryHeader {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 14px clamp(22px, 4vw, 64px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brandLockup {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.entryLogo {
+  width: 116px;
+  height: auto;
+  object-fit: contain;
+}
+
+.brandLockup > span {
+  display: grid;
+  gap: 3px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.16);
+  color: #eef3fb;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brandLockup small {
+  color: var(--entry-muted);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.systemStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #dbe5f4;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.systemStatus i {
+  position: relative;
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--entry-gold);
+}
+
+.systemStatus i::after {
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(245, 184, 46, 0.55);
+  border-radius: inherit;
+  content: '';
+  animation: status-pulse 1.8s ease-out 2;
+}
+
+.arrival {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  width: min(calc(100% - 48px), 1100px);
+  margin-inline: auto;
+  padding: clamp(22px, 4svh, 42px) 0;
+  text-align: center;
+}
+
+.cabinetMark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(90px, 9vw, 126px);
+  aspect-ratio: 1;
+  margin-bottom: clamp(14px, 2svh, 22px);
+}
+
+.cabinetMark::before,
+.cabinetMark::after,
+.cabinetMark > span {
+  position: absolute;
+  border: 1px solid rgba(87, 185, 232, 0.2);
+  border-radius: 50%;
+  content: '';
+}
+
+.cabinetMark::before {
+  inset: -12%;
+}
+
+.cabinetMark::after {
+  inset: -24%;
+  border-color: rgba(245, 184, 46, 0.14);
+}
+
+.cabinetMark > span {
+  inset: -38%;
+  border-color: rgba(87, 185, 232, 0.08);
+}
+
+.cabinetLogo {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.28));
+}
+
+.arrivalCopy {
+  max-width: 760px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--entry-gold);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.arrivalCopy h2 {
+  margin: clamp(12px, 1.8svh, 18px) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(42px, 5vw, 68px);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.arrivalCopy > p:last-child {
+  max-width: 62ch;
+  margin: clamp(14px, 2svh, 20px) auto 0;
+  color: var(--entry-muted);
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, 960px);
+  margin-top: clamp(22px, 3.4svh, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(3, 13, 33, 0.64);
+}
+
+.primaryAction,
+.secondaryAction {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 26px;
+  align-items: center;
+  gap: 17px;
+  min-width: 0;
+  min-height: 116px;
+  padding: 20px 24px;
+  border: 0;
+  border-radius: 0;
+  color: #f5f8fc;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  /*
+   * The hover fill is a background-size wipe rather than a background-color
+   * swap, so the tile fills from the left instead of flashing a new colour.
+   */
+  background-image: linear-gradient(var(--entry-hover), var(--entry-hover));
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 0% 100%;
+  transition:
+    color 260ms 90ms ease,
+    background-size 520ms var(--entry-ease-out);
+}
+
+.primaryAction {
+  color: var(--entry-deep);
+  background-color: var(--entry-gold);
+}
+
+.secondaryAction {
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.primaryAction::after,
+.secondaryAction::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  content: '';
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.routeNumber {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  transition:
+    border-color 300ms ease,
+    background-color 300ms ease,
+    transform 420ms var(--entry-ease-out);
+}
+
+.primaryAction:hover .routeNumber,
+.secondaryAction:hover .routeNumber {
+  border-color: var(--entry-gold);
+  transform: scale(1.06);
+}
+
+.secondaryAction:hover .routeNumber {
+  color: var(--entry-deep);
+  background: var(--entry-gold);
+}
+
+.primaryAction strong,
+.secondaryAction strong {
+  display: grid;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: clamp(19px, 1.45vw, 23px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.primaryAction small,
+.secondaryAction small {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.primaryAction strong > span,
+.secondaryAction strong > span {
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  opacity: 0.74;
+}
+
+.actionIcon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-width: 1.5;
+  transition: transform 420ms var(--entry-ease-out);
+}
+
+.primaryAction:hover,
+.secondaryAction:hover {
+  color: #fff;
+  background-size: 100% 100%;
+}
+
+.primaryAction:hover::after,
+.secondaryAction:hover::after {
+  transform: scaleX(1);
+}
+
+.primaryAction:hover .actionIcon {
+  transform: translateX(7px);
+}
+
+.secondaryAction:hover .actionIcon {
+  transform: translateY(7px);
+}
+
+.primaryAction:focus-visible,
+.secondaryAction:focus-visible {
+  z-index: 2;
+  outline: 3px solid #fff;
+  outline-offset: -6px;
+}
+
+.entryFoot {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 10px clamp(22px, 4vw, 64px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--entry-muted);
+  font-size: 11px;
+}
+
+.entryFoot span {
+  color: #eef3fb;
+  font-weight: 600;
+}
+
+.entryFoot small {
+  font-size: inherit;
+}
+
+/*
+ * Exit: the screen clears itself before the wave arrives, each band moving in
+ * the direction it entered from, instead of every layer blinking out at once.
+ */
+.entryLayer:is([data-phase='covering'], [data-phase='confirming'], [data-phase='revealing'])
+  :is(.entryHeader, .arrival, .entryFoot, .ambientGrid, .signalField) {
+  opacity: 0;
+  transition:
+    opacity 300ms ease-out,
+    transform 460ms var(--entry-ease-out);
+}
+
+.entryLayer:is([data-phase='covering'], [data-phase='confirming'], [data-phase='revealing'])
+  .entryHeader {
+  transform: translate3d(0, -16px, 0);
+}
+
+.entryLayer:is([data-phase='covering'], [data-phase='confirming'], [data-phase='revealing'])
+  .arrival {
+  transform: scale(0.982);
+}
+
+.entryLayer:is([data-phase='covering'], [data-phase='confirming'], [data-phase='revealing'])
+  .entryFoot {
+  transform: translate3d(0, 16px, 0);
+}
+
+.transitionWave {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0;
+  transform: translate3d(-152%, 0, 0);
+  pointer-events: none;
+}
+
+.waveDeep {
+  fill: var(--entry-wave);
+}
+
+.waveGold {
+  fill: var(--entry-gold);
+}
+
+.waveBlue {
+  fill: var(--entry-blue);
+}
+
+.revealGraphic {
+  display: none;
+}
+
+.entryLayer[data-phase='covering'] .transitionWave {
+  opacity: 1;
+  animation: wave-cover 780ms var(--entry-ease-wave) forwards;
+}
+
+/*
+ * The gold and blue ribbons trail a few units behind the deep body on the way
+ * in and lead it on the way out — that lag is what stops the sweep reading as
+ * one flat shape sliding across.
+ */
+.entryLayer[data-phase='covering'] .coverGraphic .waveGold {
+  animation: wave-trail-in 780ms 60ms var(--entry-ease-wave) both;
+}
+
+.entryLayer[data-phase='covering'] .coverGraphic .waveBlue {
+  animation: wave-trail-in 780ms 115ms var(--entry-ease-wave) both;
+}
+
+.entryLayer[data-phase='confirming'] .transitionWave {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.entryLayer[data-phase='revealing'] .transitionWave {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  animation: wave-release 700ms var(--entry-ease-wave) forwards;
+}
+
+.entryLayer[data-phase='revealing'] .revealGraphic .waveGold {
+  animation: wave-trail-out 700ms var(--entry-ease-wave) both;
+}
+
+.entryLayer[data-phase='revealing'] .revealGraphic .waveBlue {
+  animation: wave-trail-out 700ms 55ms var(--entry-ease-wave) both;
+}
+
+.entryLayer[data-phase='revealing'] .coverGraphic {
+  display: none;
+}
+
+.entryLayer[data-phase='revealing'] .revealGraphic {
+  display: block;
+}
+
+.newsConfirmation {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  width: min(520px, calc(100% - 40px));
+  color: #fff;
+  opacity: 0;
+  text-align: center;
+  transform: translate(-50%, -47%);
+  pointer-events: none;
+}
+
+.entryLayer[data-phase='confirming'] .newsConfirmation {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  transition:
+    opacity 320ms 110ms ease-out,
+    transform 560ms 110ms var(--entry-ease-out);
+}
+
+.entryLayer[data-phase='revealing'] .newsConfirmation {
+  opacity: 0;
+  transform: translate(-50%, -54%) scale(0.975);
+  transition:
+    opacity 260ms ease-in,
+    transform 420ms var(--entry-ease-out);
+}
+
+.confirmMark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  margin-bottom: 20px;
+}
+
+.confirmMark > img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  opacity: 0.34;
+}
+
+.confirmMark > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--entry-gold);
+  stroke-linecap: square;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.confirmRing {
+  stroke-dasharray: 126;
+  stroke-dashoffset: 126;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.confirmCheck {
+  stroke-dasharray: 36;
+  stroke-dashoffset: 36;
+}
+
+.entryLayer[data-phase='confirming'] .confirmRing {
+  animation: mark-draw 520ms 90ms cubic-bezier(0.33, 0, 0.15, 1) forwards;
+}
+
+.entryLayer[data-phase='confirming'] .confirmCheck {
+  animation: mark-draw 300ms 430ms ease-out forwards;
+}
+
+.newsConfirmation > span {
+  color: var(--entry-gold);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.newsConfirmation strong {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: clamp(34px, 4vw, 52px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.newsConfirmation small {
+  margin-top: 13px;
+  color: #b9c7db;
+  font-size: 12px;
+}
+
+.storyOverlay {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.frameCorners {
+  position: absolute;
+  inset: 18px;
+  opacity: 0.72;
+  background:
+    linear-gradient(#f5b82e, #f5b82e) 0 0 / 66px 1px no-repeat,
+    linear-gradient(#f5b82e, #f5b82e) 0 0 / 1px 36px no-repeat,
+    linear-gradient(#f5b82e, #f5b82e) 100% 0 / 66px 1px no-repeat,
+    linear-gradient(#f5b82e, #f5b82e) 100% 0 / 1px 36px no-repeat;
+  animation: frame-in 460ms ease-out both;
+}
+
+.storyMeta {
+  position: absolute;
+  bottom: 28px;
+  left: clamp(20px, 3vw, 44px);
+  display: grid;
+  gap: 7px;
+  color: #fff;
+}
+
+.storyMeta > span {
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.storyMeta > strong {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  animation: counter-in 260ms ease-out both;
+}
+
+.storyMeta i {
+  color: #f5b82e;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.scrollGuide {
+  position: absolute;
+  top: 27px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  opacity: var(--hero-entry-guide-opacity, 1);
+  transform: translateX(-50%);
+  animation: guide-in 360ms 120ms ease-out both;
+}
+
+.scrollGuide span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.scrollGuide i {
+  position: relative;
+  display: block;
+  width: 34px;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.scrollGuide i::after {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 1px;
+  content: '';
+  background: #f5b82e;
+  animation: guide-line 1.4s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+  0% { opacity: 0.8; transform: scale(0.65); }
+  75%, 100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes mark-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes wave-cover {
+  from { transform: translate3d(-152%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes wave-release {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(142%, 0, 0); }
+}
+
+/* Offsets are SVG user units on a 0 0 100 100 viewBox, i.e. percent of width. */
+@keyframes wave-trail-in {
+  from { transform: translateX(-8px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes wave-trail-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(9px); }
+}
+
+@keyframes entry-rise {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes entry-drop {
+  from { opacity: 0; transform: translate3d(0, -18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes mark-in {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes field-in {
+  from { opacity: 0; }
+  to { opacity: 0.24; }
+}
+
+@keyframes rings-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(1.09); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes frame-in {
+  from { opacity: 0.25; transform: scale(0.985); }
+  to { opacity: 0.72; transform: scale(1); }
+}
+
+@keyframes counter-in {
+  from { opacity: 0.4; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes guide-in {
+  from { opacity: 0.25; transform: translate(-50%, -6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes guide-line {
+  0% { transform: translateX(0); }
+  70%, 100% { transform: translateX(200%); }
+}
+
+@media (max-width: 700px) {
+  .entryHeader {
+    min-height: 66px;
+    padding: 12px 18px;
+  }
+
+  .entryLogo {
+    width: 96px;
+  }
+
+  .brandLockup {
+    gap: 0;
+  }
+
+  .brandLockup > span {
+    display: none;
+  }
+
+  .systemStatus span {
+    font-size: 8px;
+  }
+
+  .arrival {
+    width: calc(100% - 32px);
+    padding-block: 18px;
+  }
+
+  .cabinetMark {
+    width: 78px;
+    margin-bottom: 14px;
+  }
+
+  .arrivalCopy h2 {
+    max-width: 10ch;
+    margin-inline: auto;
+    font-size: clamp(38px, 11vw, 50px);
+  }
+
+  .arrivalCopy > p:last-child {
+    max-width: 42ch;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+    margin-top: 20px;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    grid-template-columns: 36px minmax(0, 1fr) 24px;
+    min-height: 84px;
+    gap: 14px;
+    padding: 14px 17px;
+  }
+
+  .secondaryAction {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    border-left: 0;
+  }
+
+  .routeNumber {
+    width: 36px;
+    height: 36px;
+  }
+
+  .primaryAction strong,
+  .secondaryAction strong {
+    font-size: 18px;
+  }
+
+  .primaryAction strong > span,
+  .secondaryAction strong > span {
+    display: none;
+  }
+
+  .entryFoot {
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 18px;
+    text-align: center;
+  }
+
+  .entryFoot small {
+    display: none;
+  }
+
+  .frameCorners {
+    inset: 12px;
+  }
+
+  .storyMeta {
+    bottom: 17px;
+    left: 18px;
+  }
+
+  .storyMeta > span {
+    display: none;
+  }
+
+  .scrollGuide {
+    top: 19px;
+  }
+
+  .scrollGuide span {
+    font-size: 8px;
+  }
+}
+
+@media (max-height: 690px) and (min-width: 701px) {
+  .entryHeader {
+    min-height: 66px;
+  }
+
+  .arrival {
+    padding-block: 15px;
+  }
+
+  .cabinetMark {
+    width: 76px;
+    margin-bottom: 10px;
+  }
+
+  .arrivalCopy h2 {
+    margin-top: 9px;
+    font-size: clamp(38px, 7.5vh, 54px);
+  }
+
+  .arrivalCopy > p:last-child {
+    margin-top: 10px;
+  }
+
+  .actions {
+    margin-top: 16px;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    min-height: 92px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entryLayer,
+  .entryLayer *,
+  .entryLayer *::before,
+  .entryLayer *::after,
+  .storyOverlay * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .entryLayer[data-mode='experience'][data-phase='idle'],
+  .entryLayer[data-mode='skip'][data-phase='idle'],
+  .entryLayer[data-phase='revealing'] {
+    display: none;
+  }
+}

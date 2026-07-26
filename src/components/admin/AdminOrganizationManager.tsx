@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { divisions } from '@/data/divisions'
 import { AdminEmptyState } from './AdminEmptyState'
+import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
+import { canAdminWrite } from '@/data/admin-nav'
 import {
   buildOrganizationPayload,
   getEmptyOrganizationFormValues,
@@ -23,7 +25,7 @@ import { hasFirebaseConfig } from '@/lib/firebase/client'
 import type { DivisionCode, ProgramStatus } from '@/types/content'
 
 const organizationKinds: OrganizationKind[] = ['leaders', 'divisions', 'programs']
-const programStatuses: ProgramStatus[] = ['Selesai', 'Sedang Berjalan', 'Terencana']
+const programStatuses: ProgramStatus[] = ['Terjadwal', 'Berkala']
 
 function getDocumentTitle(kind: OrganizationKind, document: ManagedOrganizationDocument) {
   if (kind === 'divisions' && 'shortName' in document) {
@@ -50,6 +52,8 @@ function getDocumentDetail(kind: OrganizationKind, document: ManagedOrganization
 }
 
 export function AdminOrganizationManager() {
+  const session = useAdminSession()
+  const canWrite = canAdminWrite(session.role)
   const [kind, setKind] = useState<OrganizationKind>('leaders')
   const [items, setItems] = useState<ManagedOrganizationDocument[]>([])
   const [editingId, setEditingId] = useState('')
@@ -193,7 +197,7 @@ export function AdminOrganizationManager() {
   return (
     <AdminShell
       activeHref="/admin/leaders"
-      description="Kelola pengurus, divisi, program kerja, urutan tampil, dan status aktif."
+      description="Kelola pengurus, unsur organisasi, program kerja, urutan tampil, dan status aktif."
       kicker="Kepengurusan"
       title="Kelola organisasi"
     >
@@ -219,7 +223,8 @@ export function AdminOrganizationManager() {
         />
       ) : (
         <>
-          <form className="admin-content-form" onSubmit={handleSubmit}>
+          {canWrite ? (
+            <form className="admin-content-form" onSubmit={handleSubmit}>
             <div className="admin-form-grid">
               <div className="admin-field">
                 <label htmlFor="org-name">{kind === 'divisions' ? 'Nama divisi' : 'Nama'}</label>
@@ -384,7 +389,14 @@ export function AdminOrganizationManager() {
                 </button>
               ) : null}
             </div>
-          </form>
+            </form>
+          ) : (
+            <AdminEmptyState
+              body="Role viewer dapat membaca data organisasi, tetapi tidak dapat menambah, mengubah, atau menghapusnya."
+              kicker="Akses"
+              title="Mode lihat saja"
+            />
+          )}
 
           {isLoading ? (
             <AdminEmptyState body="Mohon tunggu sebentar." kicker="Memuat" title="Mengambil data organisasi..." />
@@ -419,17 +431,29 @@ export function AdminOrganizationManager() {
                       </td>
                       <td>{item.order}</td>
                       <td>
-                        <div className="admin-table-actions">
-                          <button type="button" onClick={() => startEdit(item)}>
-                            Edit
-                          </button>
-                          <button type="button" disabled={busyId === item.id} onClick={() => void handleToggleActive(item)}>
-                            {item.active ? 'Nonaktifkan' : 'Aktifkan'}
-                          </button>
-                          <button type="button" disabled={busyId === item.id} onClick={() => void handleDelete(item)}>
-                            Hapus
-                          </button>
-                        </div>
+                        {canWrite ? (
+                          <div className="admin-table-actions">
+                            <button type="button" onClick={() => startEdit(item)}>
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busyId === item.id}
+                              onClick={() => void handleToggleActive(item)}
+                            >
+                              {item.active ? 'Nonaktifkan' : 'Aktifkan'}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busyId === item.id}
+                              onClick={() => void handleDelete(item)}
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        ) : (
+                          <span>Lihat saja</span>
+                        )}
                       </td>
                     </tr>
                   ))}

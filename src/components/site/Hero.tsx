@@ -4,10 +4,15 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { LogoMark } from '@/components/site/Brand'
+import {
+  LandingEntryChoice,
+  type LandingEntryMode,
+} from '@/components/site/LandingEntryChoice'
 import { heroActivityImages, heroIdentity } from '@/data/site-content'
+import { debugEntry } from '@/lib/debug-entry'
 
 const PHOTO_PHASE_END = 0.72
-const WALLPAPER_TILE_COUNT = 15
+const WALLPAPER_TILE_COUNT = heroActivityImages.length
 
 const wallpaperTiles = Array.from({ length: WALLPAPER_TILE_COUNT }, (_, index) => ({
   ...heroActivityImages[index % heroActivityImages.length],
@@ -17,9 +22,22 @@ const wallpaperTiles = Array.from({ length: WALLPAPER_TILE_COUNT }, (_, index) =
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
   const activeIndexRef = useRef(0)
+  const entryModeRef = useRef<LandingEntryMode>('choice')
   const [activeIndex, setActiveIndex] = useState(0)
+  const [entryMode, setEntryMode] = useState<LandingEntryMode>('choice')
+
+  function chooseEntryMode(mode: LandingEntryMode, source = 'unknown') {
+    debugEntry(
+      'Hero mode intent',
+      { current: entryModeRef.current, next: mode, source, scrollY: window.scrollY },
+      'H3',
+    )
+    entryModeRef.current = mode
+    setEntryMode(mode)
+  }
 
   useEffect(() => {
+    debugEntry('Hero effect mounted', { scrollY: window.scrollY }, 'H1')
     const section = sectionRef.current
     if (!section) return
 
@@ -57,13 +75,20 @@ export function Hero() {
         Math.floor(photoProgress * heroActivityImages.length),
         heroActivityImages.length - 1,
       )
-      const logoProgress = Math.min(
+      const rawLogoProgress = Math.min(
         Math.max((progress - PHOTO_PHASE_END) / (1 - PHOTO_PHASE_END), 0),
         1,
       )
+      // Smoothstep: the reveal eases in and settles instead of tracking the
+      // wheel linearly, which is what made the final phase feel mechanical.
+      const logoProgress = rawLogoProgress * rawLogoProgress * (3 - 2 * rawLogoProgress)
       const finalLogoScale = window.innerWidth <= 760 ? 2.55 : 3.25
 
       element.style.setProperty('--hero-scroll-progress', progress.toFixed(4))
+      element.style.setProperty(
+        '--hero-entry-guide-opacity',
+        Math.max(0, 1 - progress / 0.045).toFixed(4),
+      )
       element.style.setProperty('--hero-logo-progress', logoProgress.toFixed(4))
       element.style.setProperty('--hero-wall-progress', logoProgress.toFixed(4))
       element.style.setProperty('--hero-photo-opacity', (1 - logoProgress).toFixed(4))
@@ -80,6 +105,12 @@ export function Hero() {
       element.style.setProperty('--hero-gold-glow', (0.04 + logoProgress * 0.11).toFixed(4))
       element.style.setProperty('--hero-final-marker-width', `${(18 + logoProgress * 20).toFixed(2)}px`)
       element.style.setProperty('--hero-final-marker-alpha', (0.3 + logoProgress * 0.7).toFixed(4))
+
+      // A deliberate nudge, not a stray pixel — the curtain lift is an 820ms
+      // move and should not fire on scroll noise.
+      if (progress > 0.006 && entryModeRef.current === 'choice') {
+        chooseEntryMode('experience', 'scroll-listener')
+      }
 
       if (nextIndex !== activeIndexRef.current) {
         activeIndexRef.current = nextIndex
@@ -98,6 +129,7 @@ export function Hero() {
     window.addEventListener('resize', scheduleUpdate)
 
     return () => {
+      debugEntry('Hero effect cleanup', { scrollY: window.scrollY }, 'H1')
       window.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)
       if (animationFrame) window.cancelAnimationFrame(animationFrame)
@@ -142,7 +174,7 @@ export function Hero() {
                 src={image.src}
                 alt=""
                 fill
-                priority={index === 0}
+                preload={index === 0}
                 sizes="100vw"
                 className="hero-scroll-slide-image"
               />
@@ -152,6 +184,14 @@ export function Hero() {
 
         <div className="hero-scroll-tone" aria-hidden="true" />
         <div className="hero-scroll-grid" aria-hidden="true" />
+
+        <LandingEntryChoice
+          activeIndex={activeIndex}
+          mode={entryMode}
+          onChooseExperience={() => chooseEntryMode('experience', 'experience-control')}
+          onSkipStart={() => chooseEntryMode('skip', 'skip-control')}
+          totalSlides={heroActivityImages.length}
+        />
 
         <div className="hero-scroll-logo-wrap">
           <div className="hero-scroll-logo-aura" aria-hidden="true" />

@@ -1,4 +1,5 @@
 import type { ArticleCategoryKey, ContentStatus } from '@/types/content'
+import { validateGalleryImageUrl } from './media-validation'
 
 type ValidationResult = {
   errors: string[]
@@ -24,6 +25,7 @@ type EventInput = {
 type ArticleInput = {
   category: ArticleCategoryKey | ''
   content: string
+  coverImage?: string
   excerpt: string
   slug: string
   status: ContentStatus
@@ -58,11 +60,38 @@ export function validateEventInput(input: EventInput): ValidationResult {
 }
 
 export function validateArticleInput(input: ArticleInput): ValidationResult {
-  return validateRequiredFields([
+  const result = validateRequiredFields([
     [input.title, 'Judul wajib diisi.'],
     [input.excerpt, 'Ringkasan wajib diisi.'],
-    [input.content, 'Isi artikel wajib diisi.'],
+    [input.content.replace(/<[^>]*>/g, '').replaceAll('&nbsp;', ' '), 'Isi artikel wajib diisi.'],
     [input.category, 'Kategori wajib dipilih.'],
     [input.status, 'Status wajib dipilih.'],
   ])
+
+  const errors = [...result.errors]
+
+  if (input.title.trim().length > 180) {
+    errors.push('Judul maksimal 180 karakter.')
+  }
+
+  if (input.excerpt.trim().length > 320) {
+    errors.push('Ringkasan maksimal 320 karakter.')
+  }
+
+  if (input.content.length > 400_000) {
+    errors.push('Isi artikel terlalu panjang. Maksimal 400.000 karakter.')
+  }
+
+  if (input.slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug)) {
+    errors.push('Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung.')
+  }
+
+  if (input.coverImage?.trim()) {
+    errors.push(...validateGalleryImageUrl(input.coverImage.trim()).errors)
+  }
+
+  return {
+    errors,
+    success: errors.length === 0,
+  }
 }

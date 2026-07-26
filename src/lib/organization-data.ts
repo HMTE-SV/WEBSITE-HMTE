@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import { where } from 'firebase/firestore'
 import { divisions as localDivisions } from '@/data/divisions'
 import { leadersByDivision as localLeadersByDivision } from '@/data/leaders'
 import { programsByDivision as localProgramsByDivision } from '@/data/programs'
@@ -42,6 +43,36 @@ function emptyDivisionRecord<T>() {
   return record
 }
 
+function mergeLeaderRecords(
+  localLeaders: Record<DivisionCode, Leader[]>,
+  remoteLeaders: Record<DivisionCode, Leader[]>,
+) {
+  const merged = emptyDivisionRecord<Leader>()
+
+  Object.keys(merged).forEach((rawCode) => {
+    const code = rawCode as DivisionCode
+    const members = new Map(
+      localLeaders[code].map((leader) => [leader.name.toLocaleLowerCase('id-ID'), leader]),
+    )
+
+    remoteLeaders[code].forEach((leader) => {
+      const key = leader.name.toLocaleLowerCase('id-ID')
+      const localLeader = members.get(key)
+
+      members.set(key, {
+        ...localLeader,
+        ...leader,
+        batch: leader.batch || localLeader?.batch,
+        photo: leader.photo || localLeader?.photo || '',
+      })
+    })
+
+    merged[code] = [...members.values()]
+  })
+
+  return merged
+}
+
 export const getOrganizationData = cache(async function getOrganizationData(): Promise<OrganizationData> {
   if (!hasFirebaseConfig()) {
     return getLocalOrganizationData()
@@ -49,9 +80,9 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
 
   try {
     const [divisionDocuments, leaderDocuments, programDocuments] = await Promise.all([
-      listContentDocuments<DivisionDocument>('divisions'),
-      listContentDocuments<LeaderDocument>('leaders'),
-      listContentDocuments<ProgramDocument>('programs'),
+      listContentDocuments<DivisionDocument>('divisions', [where('active', '==', true)]),
+      listContentDocuments<LeaderDocument>('leaders', [where('active', '==', true)]),
+      listContentDocuments<ProgramDocument>('programs', [where('active', '==', true)]),
     ])
 
     const divisions = divisionDocuments
@@ -105,7 +136,7 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
     return {
       divisions,
       divisionsByCode: buildDivisionsByCode(divisions),
-      leadersByDivision,
+      leadersByDivision: mergeLeaderRecords(localLeadersByDivision, leadersByDivision),
       programsByDivision,
     }
   } catch (error) {

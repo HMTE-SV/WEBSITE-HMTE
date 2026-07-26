@@ -2,15 +2,25 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { PublicPageFrame, PublicSection } from '@/components/site/PublicPage'
+import { PublicPageFrame } from '@/components/site/PublicPage'
 import { leadershipDivisionOrder } from '@/data/divisions'
-import { isFeaturedProgram } from '@/data/featured-programs'
+import { divisionVisuals } from '@/data/organization-presentation'
 import { getOrganizationData } from '@/lib/organization-data'
-import { getLeaderHref, getProgramHref, toOrganizationSlug } from '@/lib/organization-slugs'
+import {
+  getDivisionHref,
+  getLeaderHref,
+  getProgramHref,
+  toOrganizationSlug,
+} from '@/lib/organization-slugs'
 import type { ProgramStatus } from '@/types/content'
 
 type DivisionDetailPageProps = {
   params: Promise<{ slug: string }>
+}
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return `${parts[0]?.[0] ?? ''}${parts.at(-1)?.[0] ?? ''}`.toUpperCase()
 }
 
 export function generateStaticParams() {
@@ -27,135 +37,145 @@ export async function generateMetadata({ params }: DivisionDetailPageProps): Pro
 
   return {
     title: `${division.name} — HMTE TRE SV UGM`,
-    description: `${division.description} Lihat pengurus dan program kerja ${division.shortName}.`,
+    description: `${division.description} Lihat anggota dan program kerja ${division.shortName}.`,
   }
 }
 
 export default async function DivisionDetailPage({ params }: DivisionDetailPageProps) {
-  const [{ slug }, { divisions, leadersByDivision, programsByDivision }] = await Promise.all([
-    params,
-    getOrganizationData(),
-  ])
-  const division = divisions.find((item) => toOrganizationSlug(item.code) === slug)
+  const [{ slug }, organization] = await Promise.all([params, getOrganizationData()])
+  const division = organization.divisions.find((item) => toOrganizationSlug(item.code) === slug)
 
   if (!division) {
     notFound()
   }
 
-  const leaders = leadersByDivision[division.code]
-  const programs = programsByDivision[division.code]
+  const leaders = organization.leadersByDivision[division.code]
+  const programs = organization.programsByDivision[division.code]
+  const divisions = leadershipDivisionOrder.flatMap((code) => {
+    const item = organization.divisionsByCode[code]
+    return item ? [item] : []
+  })
+  const divisionIndex = divisions.findIndex((item) => item.code === division.code)
+  const divisionNumber = String(divisionIndex + 1).padStart(2, '0')
   const statusCounts = programs.reduce(
     (counts, program) => ({ ...counts, [program.status]: counts[program.status] + 1 }),
-    { Selesai: 0, 'Sedang Berjalan': 0, Terencana: 0 } satisfies Record<ProgramStatus, number>,
+    { Terjadwal: 0, Berkala: 0 } satisfies Record<ProgramStatus, number>,
   )
 
   return (
     <PublicPageFrame activeHref="/divisi">
-      <section className="division-profile-hero">
-        <div className="public-shell division-profile-hero-content">
-          <Link href="/divisi" className="division-profile-back">
-            Bidang & Divisi
+      <section className="division-detail-hero" aria-labelledby="division-title">
+        <Image
+          className="division-detail-hero-image"
+          src={divisionVisuals[division.code]}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+        />
+        <div className="division-detail-hero-tone" aria-hidden="true" />
+        <span className="division-detail-index" aria-hidden="true">{divisionNumber}</span>
+        <div className="org-shell division-detail-hero-content">
+          <Link href="/divisi" className="division-detail-back">
+            ← Semua bidang
           </Link>
-          <div className="division-profile-heading">
+          <div className="division-detail-heading">
             <div>
-              <span>{division.shortName}</span>
-              <h1>{division.name}</h1>
+              <span>
+                <i aria-hidden="true">{divisionNumber}</i>
+                {division.shortName}
+              </span>
+              <h1 id="division-title">{division.name}</h1>
               <p>{division.description}</p>
             </div>
-            <div className="division-profile-numbers" aria-label="Ringkasan divisi">
+            <dl aria-label="Ringkasan bidang">
               <div>
-                <strong>{leaders.length}</strong>
-                <span>Pengurus</span>
+                <dt>Anggota</dt>
+                <dd>{leaders.length}</dd>
               </div>
               <div>
-                <strong>{programs.length}</strong>
-                <span>Program</span>
+                <dt>Program</dt>
+                <dd>{programs.length}</dd>
               </div>
               <div>
-                <strong>{statusCounts['Sedang Berjalan']}</strong>
-                <span>Aktif</span>
+                <dt>Berkala</dt>
+                <dd>{statusCounts.Berkala}</dd>
               </div>
-            </div>
+            </dl>
           </div>
         </div>
       </section>
 
-      <nav className="division-profile-local-nav" aria-label={`Navigasi ${division.shortName}`}>
-        <div className="public-shell">
-          <a href="#profil">Profil</a>
-          <a href="#pengurus">Pengurus</a>
-          <a href="#program-kerja">Program Kerja</a>
-        </div>
-      </nav>
+      <section className="division-detail-workspace">
+        <div className="org-shell">
+          <nav className="division-detail-switcher" aria-label="Pindah bidang">
+            {divisions.map((item, index) => (
+              <Link
+                href={getDivisionHref(item.code)}
+                className={item.code === division.code ? 'is-active' : undefined}
+                aria-current={item.code === division.code ? 'page' : undefined}
+                key={item.code}
+              >
+                <i aria-hidden="true">{String(index + 1).padStart(2, '0')}</i>
+                {item.shortName}
+              </Link>
+            ))}
+          </nav>
 
-      <PublicSection>
-        <div className="division-profile-intro" id="profil">
-          <div>
-            <span className="public-label">Profil bidang</span>
-            <h2>Ruang kerja {division.shortName}</h2>
-          </div>
-          <p>
-            {division.description} Seluruh pengurus dan program di halaman ini berasal dari sumber data organisasi
-            yang sama, sehingga informasi tetap konsisten di landing page maupun direktori utama.
-          </p>
-        </div>
-      </PublicSection>
-
-      <PublicSection title={`Pengurus ${division.shortName}`}>
-        <div className="division-member-grid" id="pengurus">
-          {leaders.map((leader) => (
-            <Link className="division-member-card" href={getLeaderHref(leader)} key={leader.name}>
-              <div className="division-member-photo">
-                {leader.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="organization-person-photo" src={leader.photo} alt={leader.name} />
-                ) : (
-                  <Image className="organization-logo-fallback" src="/assets/logo-hmte.svg" alt="" width={140} height={62} />
-                )}
-              </div>
-              <div>
-                <span>{leader.role}</span>
-                <h3>{leader.name}</h3>
-                <strong>Lihat profil</strong>
-              </div>
-            </Link>
-          ))}
-        </div>
-        <div className="organization-section-link">
-          <Link href={`/kepengurusan?divisi=${division.code}`}>Buka direktori seluruh pengurus</Link>
-        </div>
-      </PublicSection>
-
-      <PublicSection title={`Program kerja ${division.shortName}`}>
-        <div className="division-program-list" id="program-kerja">
-          {programs.map((program, index) => {
-            const featured = isFeaturedProgram(division.code, program.name)
-
-            return (
-            <article className={featured ? 'division-program-item is-featured' : 'division-program-item'} key={program.name}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <div>
-                <div className="division-program-heading">
-                  <div>
-                    {featured ? <span className="division-program-featured">Unggulan</span> : null}
-                    <h3>{program.name}</h3>
-                  </div>
-                  <em className={`status-${program.status.toLowerCase().replace(/\s+/g, '-')}`}>{program.status}</em>
+          <div className="division-detail-columns">
+            <section className="division-detail-panel" aria-labelledby="division-members-title">
+              <header>
+                <div>
+                  <span>Orang di dalamnya</span>
+                  <h2 id="division-members-title">Anggota {division.shortName}</h2>
                 </div>
-                <p>{program.desc}</p>
-                {featured ? <Link className="division-program-detail-link" href={getProgramHref(program)}>Buka halaman program</Link> : null}
+                <Link href={`/kepengurusan?divisi=${division.code}`}>Buka direktori</Link>
+              </header>
+              <div className="division-detail-member-list">
+                {leaders.map((leader) => (
+                  <Link href={getLeaderHref(leader)} key={leader.name}>
+                    <span aria-hidden="true">{getInitials(leader.name)}</span>
+                    <div>
+                      <strong>{leader.name}</strong>
+                      <small>{leader.role}</small>
+                    </div>
+                    <time>{leader.batch ?? '—'}</time>
+                    <b aria-hidden="true">↗</b>
+                  </Link>
+                ))}
               </div>
-              <time>{program.date}</time>
-            </article>
-            )
-          })}
+            </section>
+
+            <section className="division-detail-panel" aria-labelledby="division-programs-title">
+              <header>
+                <div>
+                  <span>Agenda bidang</span>
+                  <h2 id="division-programs-title">Program kerja</h2>
+                </div>
+                <Link href={`/program-kerja#division-${division.code.toLowerCase()}`}>
+                  Semua program
+                </Link>
+              </header>
+              <div className="division-detail-program-list">
+                {programs.map((program, index) => (
+                  <Link href={getProgramHref(program)} key={program.name}>
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <div>
+                      <strong>{program.name}</strong>
+                      <small>{program.desc}</small>
+                    </div>
+                    <aside>
+                      <em>{program.status}</em>
+                      <time>{program.date}</time>
+                    </aside>
+                    <b aria-hidden="true">↗</b>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </div>
         </div>
-        <div className="organization-section-link">
-          <Link href={`/program-kerja#division-${division.code.toLowerCase()}`}>
-            Buka katalog seluruh program kerja
-          </Link>
-        </div>
-      </PublicSection>
+      </section>
     </PublicPageFrame>
   )
 }

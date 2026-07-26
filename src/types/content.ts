@@ -73,6 +73,8 @@ export type Leader = {
   role: string
   photo: string
   batch?: string
+  // No studentId here on purpose: NIM is personal data and must never reach a
+  // public page, not even unrendered inside a serialized RSC payload.
   origin?: string
   email?: string
   instagram?: string
@@ -80,13 +82,14 @@ export type Leader = {
   bio?: string
 }
 
-export type ProgramStatus = 'Selesai' | 'Sedang Berjalan' | 'Terencana'
+export type ProgramStatus = 'Terjadwal' | 'Berkala'
 
 export type Program = {
   name: string
   desc: string
   status: ProgramStatus
   date: string
+  months?: number[]
 }
 
 export type NavLink = {

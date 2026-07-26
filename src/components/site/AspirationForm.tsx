@@ -71,7 +71,7 @@ export function AspirationForm() {
           <span>Form aspirasi</span>
           <strong>Semua kolom bertanda wajib perlu dilengkapi.</strong>
         </div>
-        <b aria-hidden="true">HMTE / 26</b>
+        <b aria-hidden="true">HMTE / 26–27</b>
       </div>
       <p className="sr-only" id="aspiration-form-help">
         Pilih kategori dan tulis aspirasi minimal 20 karakter. Nama wajib diisi kecuali mode anonim aktif.
