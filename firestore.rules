@@ -6,20 +6,32 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function adminPath() {
-      return /databases/$(database)/documents/adminUsers/$(request.auth.uid);
+    /*
+     * Wewenang dibaca dari custom claims di token, bukan dari dokumen Firestore.
+     *
+     * Sebelumnya tiap pemeriksaan memanggil get() ke adminUsers/{uid}. Itu
+     * berarti akun baru tidak bisa berbuat apa-apa sampai ada yang membuatkan
+     * dokumennya dengan tangan, dan tiap operasi tulis membayar pembacaan
+     * tambahan. Claims ikut di dalam token yang sudah ditandatangani Google,
+     * jadi jawabannya sudah ada sebelum basis data disentuh.
+     *
+     * Claims hanya bisa dipasang Admin SDK lewat /api/admin/accounts. Klien
+     * tidak punya cara mengarangnya sendiri.
+     *
+     * Memakai .get() dengan nilai bawaan, bukan akses field langsung: token
+     * tanpa claims sama sekali adalah keadaan yang normal (pengunjung biasa),
+     * dan akses field yang tidak ada membuat seluruh aturan gagal dievaluasi.
+     */
+    function adminRole() {
+      return isSignedIn() ? request.auth.token.get('role', '') : '';
     }
 
     function hasActiveAdminProfile() {
-      return isSignedIn()
-        && exists(adminPath())
-        && get(adminPath()).data.uid == request.auth.uid
-        && get(adminPath()).data.active == true
-        && get(adminPath()).data.role in ['superadmin', 'editor', 'viewer'];
+      return adminRole() in ['superadmin', 'editor', 'viewer'];
     }
 
     function hasRole(roles) {
-      return hasActiveAdminProfile() && get(adminPath()).data.role in roles;
+      return adminRole() in roles;
     }
 
     function isEditor() {
@@ -28,6 +40,42 @@ service cloud.firestore {
 
     function isSuperadmin() {
       return hasRole(['superadmin']);
+    }
+
+    /*
+     * Bidang yang dipegang akun ini. Akun nonaktif tidak punya `role` sama
+     * sekali di claims-nya, jadi ia sudah gugur di adminRole() sebelum sampai
+     * ke sini. Tidak ada bendera aktif kedua yang bisa terlupa diperiksa.
+     */
+    function adminDivisionCode() {
+      return isSignedIn() ? request.auth.token.get('divisionCode', '') : '';
+    }
+
+    /*
+     * Superadmin bebas. Editor hanya boleh menyentuh data bidangnya sendiri.
+     *
+     * Dokumen tanpa `divisionCode`, dan akun editor tanpa bidang, keduanya
+     * jatuh ke string kosong dan ditolak. Ini disengaja: data yatim harus
+     * ditangani superadmin, bukan jadi celah yang bisa diklaim editor mana pun
+     * hanya karena bidangnya sama-sama kosong.
+     */
+    function canManageDivision(code) {
+      return isSuperadmin()
+        || (isEditor() && code is string && code != '' && adminDivisionCode() == code);
+    }
+
+    function ownsExistingDivision() {
+      return canManageDivision(resource.data.get('divisionCode', ''));
+    }
+
+    /*
+     * Perubahan harus dimiliki di kedua sisi. Tanpa pemeriksaan dua arah,
+     * seorang editor bisa memindahkan pengurus bidang lain ke bidangnya, atau
+     * membuang anggotanya sendiri ke bidang orang lain.
+     */
+    function ownsDivisionChange() {
+      return canManageDivision(resource.data.get('divisionCode', ''))
+        && canManageDivision(request.resource.data.get('divisionCode', ''));
     }
 
     function isValidContentStatus(status) {
@@ -112,10 +160,20 @@ service cloud.firestore {
         && keepsCreatedAt();
     }
 
+    /*
+     * Direktori akun, bukan lagi sumber wewenang. Isinya cuma untuk ditampilkan
+     * di panel; yang menentukan izin adalah claims di token.
+     *
+     * Tidak ada tulis dari klien sama sekali, termasuk oleh superadmin. Menulis
+     * dokumen di sini tidak akan menggeser claims siapa pun, jadi satu-satunya
+     * yang dihasilkan adalah daftar yang menjanjikan wewenang yang tidak
+     * terpasang. Perubahan role wajib lewat /api/admin/accounts, yang menyetel
+     * keduanya sekaligus.
+     */
     match /adminUsers/{userId} {
       allow get: if isSignedIn() && (request.auth.uid == userId || isSuperadmin());
       allow list: if isSuperadmin();
-      allow create, update, delete: if isSuperadmin();
+      allow write: if false;
     }
 
     match /articles/{documentId} {
@@ -148,23 +206,41 @@ service cloud.firestore {
 
     match /leaders/{documentId} {
       allow read: if isActivePublicRecord() || hasActiveAdminProfile();
-      allow create: if isEditor() && hasValidWriteTimestamps();
-      allow update: if isEditor() && keepsCreatedAt();
-      allow delete: if isEditor();
+      allow create: if canManageDivision(request.resource.data.get('divisionCode', ''))
+        && hasValidWriteTimestamps();
+      allow update: if ownsDivisionChange() && keepsCreatedAt();
+      allow delete: if ownsExistingDivision();
     }
 
+    // Kontak pribadi pengurus. Tidak ada `allow read` untuk publik sama sekali,
+    // dan itulah seluruh alasan collection ini terpisah dari `leaders`: rules
+    // Firestore tidak bisa menyembunyikan satu field dari dokumen yang boleh
+    // dibaca publik, jadi field-nya yang harus pindah rumah.
+    match /leaderContacts/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if canManageDivision(request.resource.data.get('divisionCode', ''))
+        && hasValidWriteTimestamps();
+      allow update: if ownsDivisionChange() && keepsCreatedAt();
+      allow delete: if ownsExistingDivision();
+    }
+
+    // Superadmin saja. Daftar unsur organisasi adalah kerangka yang dipakai
+    // seluruh situs, dan `divisionCode` di sini yang menentukan batas wewenang
+    // semua editor. Membiarkan editor mengubahnya berarti membiarkan mereka
+    // menggeser pagarnya sendiri.
     match /divisions/{documentId} {
       allow read: if isActivePublicRecord() || hasActiveAdminProfile();
-      allow create: if isEditor() && hasValidWriteTimestamps();
-      allow update: if isEditor() && keepsCreatedAt();
-      allow delete: if isEditor();
+      allow create: if isSuperadmin() && hasValidWriteTimestamps();
+      allow update: if isSuperadmin() && keepsCreatedAt();
+      allow delete: if isSuperadmin();
     }
 
     match /programs/{documentId} {
       allow read: if isActivePublicRecord() || hasActiveAdminProfile();
-      allow create: if isEditor() && hasValidWriteTimestamps();
-      allow update: if isEditor() && keepsCreatedAt();
-      allow delete: if isEditor();
+      allow create: if canManageDivision(request.resource.data.get('divisionCode', ''))
+        && hasValidWriteTimestamps();
+      allow update: if ownsDivisionChange() && keepsCreatedAt();
+      allow delete: if ownsExistingDivision();
     }
 
     match /partners/{documentId} {
@@ -178,6 +254,24 @@ service cloud.firestore {
       allow create: if validPublicAspiration() || (isEditor() && hasValidWriteTimestamps());
       allow read: if hasActiveAdminProfile();
       allow update: if isEditor() && validAspirationUpdate();
+      allow delete: if isSuperadmin();
+    }
+
+    /*
+     * `settings/site` terbaca publik. Isinya memang untuk dibaca publik: nama
+     * kabinet, periode, kanal resmi, dan teks yang tampil di kaki setiap
+     * halaman. Halaman publik dirender di server, tapi Firestore tidak bisa
+     * membedakan pembaca server dari pembaca browser, jadi membukanya adalah
+     * satu-satunya cara.
+     *
+     * Karena itu dipisah per dokumen, bukan seluruh collection. Dokumen
+     * pengaturan lain yang mungkin ditambahkan nanti tidak ikut terbuka hanya
+     * karena kebetulan tinggal di collection yang sama.
+     */
+    match /settings/site {
+      allow read: if true;
+      allow create: if isSuperadmin() && hasValidWriteTimestamps();
+      allow update: if isSuperadmin() && keepsCreatedAt();
       allow delete: if isSuperadmin();
     }
 

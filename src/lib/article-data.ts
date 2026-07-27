@@ -7,7 +7,6 @@ import { listPublishedArticles } from '@/lib/firebase/content-services'
 import type { ArticleListItem } from '@/lib/content'
 import type { ArticleDocument } from '@/types/firestore'
 
-const defaultArticleImage = '/assets/ugm_socialization.png'
 const defaultPublisher = 'HMTE TRE SV UGM'
 
 export type PublicArticle = ArticleListItem & {
@@ -49,7 +48,10 @@ function toPublicArticle(document: ArticleDocument): PublicArticle {
     contentHtml: sanitizeArticleContent(document.content),
     dateIso: publishedDate?.toISOString() ?? '',
     excerpt: document.excerpt,
-    image: document.coverImage || defaultArticleImage,
+    // Kosong dibiarkan kosong. Itulah tandanya bagi <ArticleCover> untuk
+    // menggambar bidang abstrak alih-alih memasang foto cadangan yang sama
+    // untuk semua berita.
+    image: document.coverImage || '',
     publisher: document.publisher || defaultPublisher,
     publisherIcon: '/assets/favicon.svg',
     publishedLabel,

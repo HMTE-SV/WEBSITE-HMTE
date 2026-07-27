@@ -5,7 +5,7 @@ import {
 } from '@firebase/rules-unit-testing'
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, type Firestore } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
-import { createTestEnvironment, now, seedAdmin, seedDocument, withTimestamps } from './helpers'
+import { createTestEnvironment, now, seedAdmin, seedDocument, signedInAs, withTimestamps } from './helpers'
 
 let testEnv: RulesTestEnvironment
 
@@ -123,13 +123,13 @@ describe('aspirations — kerahasiaan', () => {
 
   it('pengguna login biasa juga tidak bisa membacanya', async () => {
     await seedDocument(testEnv, ['aspirations', 'masuk'], aspiration())
-    const orangLuar = testEnv.authenticatedContext('orang-luar')
+    const orangLuar = signedInAs(testEnv, 'orang-luar')
     await assertFails(getDoc(doc(db(orangLuar), 'aspirations', 'masuk')))
   })
 
   it('admin aktif bisa membacanya', async () => {
     await seedDocument(testEnv, ['aspirations', 'masuk'], aspiration())
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertSucceeds(getDoc(doc(db(editor), 'aspirations', 'masuk')))
   })
 })
@@ -137,7 +137,7 @@ describe('aspirations — kerahasiaan', () => {
 describe('aspirations — penanganan admin', () => {
   it('editor boleh mengubah status dan catatan internal', async () => {
     await seedDocument(testEnv, ['aspirations', 'masuk'], aspiration())
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertSucceeds(
       updateDoc(doc(db(editor), 'aspirations', 'masuk'), {
         status: 'in_progress',
@@ -149,7 +149,7 @@ describe('aspirations — penanganan admin', () => {
 
   it('editor TIDAK boleh mengubah isi pesan aslinya', async () => {
     await seedDocument(testEnv, ['aspirations', 'masuk'], aspiration())
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertFails(
       updateDoc(doc(db(editor), 'aspirations', 'masuk'), {
         message: 'Isi yang sudah dipelintir dan tidak lagi sesuai aslinya.',
@@ -160,10 +160,10 @@ describe('aspirations — penanganan admin', () => {
 
   it('hanya superadmin yang boleh menghapus', async () => {
     await seedDocument(testEnv, ['aspirations', 'masuk'], aspiration())
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertFails(deleteDoc(doc(db(editor), 'aspirations', 'masuk')))
 
-    const boss = testEnv.authenticatedContext('boss')
+    const boss = signedInAs(testEnv, 'boss')
     await assertSucceeds(deleteDoc(doc(db(boss), 'aspirations', 'masuk')))
   })
 })

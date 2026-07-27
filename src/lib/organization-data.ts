@@ -5,6 +5,7 @@ import { leadersByDivision as localLeadersByDivision } from '@/data/leaders'
 import { programsByDivision as localProgramsByDivision } from '@/data/programs'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import { listContentDocuments } from '@/lib/firebase/content-services'
+import { normalizeProgramMonths } from '@/lib/program-schedule'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 import type { DivisionDocument, LeaderDocument, ProgramDocument } from '@/types/firestore'
 
@@ -44,56 +45,42 @@ function emptyDivisionRecord<T>() {
 }
 
 /**
- * Membersihkan `months` yang datang dari Firestore.
+ * Melengkapi pengurus dari Firestore dengan field yang cuma ada di roster.
  *
- * Dipisah jadi fungsi sendiri karena peta dua belas bulan di /agenda memakai
- * angka ini langsung sebagai indeks kolom: satu nilai 0, 13, atau duplikat
- * sudah cukup untuk membuat barisnya salah gambar. Dokumen lama yang dibuat
- * sebelum field ini ada juga akan masuk ke sini sebagai `undefined`, dan itu
- * ditangani sebagai daftar kosong — program tetap tampil di /program-kerja,
- * hanya tidak punya tanda di peta bulan.
+ * Yang menentukan SIAPA saja pengurusnya adalah Firestore, titik. Roster
+ * `ASSET/anggota-hmte.md` hanya boleh mengisi kolom yang kosong milik orang yang
+ * sudah ada di Firestore.
+ *
+ * Dulu fungsi ini menggabungkan kedua sumber sebagai gabungan himpunan, dan
+ * akibatnya menghapus pengurus dari basis data tidak berpengaruh apa pun di
+ * situs: namanya masuk lagi dari roster pada render berikutnya. Penghapusan yang
+ * tidak pernah sampai ke publik lebih berbahaya daripada kolom angkatan yang
+ * kosong, jadi arahnya sekarang satu jalan saja.
  */
-export function normalizeProgramMonths(months: unknown): number[] {
-  if (!Array.isArray(months)) {
-    return []
-  }
-
-  const valid = months.filter(
-    (month): month is number =>
-      typeof month === 'number' && Number.isInteger(month) && month >= 1 && month <= 12,
-  )
-
-  return [...new Set(valid)].sort((first, second) => first - second)
-}
-
-function mergeLeaderRecords(
+function enrichLeadersFromRoster(
   localLeaders: Record<DivisionCode, Leader[]>,
   remoteLeaders: Record<DivisionCode, Leader[]>,
 ) {
-  const merged = emptyDivisionRecord<Leader>()
+  const enriched = emptyDivisionRecord<Leader>()
 
-  Object.keys(merged).forEach((rawCode) => {
+  Object.keys(enriched).forEach((rawCode) => {
     const code = rawCode as DivisionCode
-    const members = new Map(
+    const roster = new Map(
       localLeaders[code].map((leader) => [leader.name.toLocaleLowerCase('id-ID'), leader]),
     )
 
-    remoteLeaders[code].forEach((leader) => {
-      const key = leader.name.toLocaleLowerCase('id-ID')
-      const localLeader = members.get(key)
+    enriched[code] = remoteLeaders[code].map((leader) => {
+      const fromRoster = roster.get(leader.name.toLocaleLowerCase('id-ID'))
 
-      members.set(key, {
-        ...localLeader,
+      return {
         ...leader,
-        batch: leader.batch || localLeader?.batch,
-        photo: leader.photo || localLeader?.photo || '',
-      })
+        batch: leader.batch || fromRoster?.batch,
+        photo: leader.photo || fromRoster?.photo || '',
+      }
     })
-
-    merged[code] = [...members.values()]
   })
 
-  return merged
+  return enriched
 }
 
 export const getOrganizationData = cache(async function getOrganizationData(): Promise<OrganizationData> {
@@ -133,9 +120,15 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
       .filter((leader) => leader.active && leader.divisionCode)
       .sort((first, second) => first.order - second.order)
       .forEach((leader) => {
+        // `email` sengaja TIDAK disalin. Tidak ada satu pun halaman publik yang
+        // merendernya, tapi apa pun yang masuk objek ini ikut terserialisasi ke
+        // payload RSC dan terbaca di source HTML. Alasannya sama persis dengan
+        // catatan tentang NIM di src/types/content.ts: tidak dirender bukan
+        // berarti tidak terkirim. Panel admin tetap bisa membaca dan mengubah
+        // email karena ia membaca dokumen Firestore langsung, bukan lewat sini.
         leadersByDivision[leader.divisionCode || 'PH'].push({
+          batch: leader.batch,
           bio: leader.bio,
-          email: leader.email,
           instagram: leader.instagram,
           linkedin: leader.linkedin,
           name: leader.name,
@@ -151,8 +144,15 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
         programsByDivision[program.divisionCode].push({
           date: program.date,
           desc: program.desc,
+          // startDate/endDate wajib ikut disalin di sini. Field yang ada di
+          // dokumen tapi tidak disalin akan hilang diam-diam begitu data pindah
+          // ke Firestore, dan halaman publik jatuh ke keadaan "belum
+          // dijadwalkan" tanpa error apa pun. Itu persis yang pernah terjadi
+          // pada `months` (temuan F1 di docs/RENCANA_ADMIN_PANEL.md).
+          endDate: program.endDate,
           months: normalizeProgramMonths(program.months),
           name: program.name,
+          startDate: program.startDate,
           status: program.status,
         })
       })
@@ -160,7 +160,7 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
     return {
       divisions,
       divisionsByCode: buildDivisionsByCode(divisions),
-      leadersByDivision: mergeLeaderRecords(localLeadersByDivision, leadersByDivision),
+      leadersByDivision: enrichLeadersFromRoster(localLeadersByDivision, leadersByDivision),
       programsByDivision,
     }
   } catch (error) {

@@ -5,20 +5,18 @@ import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
 import { leadershipDivisionOrder } from '@/data/divisions'
 import { getOrganizationData } from '@/lib/organization-data'
 import { getProgramHref, toOrganizationSlug } from '@/lib/organization-slugs'
+import { MONTH_NAMES_LONG, buildProgramSchedule } from '@/lib/program-schedule'
+import { getSiteSettings } from '@/lib/site-settings-data'
 
 export const metadata: Metadata = {
   title: 'Agenda HMTE TRE SV UGM',
   description:
-    'Peta dua belas bulan program kerja Kabinet Abya Vistara — disaring per bulan dan per bidang.',
+    'Peta dua belas bulan program kerja Kabinet Abya Vistara, disaring per bulan dan per bidang.',
 }
-
-const MONTHS_LONG = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-]
 
 export default async function AgendaPage() {
   const { divisionsByCode, programsByDivision } = await getOrganizationData()
+  const { agendaYear: year } = await getSiteSettings()
 
   const divisions = leadershipDivisionOrder.flatMap((code) => {
     const division = divisionsByCode[code]
@@ -39,85 +37,65 @@ export default async function AgendaPage() {
       divisionCode: division.code,
       divisionShort: division.shortName,
       cadence: program.status,
-      months: program.months ?? [],
-      dateLabel: program.date,
+      schedule: buildProgramSchedule(program, year),
     }))
   })
 
-  // A programme with no month cannot be placed on the board at all.
-  const scheduled = entries
-    .filter((entry) => entry.months.length > 0)
-    .sort(
-      (first, second) =>
-        Math.min(...first.months) - Math.min(...second.months) ||
-        first.title.localeCompare(second.title, 'id'),
-    )
-  const undated = entries.filter((entry) => entry.months.length === 0)
+  const scheduled = entries.filter((entry) => entry.schedule.precision !== 'unscheduled')
+  const undated = entries.filter((entry) => entry.schedule.precision === 'unscheduled')
+  const exactCount = scheduled.filter((entry) => entry.schedule.precision === 'exact').length
 
-  const monthLoad = Array.from({ length: 12 }, (_, index) =>
-    scheduled.filter((entry) => entry.months.includes(index + 1)).length,
+  const monthLoad = Array.from(
+    { length: 12 },
+    (_, index) => scheduled.filter((entry) => entry.schedule.months.includes(index + 1)).length,
   )
-  const busiestMonth = MONTHS_LONG[monthLoad.indexOf(Math.max(...monthLoad))]
-  const recurring = scheduled.filter((entry) => entry.months.length > 1).length
+  const busiestMonth = MONTH_NAMES_LONG[monthLoad.indexOf(Math.max(...monthLoad))]
+
+  // Bulan yang terbuka duluan adalah bulan berjalan, karena pertanyaan yang
+  // paling sering dibawa pengunjung ke halaman ini adalah "sekarang ada apa".
+  const now = new Date()
+  const currentMonth = now.getUTCFullYear() === year ? now.getUTCMonth() + 1 : null
 
   return (
     <PublicPageFrame activeHref="/agenda">
-      <section
-        className="public-atmosphere-hero has-hero-backdrop"
-        aria-labelledby="agenda-title"
-      >
-        <HeroBackdrop variant="orbit" />
-        <div className="atmosphere-shell atmosphere-grid">
-          <div className="atmosphere-copy">
-            <span className="atmosphere-kicker">Timeline HMTE · 2026/2027</span>
-            <h1 id="agenda-title">
-              Dua belas bulan, <em>dalam satu tatapan.</em>
-            </h1>
-            <p>
-              Setiap program kerja Kabinet Abya Vistara dipetakan ke bulan rencananya.
-              Pilih bulan atau bidang untuk mempersempit. Peta ini menunjukkan rencana,
-              bukan status realisasi atau tanggal pelaksanaan final.
-            </p>
-          </div>
-          <aside className="atmosphere-aside">
-            <p>Seluruh bulan disalin dari timeline resmi pada Buku Panduan HMTE 2026/2027.</p>
-            <dl className="atmosphere-stats" aria-label="Ringkasan agenda">
-              <div>
-                <dt>Program</dt>
-                <dd>{String(scheduled.length).padStart(2, '0')}</dd>
+      <section className="soft-surface" aria-labelledby="agenda-title">
+        <div className="soft-shell">
+          <div className="ag-bento">
+            <header className="ag-lead has-hero-backdrop">
+              <HeroBackdrop variant="orbit" />
+              <div className="ag-lead-copy">
+                <p>Timeline HMTE · 2026/2027</p>
+                <h1 id="agenda-title">
+                  Dua belas bulan, <span>dalam satu tatapan.</span>
+                </h1>
+                <p className="ag-lead-note">
+                  Pilih bulan untuk melihat isinya. Program yang tanggalnya sudah ditetapkan
+                  tampil dengan tanggalnya; sisanya baru punya bulan rencana dari Buku Panduan.
+                </p>
               </div>
-              <div>
-                <dt>Berulang</dt>
-                <dd>{String(recurring).padStart(2, '0')}</dd>
-              </div>
-              <div>
-                <dt>Terpadat</dt>
-                <dd>{busiestMonth.slice(0, 3)}</dd>
-              </div>
-            </dl>
-          </aside>
-          <a className="atmosphere-cue" href="#peta-tahun">
-            <span>Gulir untuk membuka peta</span>
-            <b aria-hidden="true">↓</b>
-          </a>
-        </div>
-      </section>
+            </header>
 
-      <section className="agenda-schedule" id="peta-tahun" aria-labelledby="agenda-schedule-title">
-        <div className="public-shell">
-          <div className="agenda-schedule-heading">
-            <div>
-              <span className="public-label gold">Peta tahun</span>
-              <h2 id="agenda-schedule-title">Kalender program kerja</h2>
+            <div className="ag-tile sfc">
+              <b>{scheduled.length}</b>
+              <span>program terjadwal</span>
             </div>
-            <p>
-              Kolom emas menandai bulan aktif sebuah program. Program berkala terbaca
-              sebagai deretan tanda yang berulang sepanjang tahun.
-            </p>
+            <div className="ag-tile sfc">
+              <b>{exactCount}</b>
+              <span>bertanggal pasti</span>
+            </div>
+            <div className="ag-tile sfc">
+              <b>{busiestMonth.slice(0, 3)}</b>
+              <span>bulan terpadat</span>
+            </div>
           </div>
 
           {scheduled.length > 0 ? (
-            <AgendaYear entries={scheduled} divisions={divisions} />
+            <AgendaYear
+              entries={scheduled}
+              divisions={divisions}
+              initialMonth={currentMonth ?? 1}
+              currentMonth={currentMonth}
+            />
           ) : (
             <EmptyState
               title="Belum ada agenda"
@@ -126,21 +104,21 @@ export default async function AgendaPage() {
           )}
 
           {undated.length > 0 && (
-            <div className="agenda-undated">
+            <section className="ag-undated sfc">
               <h3>Belum terjadwal</h3>
               <p>
-                {undated.length} program belum mencantumkan bulan rencana, jadi tidak bisa
-                ditempatkan pada peta di atas.
+                {undated.length} program belum mencantumkan bulan rencana maupun tanggal, jadi
+                belum bisa ditempatkan di peta tahun.
               </p>
               <ul>
                 {undated.map((entry) => (
-                  <li key={entry.id}>
-                    <strong>{entry.title}</strong>
-                    <span>{entry.divisionShort}</span>
+                  <li key={entry.id} data-div={entry.divisionCode}>
+                    <span className="soft-tag">{entry.divisionShort}</span>
+                    {entry.title}
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           )}
         </div>
       </section>

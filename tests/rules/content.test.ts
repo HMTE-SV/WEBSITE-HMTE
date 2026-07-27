@@ -5,7 +5,7 @@ import {
 } from '@firebase/rules-unit-testing'
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, type Firestore } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { createTestEnvironment, now, seedAdmin, seedDocument, withTimestamps } from './helpers'
+import { createTestEnvironment, now, seedAdmin, seedDocument, signedInAs, withTimestamps } from './helpers'
 
 let testEnv: RulesTestEnvironment
 
@@ -22,9 +22,10 @@ afterAll(async () => {
 beforeEach(async () => {
   await testEnv.clearFirestore()
   await seedAdmin(testEnv, 'boss', 'superadmin')
-  await seedAdmin(testEnv, 'redaksi', 'editor')
+  // Editor selalu terikat satu bidang sejak pembatasan per-bidang berlaku.
+  await seedAdmin(testEnv, 'redaksi', 'editor', { divisionCode: 'PH' })
   await seedAdmin(testEnv, 'pengamat', 'viewer')
-  await seedAdmin(testEnv, 'alumni', 'editor', { active: false })
+  await seedAdmin(testEnv, 'alumni', 'editor', { active: false, divisionCode: 'PH' })
 })
 
 const publishedArticle = withTimestamps({
@@ -60,19 +61,19 @@ describe('articles — siapa boleh membaca', () => {
 
   it('pengguna login tanpa profil admin juga tidak bisa membaca draf', async () => {
     await seedDocument(testEnv, ['articles', 'draf'], draftArticle)
-    const orangLuar = testEnv.authenticatedContext('orang-luar')
+    const orangLuar = signedInAs(testEnv, 'orang-luar')
     await assertFails(getDoc(doc(db(orangLuar), 'articles', 'draf')))
   })
 
   it('admin aktif boleh membaca draf', async () => {
     await seedDocument(testEnv, ['articles', 'draf'], draftArticle)
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertSucceeds(getDoc(doc(db(editor), 'articles', 'draf')))
   })
 
   it('admin yang sudah dinonaktifkan kehilangan akses draf', async () => {
     await seedDocument(testEnv, ['articles', 'draf'], draftArticle)
-    const nonaktif = testEnv.authenticatedContext('alumni')
+    const nonaktif = signedInAs(testEnv, 'alumni')
     await assertFails(getDoc(doc(db(nonaktif), 'articles', 'draf')))
   })
 })
@@ -84,17 +85,17 @@ describe('articles — siapa boleh menulis', () => {
   })
 
   it('viewer tidak bisa membuat artikel', async () => {
-    const viewer = testEnv.authenticatedContext('pengamat')
+    const viewer = signedInAs(testEnv, 'pengamat')
     await assertFails(setDoc(doc(db(viewer), 'articles', 'baru'), publishedArticle))
   })
 
   it('editor bisa membuat artikel', async () => {
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertSucceeds(setDoc(doc(db(editor), 'articles', 'baru'), publishedArticle))
   })
 
   it('artikel tanpa stempel waktu ditolak', async () => {
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertFails(
       setDoc(doc(db(editor), 'articles', 'tanpa-waktu'), {
         title: 'Tanpa waktu',
@@ -104,7 +105,7 @@ describe('articles — siapa boleh menulis', () => {
   })
 
   it('status di luar draft/published/archived ditolak', async () => {
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertFails(
       setDoc(
         doc(db(editor), 'articles', 'status-ngawur'),
@@ -115,7 +116,7 @@ describe('articles — siapa boleh menulis', () => {
 
   it('createdAt tidak bisa diubah saat update', async () => {
     await seedDocument(testEnv, ['articles', 'terbit'], publishedArticle)
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
 
     await assertSucceeds(
       updateDoc(doc(db(editor), 'articles', 'terbit'), { title: 'Judul baru', updatedAt: now() }),
@@ -127,10 +128,10 @@ describe('articles — siapa boleh menulis', () => {
 
   it('viewer tidak bisa menghapus artikel, editor bisa', async () => {
     await seedDocument(testEnv, ['articles', 'terbit'], publishedArticle)
-    const viewer = testEnv.authenticatedContext('pengamat')
+    const viewer = signedInAs(testEnv, 'pengamat')
     await assertFails(deleteDoc(doc(db(viewer), 'articles', 'terbit')))
 
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     await assertSucceeds(deleteDoc(doc(db(editor), 'articles', 'terbit')))
   })
 })
@@ -157,7 +158,7 @@ describe('data organisasi — hanya yang aktif yang publik', () => {
 
 describe('programs — months ikut tersimpan', () => {
   it('editor bisa menyimpan program lengkap dengan months', async () => {
-    const editor = testEnv.authenticatedContext('redaksi')
+    const editor = signedInAs(testEnv, 'redaksi')
     const ref = doc(db(editor), 'programs', 'sotm')
 
     await assertSucceeds(
@@ -184,8 +185,70 @@ describe('programs — months ikut tersimpan', () => {
 
 describe('kunci bawaan', () => {
   it('collection yang tidak dideklarasikan tertutup untuk semua orang', async () => {
-    const boss = testEnv.authenticatedContext('boss')
+    const boss = signedInAs(testEnv, 'boss')
     await assertFails(getDoc(doc(db(boss), 'collectionAsal', 'apa-saja')))
     await assertFails(setDoc(doc(db(boss), 'collectionAsal', 'apa-saja'), withTimestamps({ a: 1 })))
+  })
+})
+
+describe('leaderContacts: email pengurus tertutup dari publik', () => {
+  const contact = withTimestamps({ email: 'ketua@mail.ugm.ac.id', divisionCode: 'PH' })
+
+  it('menolak pembacaan oleh pengunjung anonim', async () => {
+    await seedDocument(testEnv, ['leaderContacts', 'ketua'], contact)
+
+    const anon = testEnv.unauthenticatedContext()
+    await assertFails(getDoc(doc(db(anon), 'leaderContacts', 'ketua')))
+  })
+
+  it('menolak pembacaan oleh akun login yang bukan admin aktif', async () => {
+    await seedDocument(testEnv, ['leaderContacts', 'ketua'], contact)
+
+    // Akun yang tidak punya dokumen adminUsers sama sekali.
+    const orangLuar = signedInAs(testEnv, 'orang-luar')
+    await assertFails(getDoc(doc(db(orangLuar), 'leaderContacts', 'ketua')))
+
+    // Akun admin yang sudah dinonaktifkan, mis. pengurus periode lalu.
+    const alumni = signedInAs(testEnv, 'alumni')
+    await assertFails(getDoc(doc(db(alumni), 'leaderContacts', 'ketua')))
+  })
+
+  it('mengizinkan pembacaan oleh viewer, karena ia admin aktif', async () => {
+    await seedDocument(testEnv, ['leaderContacts', 'ketua'], contact)
+
+    const pengamat = signedInAs(testEnv, 'pengamat')
+    await assertSucceeds(getDoc(doc(db(pengamat), 'leaderContacts', 'ketua')))
+  })
+
+  it('hanya editor ke atas yang boleh menulis', async () => {
+    const redaksi = signedInAs(testEnv, 'redaksi')
+    await assertSucceeds(setDoc(doc(db(redaksi), 'leaderContacts', 'ketua'), contact))
+
+    const pengamat = signedInAs(testEnv, 'pengamat')
+    await assertFails(setDoc(doc(db(pengamat), 'leaderContacts', 'wakil'), contact))
+
+    const anon = testEnv.unauthenticatedContext()
+    await assertFails(setDoc(doc(db(anon), 'leaderContacts', 'bendahara'), contact))
+  })
+
+  it('memastikan email tidak ikut terbawa dokumen pengurus yang publik', async () => {
+    await seedDocument(
+      testEnv,
+      ['leaders', 'ketua'],
+      withTimestamps({
+        name: 'Latif',
+        role: 'Ketua Himpunan',
+        divisionCode: 'PH',
+        photo: '/a.png',
+        active: true,
+        order: 1,
+      }),
+    )
+
+    const anon = testEnv.unauthenticatedContext()
+    const snapshot = await getDoc(doc(db(anon), 'leaders', 'ketua'))
+
+    expect(snapshot.exists()).toBe(true)
+    expect(snapshot.data()?.email).toBeUndefined()
   })
 })

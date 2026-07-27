@@ -123,8 +123,8 @@ editor
 viewer
 ```
 
-Create the matching `adminUsers/{uid}` document described in section 8 before signing in. Authentication without an
-active admin profile is rejected by both the admin interface and Firestore Rules.
+Only the very first superadmin is created this way. Everyone after that is added from `/admin/users`, which creates the
+Firebase Auth account, assigns the role, and returns a password-setup link to forward. See section 8.
 
 ## 7. Deployment Notes
 
@@ -142,21 +142,41 @@ the CLI before deploying.
 
 ## 8. Admin authorization
 
-Authentication alone does not grant admin access. Every admin must also have a document at:
+Authorization lives in **custom claims on the ID token**, not in a Firestore document. The token carries `role` and,
+for editors, `divisionCode`. Firestore Rules read `request.auth.token` and never touch the database to decide.
+
+Two consequences worth stating plainly:
+
+- A new editor needs nothing but an account. No document has to be hand-written first.
+- Every rules check used to cost a billed document read on every write. That cost is gone.
+
+Claims can only be set by the Admin SDK, through `POST /api/admin/accounts`, which requires a superadmin token. The
+`adminUsers` collection still exists as a human-readable directory for the panel, but **no client can write to it**,
+superadmin included: a document that changes without the claim changing is a list that lies about who can do what.
+
+### Server credential
+
+The account routes need a service account:
 
 ```txt
-adminUsers/{firebase-auth-uid}
+FIREBASE_SERVICE_ACCOUNT   full service-account JSON, or its base64 form
 ```
 
-Required fields:
+Locally, `service-account.json` at the repo root works instead. It is gitignored, and it is a full credential: it
+bypasses Firestore Rules entirely. Never commit it, and never paste it into chat or an issue.
 
-```txt
-uid: string (must match the document ID and Firebase Authentication UID)
-email: string
-displayName: string
-role: "superadmin" | "editor" | "viewer"
-active: true
+### Migrating existing accounts
+
+Accounts that predate custom claims have a document but no claim. Grant the claims **before** deploying the new rules,
+otherwise every account loses access at once, including the superadmin who would fix it:
+
+```powershell
+npm run sync:claims -- --dry-run
+npm run sync:claims
+npx firebase-tools deploy --only firestore:rules
 ```
+
+Affected users must sign in again, or wait for their token to refresh on its own.
 
 Firestore Rules enforce the following model:
 

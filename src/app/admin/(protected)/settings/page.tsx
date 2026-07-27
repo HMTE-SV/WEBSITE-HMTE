@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { AdminCollectionPage } from '@/components/admin/AdminCollectionPage'
+import { AdminSettingsManager } from '@/components/admin/AdminSettingsManager'
 
 export const metadata: Metadata = {
   title: 'Admin Settings HMTE',
@@ -7,14 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function AdminSettingsPage() {
-  return (
-    <AdminCollectionPage
-      activeHref="/admin/settings"
-      description="Kelola pengaturan global website dan preferensi admin."
-      emptyBody="Pengaturan global akan didefinisikan setelah model Firestore dan rules siap."
-      emptyTitle="Settings belum tersedia."
-      kicker="Settings"
-      title="Pengaturan website"
-    />
-  )
+  return <AdminSettingsManager />
 }

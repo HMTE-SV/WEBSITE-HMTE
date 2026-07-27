@@ -1,31 +1,75 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { divisions } from '@/data/divisions'
 import { AdminEmptyState } from './AdminEmptyState'
+import { AdminImageField } from './AdminImageField'
 import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
 import { canAdminWrite } from '@/data/admin-nav'
 import {
+  buildLeaderContactPayload,
   buildOrganizationPayload,
   getEmptyOrganizationFormValues,
   organizationCrudConfigs,
   organizationDocumentToFormValues,
+  toggleProgramMonth,
+  validateOrganizationValues,
   type ManagedOrganizationDocument,
   type OrganizationFormValues,
   type OrganizationKind,
 } from '@/lib/admin/organization-crud'
 import {
+  buildProgramSchedule,
+  formatScheduleShort,
+  getAgendaYear,
+  MONTH_NAMES_SHORT,
+} from '@/lib/program-schedule'
+import {
   createContentDocument,
   deleteContentDocument,
-  listContentDocuments,
+  getContentDocument,
+  subscribeToContentDocuments,
   updateContentDocument,
+  writeContentDocumentAtId,
 } from '@/lib/firebase/content-services'
+import { requestRevalidation } from '@/lib/admin/revalidate'
+import { SITE_SETTINGS_ID } from '@/lib/site-settings-data'
+import { normalizeSiteSettings } from '@/lib/site-settings'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import type { DivisionCode, ProgramStatus } from '@/types/content'
+import type { LeaderContactDocument, SiteSettingsDocument } from '@/types/firestore'
 
-const organizationKinds: OrganizationKind[] = ['leaders', 'divisions', 'programs']
 const programStatuses: ProgramStatus[] = ['Terjadwal', 'Berkala']
+
+/**
+ * Judul halaman per jenis data.
+ *
+ * Ketiganya dulu bertumpuk di balik satu menu "Kepengurusan" dengan tab di
+ * dalamnya, jadi program kerja dan divisi praktis tidak pernah ditemukan
+ * pengurus. Sekarang tiap jenis punya menu dan alamatnya sendiri, dan komponen
+ * ini menerima `kind` sebagai prop, bukan menyimpannya sebagai state.
+ */
+const organizationPageCopy = {
+  leaders: {
+    href: '/admin/leaders',
+    kicker: 'Organisasi',
+    title: 'Kelola pengurus',
+    description: 'Tambah, ubah, dan urutkan anggota kepengurusan beserta status tampil di publik.',
+  },
+  divisions: {
+    href: '/admin/divisions',
+    kicker: 'Organisasi',
+    title: 'Kelola divisi',
+    description: 'Atur unsur organisasi, kode divisi, dan deskripsi yang tampil di halaman divisi.',
+  },
+  programs: {
+    href: '/admin/programs',
+    kicker: 'Organisasi',
+    title: 'Kelola program kerja',
+    description: 'Atur program, bulan rencana, dan tanggal pasti yang menggambar papan agenda.',
+  },
+} as const satisfies Record<OrganizationKind, { href: string; kicker: string; title: string; description: string }>
 
 function getDocumentTitle(kind: OrganizationKind, document: ManagedOrganizationDocument) {
   if (kind === 'divisions' && 'shortName' in document) {
@@ -51,56 +95,136 @@ function getDocumentDetail(kind: OrganizationKind, document: ManagedOrganization
   return document.id
 }
 
-export function AdminOrganizationManager() {
+type AdminOrganizationManagerProps = {
+  kind: OrganizationKind
+}
+
+export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps) {
   const session = useAdminSession()
   const canWrite = canAdminWrite(session.role)
-  const [kind, setKind] = useState<OrganizationKind>('leaders')
+
+  /*
+   * Editor terikat satu bidang; superadmin tidak.
+   *
+   * Pembatasan yang sesungguhnya ada di firestore.rules, dan itu yang menjaga
+   * data. Yang di bawah ini semata-mata agar panel tidak menawarkan sesuatu
+   * yang pasti ditolak server: menampilkan tombol Hapus untuk baris milik
+   * bidang lain hanya menghasilkan pesan gagal yang membingungkan.
+   */
+  const isSuperadmin = session.role === 'superadmin'
+  const lockedDivision = isSuperadmin ? null : session.divisionCode ?? null
+  const isDivisionScoped = !isSuperadmin
+
+  /*
+   * Editor yang belum ditugaskan ke bidang mana pun. Rules menolak seluruh
+   * tulisannya, jadi panel harus mengatakan alasannya alih-alih membiarkan ia
+   * mengisi form lalu gagal menyimpan tanpa penjelasan.
+   */
+  const hasNoDivision = isDivisionScoped && !lockedDivision
   const [items, setItems] = useState<ManagedOrganizationDocument[]>([])
+  const [contacts, setContacts] = useState<Record<string, LeaderContactDocument>>({})
   const [editingId, setEditingId] = useState('')
-  const [values, setValues] = useState<OrganizationFormValues>(() => getEmptyOrganizationFormValues('leaders'))
+  const [values, setValues] = useState<OrganizationFormValues>(() => {
+    const base = getEmptyOrganizationFormValues(kind)
+    const division = session.role === 'superadmin' ? null : session.divisionCode
+    return division ? { ...base, divisionCode: division } : base
+  })
   const [error, setError] = useState('')
+  const [warnings, setWarnings] = useState<string[]>([])
   const [feedback, setFeedback] = useState('')
   const [isLoading, setIsLoading] = useState(hasFirebaseConfig())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [busyId, setBusyId] = useState('')
 
-  const config = organizationCrudConfigs[kind]
+  /*
+   * Tahun papan agenda datang dari settings/site, sama dengan yang dipakai
+   * halaman publik. Nilai bawaan dari kode dipakai sampai pembacaannya selesai,
+   * dan tetap dipakai kalau gagal. Kalau angka ini dibiarkan hardcode, panel
+   * akan mengatakan "Tampil di Agenda 2026" untuk papan yang sebenarnya sudah
+   * digambar tahun berikutnya, dan itu persis jenis ketidakcocokan yang sedang
+   * kita berantas.
+   */
+  const [agendaYear, setAgendaYear] = useState(getAgendaYear())
 
-  const loadItems = useCallback(async () => {
-    if (!hasFirebaseConfig()) {
-      setIsLoading(false)
+  useEffect(() => {
+    if (kind !== 'programs' || !hasFirebaseConfig()) {
       return
     }
 
-    setIsLoading(true)
-    setError('')
+    let cancelled = false
 
-    try {
-      const documents = await listContentDocuments<ManagedOrganizationDocument>(config.collectionName)
-      setItems(documents.sort((first, second) => first.order - second.order))
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Gagal memuat data organisasi.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [config.collectionName])
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      void loadItems()
-    }, 0)
+    getContentDocument<SiteSettingsDocument>('settings', SITE_SETTINGS_ID)
+      .then((document) => {
+        if (cancelled) return
+        setAgendaYear(normalizeSiteSettings(document as Record<string, unknown> | null).agendaYear)
+      })
+      .catch(() => {
+        // Sengaja diam. Tahun bawaan sudah terpasang.
+      })
 
     return () => {
-      window.clearTimeout(timeout)
+      cancelled = true
     }
-  }, [loadItems])
+  }, [kind])
 
-  function changeKind(nextKind: OrganizationKind) {
-    setKind(nextKind)
-    setEditingId('')
-    setValues(getEmptyOrganizationFormValues(nextKind))
-    setError('')
-    setFeedback('')
+  const config = organizationCrudConfigs[kind]
+
+  /*
+   * Langganan, bukan sekali ambil.
+   *
+   * Panel ini dipegang beberapa pengurus sekaligus. Dengan `getDocs`, dua orang
+   * yang bekerja bersamaan tidak pernah melihat perubahan satu sama lain sampai
+   * halamannya dimuat ulang, dan keduanya bisa mengedit baris yang sama dari
+   * kondisi awal yang berbeda tanpa sadar.
+   *
+   * Efek sampingnya juga menghapus seluruh `await loadItems()` setelah simpan
+   * dan hapus: perubahan sendiri sudah kembali lewat listener yang sama, jadi
+   * memanggil ulang hanya menambah satu putaran baca yang tidak perlu.
+   */
+  useEffect(() => {
+    // Tanpa konfigurasi, `isLoading` sudah lahir false dari useState di atas,
+    // jadi tidak ada yang perlu disetel di sini.
+    if (!hasFirebaseConfig()) {
+      return
+    }
+
+    const unsubscribeItems = subscribeToContentDocuments<ManagedOrganizationDocument>(
+      config.collectionName,
+      {
+        onData: (documents) => {
+          setItems([...documents].sort((first, second) => first.order - second.order))
+          setIsLoading(false)
+        },
+        onError: (subscribeError) => {
+          setError(subscribeError.message || 'Gagal memuat data organisasi.')
+          setIsLoading(false)
+        },
+      },
+    )
+
+    // Kontak hanya relevan di halaman pengurus, dan hanya bisa dibaca admin.
+    const unsubscribeContacts = kind === 'leaders'
+      ? subscribeToContentDocuments<LeaderContactDocument>('leaderContacts', {
+          onData: (documents) => {
+            setContacts(Object.fromEntries(documents.map((contact) => [contact.id, contact])))
+          },
+          onError: () => {
+            // Sengaja diam. Kontak yang gagal dimuat berarti kolom email kosong,
+            // dan itu tidak boleh menutupi daftar pengurus yang sudah tampil.
+          },
+        })
+      : null
+
+    return () => {
+      unsubscribeItems()
+      unsubscribeContacts?.()
+    }
+  }, [config.collectionName, kind])
+
+  /** Form kosong yang sudah dikunci ke bidang editor, kalau ia memang terikat. */
+  function emptyValues(): OrganizationFormValues {
+    const base = getEmptyOrganizationFormValues(kind)
+    return lockedDivision ? { ...base, divisionCode: lockedDivision } : base
   }
 
   function updateField<Field extends keyof OrganizationFormValues>(field: Field, value: OrganizationFormValues[Field]) {
@@ -112,14 +236,39 @@ export function AdminOrganizationManager() {
 
   function startEdit(document: ManagedOrganizationDocument) {
     setEditingId(document.id)
-    setValues(organizationDocumentToFormValues(kind, document))
+    setValues(organizationDocumentToFormValues(kind, document, contacts[document.id]?.email || ''))
     setError('')
+    setWarnings([])
     setFeedback('')
   }
 
   function resetForm() {
     setEditingId('')
-    setValues(getEmptyOrganizationFormValues(kind))
+    setValues(emptyValues())
+    setWarnings([])
+  }
+
+  /*
+   * Kontak pengurus tinggal di dokumen terpisah supaya emailnya tidak ikut
+   * terbaca publik. Konsekuensinya satu simpan menyentuh dua dokumen, dan
+   * Firestore tidak menjanjikan keduanya berhasil bersamaan.
+   *
+   * Urutannya sengaja: dokumen pengurus dulu, kontak belakangan. Kalau yang
+   * kedua gagal, yang tertinggal adalah pengurus tanpa email, dan itu bisa
+   * diperbaiki dengan menyimpan ulang. Kalau urutannya dibalik, yang tertinggal
+   * adalah email tanpa pemilik, dan tidak ada layar yang bisa menampilkannya.
+   */
+  async function saveLeaderContact(leaderId: string) {
+    if (kind !== 'leaders') {
+      return
+    }
+
+    await writeContentDocumentAtId<LeaderContactDocument>(
+      'leaderContacts',
+      leaderId,
+      buildLeaderContactPayload(values),
+      Boolean(contacts[leaderId]),
+    )
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -132,6 +281,14 @@ export function AdminOrganizationManager() {
       return
     }
 
+    const validation = validateOrganizationValues(kind, values)
+    setWarnings(validation.warnings)
+
+    if (validation.errors.length > 0) {
+      setError(validation.errors.join(' '))
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -139,14 +296,16 @@ export function AdminOrganizationManager() {
 
       if (editingId) {
         await updateContentDocument(config.collectionName, editingId, payload)
+        await saveLeaderContact(editingId)
         setFeedback(`${config.label} berhasil diperbarui.`)
       } else {
-        await createContentDocument(config.collectionName, payload)
+        const createdId = await createContentDocument(config.collectionName, payload)
+        await saveLeaderContact(createdId)
         setFeedback(`${config.label} berhasil ditambahkan.`)
       }
 
+      await requestRevalidation('organization')
       resetForm()
-      await loadItems()
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Gagal menyimpan data organisasi.')
     } finally {
@@ -164,7 +323,7 @@ export function AdminOrganizationManager() {
         active: !document.active,
       })
       setFeedback('Status aktif berhasil diperbarui.')
-      await loadItems()
+      await requestRevalidation('organization')
     } catch (activeError) {
       setError(activeError instanceof Error ? activeError.message : 'Gagal memperbarui status.')
     } finally {
@@ -185,8 +344,16 @@ export function AdminOrganizationManager() {
 
     try {
       await deleteContentDocument(config.collectionName, document.id)
+
+      // Kontak tidak ikut terhapus sendiri. Firestore tidak punya cascade, dan
+      // dokumen yatim di sini berarti email seseorang tetap tersimpan setelah
+      // namanya dihapus dari kepengurusan.
+      if (kind === 'leaders' && contacts[document.id]) {
+        await deleteContentDocument('leaderContacts', document.id)
+      }
+
       setFeedback(`${config.label} berhasil dihapus.`)
-      await loadItems()
+      await requestRevalidation('organization')
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus data organisasi.')
     } finally {
@@ -194,27 +361,35 @@ export function AdminOrganizationManager() {
     }
   }
 
+  // Pratinjau dihitung ulang tiap ketikan supaya pengurus melihat akibat
+  // isiannya sebelum menyimpan. Ini yang mengubah pengisian tanggal dari
+  // kewajiban administratif jadi umpan balik langsung.
+  const schedulePreview = buildProgramSchedule({
+    status: values.programStatus,
+    date: '',
+    months: values.months,
+    startDate: values.startDate,
+    endDate: values.endDate,
+  })
+  const copy = organizationPageCopy[kind]
+
+  // Divisi tidak punya `divisionCode`; ia adalah divisinya sendiri. Menyaringnya
+  // dengan field yang tidak ada akan mengosongkan seluruh daftar.
+  const visibleItems = isDivisionScoped && kind !== 'divisions'
+    ? items.filter((item) => 'divisionCode' in item && item.divisionCode === lockedDivision)
+    : items
+
+  // Editor tidak boleh menulis divisi sama sekali (aturan superadmin di rules),
+  // dan editor tanpa bidang tidak boleh menulis apa pun di halaman ini.
+  const canWriteHere = canWrite && !hasNoDivision && !(kind === 'divisions' && !isSuperadmin)
+
   return (
     <AdminShell
-      activeHref="/admin/leaders"
-      description="Kelola pengurus, unsur organisasi, program kerja, urutan tampil, dan status aktif."
-      kicker="Kepengurusan"
-      title="Kelola organisasi"
+      activeHref={copy.href}
+      description={copy.description}
+      kicker={copy.kicker}
+      title={copy.title}
     >
-      <div className="admin-tabbar" role="tablist" aria-label="Data organisasi">
-        {organizationKinds.map((item) => (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={kind === item}
-            onClick={() => changeKind(item)}
-            key={item}
-          >
-            {organizationCrudConfigs[item].label}
-          </button>
-        ))}
-      </div>
-
       {!hasFirebaseConfig() ? (
         <AdminEmptyState
           body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat mengelola data organisasi dari Firestore."
@@ -223,7 +398,7 @@ export function AdminOrganizationManager() {
         />
       ) : (
         <>
-          {canWrite ? (
+          {canWriteHere ? (
             <form className="admin-content-form" onSubmit={handleSubmit}>
             <div className="admin-form-grid">
               <div className="admin-field">
@@ -252,6 +427,7 @@ export function AdminOrganizationManager() {
                     <label htmlFor="org-division">Divisi</label>
                     <select
                       id="org-division"
+                      disabled={isDivisionScoped}
                       value={values.divisionCode}
                       onChange={(event) => updateField('divisionCode', event.target.value as DivisionCode)}
                     >
@@ -263,21 +439,58 @@ export function AdminOrganizationManager() {
                     </select>
                   </div>
                 </div>
-                <div className="admin-field">
-                  <label htmlFor="org-photo">URL foto</label>
-                  <input id="org-photo" value={values.photo} onChange={(event) => updateField('photo', event.target.value)} />
-                </div>
+                <AdminImageField
+                  folder="pengurus"
+                  hint="Potret tegak, wajah di sepertiga atas. Maksimal 3MB, format JPG, PNG, atau WebP."
+                  label="Foto pengurus"
+                  onChange={(url) => updateField('photo', url)}
+                  value={values.photo}
+                />
                 <div className="admin-form-grid">
                   <div className="admin-field">
-                    <label htmlFor="org-email">Email</label>
-                    <input id="org-email" value={values.email} onChange={(event) => updateField('email', event.target.value)} />
+                    <label htmlFor="org-email">Email (internal)</label>
+                    <input
+                      id="org-email"
+                      type="email"
+                      value={values.email}
+                      onChange={(event) => updateField('email', event.target.value)}
+                      aria-describedby="org-email-hint"
+                    />
+                    <p className="admin-field-hint" id="org-email-hint">
+                      Disimpan terpisah dan tidak pernah tampil di halaman publik.
+                    </p>
                   </div>
+                  <div className="admin-field">
+                    <label htmlFor="org-batch">Angkatan</label>
+                    <input
+                      id="org-batch"
+                      inputMode="numeric"
+                      placeholder="2023"
+                      value={values.batch}
+                      onChange={(event) => updateField('batch', event.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="admin-form-grid">
                   <div className="admin-field">
                     <label htmlFor="org-instagram">Instagram</label>
                     <input
                       id="org-instagram"
                       value={values.instagram}
                       onChange={(event) => updateField('instagram', event.target.value)}
+                    />
+                  </div>
+                  <div className="admin-field">
+                    {/*
+                      Isian ini dulu tidak ada padahal payload tetap menulis
+                      values.linkedin. Akibatnya menyimpan pengurus lewat panel
+                      diam-diam mengosongkan tautan LinkedIn-nya.
+                    */}
+                    <label htmlFor="org-linkedin">LinkedIn</label>
+                    <input
+                      id="org-linkedin"
+                      value={values.linkedin}
+                      onChange={(event) => updateField('linkedin', event.target.value)}
                     />
                   </div>
                 </div>
@@ -329,6 +542,7 @@ export function AdminOrganizationManager() {
                     <label htmlFor="org-program-division">Divisi</label>
                     <select
                       id="org-program-division"
+                      disabled={isDivisionScoped}
                       value={values.divisionCode}
                       onChange={(event) => updateField('divisionCode', event.target.value as DivisionCode)}
                     >
@@ -354,29 +568,90 @@ export function AdminOrganizationManager() {
                     </select>
                   </div>
                 </div>
+                <div className="admin-field">
+                  <label htmlFor="org-desc">Deskripsi singkat</label>
+                  <input id="org-desc" value={values.desc} onChange={(event) => updateField('desc', event.target.value)} />
+                </div>
+
+                <fieldset className="admin-month-picker">
+                  <legend>Bulan rencana</legend>
+                  <p className="admin-field-hint" id="org-months-hint">
+                    Bulan perkiraan dari Buku Panduan. Ini yang menggambar arsir program di peta
+                    dua belas bulan halaman Agenda. Boleh dikosongkan kalau tanggalnya sudah pasti.
+                  </p>
+                  <div className="admin-month-grid" aria-describedby="org-months-hint">
+                    {MONTH_NAMES_SHORT.map((label, index) => {
+                      const month = index + 1
+                      const isSelected = values.months.includes(month)
+
+                      return (
+                        <button
+                          type="button"
+                          className="admin-month-box"
+                          aria-pressed={isSelected}
+                          onClick={() => updateField('months', toggleProgramMonth(values.months, month))}
+                          key={label}
+                        >
+                          {label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+
                 <div className="admin-form-grid">
                   <div className="admin-field">
-                    <label htmlFor="org-date">Tanggal</label>
-                    <input id="org-date" value={values.date} onChange={(event) => updateField('date', event.target.value)} />
+                    <label htmlFor="org-start-date">Tanggal mulai</label>
+                    <input
+                      id="org-start-date"
+                      type="date"
+                      value={values.startDate}
+                      onChange={(event) => updateField('startDate', event.target.value)}
+                      aria-describedby="org-date-hint"
+                    />
                   </div>
                   <div className="admin-field">
-                    <label htmlFor="org-desc">Deskripsi singkat</label>
-                    <input id="org-desc" value={values.desc} onChange={(event) => updateField('desc', event.target.value)} />
+                    <label htmlFor="org-end-date">Tanggal selesai</label>
+                    <input
+                      id="org-end-date"
+                      type="date"
+                      value={values.endDate}
+                      onChange={(event) => updateField('endDate', event.target.value)}
+                      aria-describedby="org-date-hint"
+                    />
                   </div>
                 </div>
+                <p className="admin-field-hint" id="org-date-hint">
+                  Kosongkan kalau tanggal belum fix. Kegiatan sehari cukup isi tanggal mulai.
+                  Tanggal pasti selalu menang atas bulan rencana di atas.
+                </p>
+
+                <div className="admin-schedule-preview" aria-live="polite">
+                  <span className="admin-schedule-preview-kicker">
+                    Tampil di Agenda {agendaYear}
+                  </span>
+                  <strong>{schedulePreview.label}</strong>
+                  <p>
+                    {schedulePreview.precision === 'exact'
+                      ? `Tanggal pasti, ${schedulePreview.dayCount} hari. Kartu program menulis "${formatScheduleShort(schedulePreview)}".`
+                      : schedulePreview.precision === 'planned'
+                        ? `Baru bulan rencana, digambar redup tanpa angka hari. Kartu program menulis "${formatScheduleShort(schedulePreview)}".`
+                        : 'Belum punya bulan maupun tanggal, jadi tidak digambar di peta tahun.'}
+                  </p>
+                </div>
+
                 <div className="admin-field">
-                  <label htmlFor="org-months">Bulan pelaksanaan</label>
+                  <label htmlFor="org-date">Label tanggal manual</label>
                   <input
-                    id="org-months"
-                    value={values.months}
-                    onChange={(event) => updateField('months', event.target.value)}
-                    placeholder="3, 6, 9, 12"
-                    aria-describedby="org-months-hint"
+                    id="org-date"
+                    value={values.date}
+                    onChange={(event) => updateField('date', event.target.value)}
+                    placeholder={schedulePreview.label}
+                    aria-describedby="org-date-label-hint"
                   />
-                  <p className="admin-field-hint" id="org-months-hint">
-                    Angka 1-12 dipisah koma. Ini yang menggambar tanda program di peta dua belas
-                    bulan halaman Agenda — kalau dikosongkan, program tetap terbit tapi tidak muncul
-                    di peta.
+                  <p className="admin-field-hint" id="org-date-label-hint">
+                    Biarkan kosong dan labelnya diambil dari jadwal di atas. Isi hanya kalau butuh
+                    kalimat khusus, misalnya &quot;Menyesuaikan kalender akademik&quot;.
                   </p>
                 </div>
               </>
@@ -391,6 +666,13 @@ export function AdminOrganizationManager() {
               <p className="admin-form-error" role="alert">
                 {error}
               </p>
+            ) : null}
+            {warnings.length > 0 ? (
+              <ul className="admin-form-warning" aria-live="polite">
+                {warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
             ) : null}
             {feedback ? <p className="admin-form-success">{feedback}</p> : null}
 
@@ -407,15 +689,21 @@ export function AdminOrganizationManager() {
             </form>
           ) : (
             <AdminEmptyState
-              body="Role viewer dapat membaca data organisasi, tetapi tidak dapat menambah, mengubah, atau menghapusnya."
+              body={
+                hasNoDivision
+                  ? 'Akun ini belum ditugaskan ke bidang mana pun, jadi belum ada data yang boleh diubah. Minta superadmin menetapkannya lewat menu Akun Admin.'
+                  : kind === 'divisions'
+                    ? 'Daftar unsur organisasi hanya bisa diubah superadmin, karena kode divisi di sini yang menentukan batas wewenang semua editor.'
+                    : 'Role viewer dapat membaca data organisasi, tetapi tidak dapat menambah, mengubah, atau menghapusnya.'
+              }
               kicker="Akses"
-              title="Mode lihat saja"
+              title={hasNoDivision ? 'Bidang belum ditetapkan' : 'Mode lihat saja'}
             />
           )}
 
           {isLoading ? (
             <AdminEmptyState body="Mohon tunggu sebentar." kicker="Memuat" title="Mengambil data organisasi..." />
-          ) : items.length === 0 ? (
+          ) : visibleItems.length === 0 ? (
             <AdminEmptyState
               body={`Tambahkan ${config.label.toLowerCase()} pertama untuk mulai mengelola data organisasi.`}
               title={`${config.label} belum ada.`}
@@ -433,7 +721,7 @@ export function AdminOrganizationManager() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item) => (
+                  {visibleItems.map((item) => (
                     <tr key={item.id}>
                       <td>
                         <strong>{getDocumentTitle(kind, item)}</strong>
@@ -446,7 +734,7 @@ export function AdminOrganizationManager() {
                       </td>
                       <td>{item.order}</td>
                       <td>
-                        {canWrite ? (
+                        {canWriteHere ? (
                           <div className="admin-table-actions">
                             <button type="button" onClick={() => startEdit(item)}>
                               Edit

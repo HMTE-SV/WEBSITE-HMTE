@@ -13,7 +13,6 @@ const staticRoutes = [
   '/pengumuman',
   '/program-kerja',
   '/kepengurusan',
-  '/divisi',
   '/galeri',
   '/aspirasi',
   '/kontak',

@@ -1,0 +1,1439 @@
+/* ============================================================
+   SISTEM PERMUKAAN LEMBUT
+   Berlaku untuk seluruh situs publik.
+
+   Kenapa ada: versi sebelumnya memakai hairline 1px sebagai satu-satunya alat
+   struktur, lalu mengulanginya puluhan kali dalam satu layar. Garis berhenti
+   jadi struktur dan mulai jadi kebisingan. Di sini struktur dibawa oleh
+   PERMUKAAN (kartu putih di atas latar cekung, sudut membulat, bayangan sangat
+   lembut) dan oleh WARNA per bidang, bukan oleh garis.
+
+   Aturan yang mengikat berkas ini:
+   1. Tidak ada border sebagai pemisah antar kartu. Jarak dan bayangan yang
+      memisahkan. Garis hanya boleh di dalam satu kartu, sebagai pemisah baris
+      daftar, dan harus inset.
+   2. Warna divisi dipakai untuk WAYFINDING, bukan dekorasi. Satu bidang selalu
+      punya warna yang sama di seluruh situs.
+   3. Ukuran teks terkecil 11px. Mono hanya untuk aksen sangat pendek (kode
+      bidang, angka), tidak pernah untuk label kalimat.
+
+   Berkas ini lahir untuk /kepengurusan, /program-kerja, dan /agenda. Sejak
+   2026-07-28 tokennya dipakai seluruh situs: /divisi, /berita, beranda, dan
+   halaman rincian. Yang dipinjam halaman lain adalah TOKEN (--sr-*), bukan
+   kelasnya, jadi setiap halaman tetap memakai kelasnya sendiri tapi radius,
+   bayangan, dan warna tinta ikut satu sumber.
+
+   Satu pengecualian: /kontak. Halaman itu memakai konsep kartu pos, dan sudut
+   siku di sana memang bagian dari metaforanya.
+   ============================================================ */
+
+:root {
+  /* Radius */
+  --sr-xs: 8px;
+  --sr-sm: 12px;
+  --sr-md: 18px;
+  --sr-lg: 24px;
+  --sr-pill: 999px;
+
+  /* Permukaan */
+  --sr-sunken: #EFEDE8;
+  --sr-card: #ffffff;
+  --sr-card-quiet: #F7F6F3;
+
+  /* Teks. Diperkuat dari token lama: --fg-muted #5c6e7e hanya 5.27:1 dan jatuh
+     di bawah ambang begitu dipakai di atas kartu bernada. */
+  --sr-ink: #0F2437;
+  --sr-ink-soft: #4E6076;
+  /* Hanya untuk elemen non-teks (chevron). 3.10:1 lolos ambang komponen UI
+     3:1, tapi TIDAK cukup untuk teks. Jangan dipakai sebagai warna teks. */
+  --sr-ink-faint: #8095A8;
+
+  /*
+   * Bayangan sengaja sangat rendah dan bernada navy, bukan hitam. Bayangan
+   * hitam di atas kertas hangat terbaca kotor.
+   */
+  --sr-shadow-1:
+    0 1px 2px rgba(var(--hmte-navy-rgb), 0.04),
+    0 4px 14px rgba(var(--hmte-navy-rgb), 0.05);
+  --sr-shadow-2:
+    0 2px 4px rgba(var(--hmte-navy-rgb), 0.05),
+    0 12px 32px rgba(var(--hmte-navy-rgb), 0.09);
+
+  --sr-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Skala z semantik */
+  --sr-z-sticky: 20;
+  --sr-z-overlay: 40;
+}
+
+/* ---- Warna bidang ----
+   Delapan rona yang seluruhnya lolos WCAG AA di atas putih (5.04:1 sampai
+   9.83:1), jadi aman dipakai sebagai warna teks, bukan cuma sebagai titik.
+   Diturunkan dari navy sebagai jangkar supaya tetap satu keluarga dan tidak
+   berubah jadi pelangi. */
+
+[data-div] {
+  --div: var(--hmte-navy);
+  --div-tint: rgba(var(--hmte-navy-rgb), 0.08);
+}
+
+[data-div='PH']      { --div: #1B4571; --div-tint: rgba(27, 69, 113, 0.09); }
+[data-div='PSDM']    { --div: #0F6E63; --div-tint: rgba(15, 110, 99, 0.09); }
+[data-div='PHAL']    { --div: #46539B; --div-tint: rgba(70, 83, 155, 0.09); }
+[data-div='MINKAT']  { --div: #A85B12; --div-tint: rgba(168, 91, 18, 0.10); }
+[data-div='KOMINFO'] { --div: #A33447; --div-tint: rgba(163, 52, 71, 0.09); }
+[data-div='IPTEK']   { --div: #12657F; --div-tint: rgba(18, 101, 127, 0.09); }
+[data-div='KEWIRUS'] { --div: #356B31; --div-tint: rgba(53, 107, 49, 0.09); }
+[data-div='KASTRAD'] { --div: #6E4079; --div-tint: rgba(110, 64, 121, 0.09); }
+
+/* ---- Kerangka halaman ---- */
+
+.soft-surface {
+  padding: clamp(40px, 6vw, 88px) 0 clamp(64px, 8vw, 120px);
+  background: var(--sr-sunken);
+}
+
+.soft-shell {
+  width: min(100% - 2 * var(--public-gutter), 1240px);
+  margin: 0 auto;
+}
+
+/* ---- Kartu ---- */
+
+.sfc {
+  border-radius: var(--sr-lg);
+  background: var(--sr-card);
+  box-shadow: var(--sr-shadow-1);
+}
+
+/* ---- Kepala bagian ---- */
+
+.soft-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: clamp(20px, 4vw, 56px);
+  flex-wrap: wrap;
+  margin-bottom: clamp(22px, 3vw, 34px);
+}
+
+.soft-head h2 {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--sr-ink);
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.2vw, 40px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.soft-head > p {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--sr-ink-soft);
+  font-size: 14.5px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* ---- Pil penyaring ----
+   Pengganti tombol kotak bersudut tajam. Satu wadah cekung membulat berisi
+   pil, seperti segmented control. */
+
+.soft-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px;
+  border-radius: var(--sr-pill);
+  background: rgba(var(--hmte-navy-rgb), 0.06);
+}
+
+.soft-pills button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: var(--sr-pill);
+  color: var(--sr-ink-soft);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition:
+    color 200ms var(--sr-ease),
+    background-color 220ms var(--sr-ease),
+    box-shadow 220ms var(--sr-ease);
+}
+
+.soft-pills button:hover {
+  color: var(--sr-ink);
+}
+
+.soft-pills button.is-active {
+  color: var(--sr-ink);
+  background: var(--sr-card);
+  box-shadow: var(--sr-shadow-1);
+}
+
+/* Titik warna bidang di dalam pil: penanda wayfinding, bukan hiasan. */
+.soft-pills button i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--div, var(--hmte-navy));
+  opacity: 0.45;
+  transition: opacity 200ms var(--sr-ease);
+}
+
+.soft-pills button.is-active i {
+  opacity: 1;
+}
+
+.soft-pills button:focus-visible {
+  outline: 2px solid var(--hmte-navy);
+  outline-offset: 2px;
+}
+
+/* ---- Kolom pencarian ---- */
+
+.soft-search {
+  position: relative;
+  display: block;
+  width: min(100%, 300px);
+}
+
+.soft-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--sr-pill);
+  color: var(--sr-ink);
+  background: rgba(var(--hmte-navy-rgb), 0.06);
+  font: 13.5px var(--font-body);
+  transition: background-color 200ms var(--sr-ease);
+}
+
+.soft-search input::placeholder {
+  /* 4.92:1 di atas latar input yang sudah dikomposit (#E1E1DF). Placeholder abu
+     terang adalah kegagalan kontras paling umum dan paling mudah lolos tanpa
+     ketahuan, jadi nadanya ditarik sampai selevel teks sekunder. */
+  color: var(--sr-ink-soft);
+}
+
+.soft-search input:focus {
+  outline: 2px solid var(--hmte-navy);
+  outline-offset: 2px;
+  background: var(--sr-card);
+}
+
+/* ---- Badge tanggal ----
+   Model waktu yang menggantikan rail dua belas bulan. Tanggal pasti tampil
+   sebagai angka besar yang benar-benar terbaca; program yang baru punya bulan
+   rencana menampilkan bulannya saja, dengan nada lebih redup supaya perbedaan
+   kepastiannya terlihat tanpa perlu keterangan. */
+
+.date-badge {
+  display: grid;
+  place-content: center;
+  gap: 1px;
+  width: 58px;
+  min-height: 58px;
+  padding: 8px 4px;
+  border-radius: var(--sr-md);
+  background: var(--div-tint);
+  text-align: center;
+}
+
+.date-badge b {
+  display: block;
+  color: var(--div);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.date-badge span {
+  display: block;
+  color: var(--div);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Belum bertanggal: hanya bulan, tanpa angka hari, dan lebih tenang. */
+.date-badge[data-precision='planned'] {
+  background: rgba(var(--hmte-navy-rgb), 0.05);
+}
+
+.date-badge[data-precision='planned'] b,
+.date-badge[data-precision='planned'] span {
+  color: var(--sr-ink-soft);
+}
+
+.date-badge[data-precision='planned'] span {
+  font-size: 11px;
+}
+
+.date-badge[data-precision='unscheduled'] {
+  background: rgba(var(--hmte-navy-rgb), 0.04);
+}
+
+/* "Belum" itu teks, bukan hiasan, jadi harus lolos 4.5:1. --sr-ink-faint cuma
+   2.86:1 di atas nada badge ini dan tidak boleh dipakai untuk teks. */
+.date-badge[data-precision='unscheduled'] span {
+  color: var(--sr-ink-soft);
+  font-size: 10px;
+}
+
+/* Jumlah bulan tambahan pada program yang jatuh di beberapa bulan. */
+.date-badge-more {
+  color: var(--sr-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.date-badge[data-precision='planned'] b.date-badge-more {
+  font-size: 10px;
+}
+
+/* ---- Label kecil ---- */
+
+/* justify-self penting: tag ini sering jadi anak grid, dan tanpa ini ia
+   meregang selebar kartu. */
+.soft-tag {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--sr-pill);
+  background: var(--div-tint);
+  color: var(--div);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.soft-tag-quiet {
+  background: rgba(var(--hmte-navy-rgb), 0.055);
+  color: var(--sr-ink-soft);
+}
+
+/* ---- Keadaan kosong ---- */
+
+.soft-empty {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: clamp(48px, 8vw, 88px) 24px;
+  border-radius: var(--sr-lg);
+  background: var(--sr-card);
+  box-shadow: var(--sr-shadow-1);
+  text-align: center;
+}
+
+.soft-empty strong {
+  color: var(--sr-ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.soft-empty p {
+  max-width: 40ch;
+  margin: 0;
+  color: var(--sr-ink-soft);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.soft-empty button {
+  min-height: 42px;
+  margin-top: 10px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--sr-pill);
+  color: #fff;
+  background: var(--hmte-navy);
+  font: 600 13px var(--font-body);
+  cursor: pointer;
+  transition: background-color 200ms var(--sr-ease);
+}
+
+.soft-empty button:hover {
+  background: var(--hmte-navy-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soft-pills button,
+  .soft-pills button i,
+  .soft-search input,
+  .soft-empty button {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   /kepengurusan : direktori berkelompok
+   ============================================================ */
+
+.ppl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(24px, 3vw, 36px);
+}
+
+.ppl-toolbar-side {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ppl-count {
+  margin: 0;
+  color: var(--sr-ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/*
+ * Multi-kolom, bukan grid. Tiap bidang punya jumlah anggota berbeda (5 sampai
+ * 11), jadi kartunya tingginya berbeda-beda. Grid akan meregangkan semuanya ke
+ * baris tertinggi dan meninggalkan lubang; kolom membiarkan kartu mengalir
+ * rapat mengikuti tingginya masing-masing.
+ */
+.ppl-columns {
+  columns: 2;
+  column-gap: 20px;
+}
+
+.ppl-group {
+  display: block;
+  margin: 0 0 20px;
+  padding: 18px 18px 8px;
+  break-inside: avoid;
+}
+
+.ppl-group-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 4px 14px;
+}
+
+.ppl-group-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--sr-sm);
+  color: #fff;
+  background: var(--div);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ppl-group-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ppl-group-copy h2 {
+  margin: 0;
+  color: var(--sr-ink);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.ppl-group-copy small {
+  color: var(--sr-ink-soft);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ppl-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ppl-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 12px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 4px;
+  border-radius: var(--sr-sm);
+  color: var(--sr-ink);
+  text-decoration: none;
+  transition: background-color 180ms var(--sr-ease);
+}
+
+.ppl-row:hover {
+  background: var(--div-tint);
+}
+
+.ppl-row:focus-visible {
+  outline: 2px solid var(--div);
+  outline-offset: -2px;
+}
+
+/*
+ * Pemisah baris adalah satu-satunya garis yang diizinkan sistem ini, dan hanya
+ * di dalam kartu. Inset dari tepi supaya kartunya tetap terbaca sebagai satu
+ * permukaan utuh, bukan sebagai tabel.
+ */
+.ppl-list li + li .ppl-row {
+  box-shadow: inset 0 1px 0 rgba(var(--hmte-navy-rgb), 0.07);
+}
+
+.ppl-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--div);
+  background: var(--div-tint);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* Jabatan inti: avatar pejal. Hierarki tanpa mengubah ukuran atau menambah garis. */
+.ppl-avatar[data-core='true'] {
+  color: #fff;
+  background: var(--div);
+}
+
+.ppl-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ppl-copy strong {
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ppl-copy small {
+  overflow: hidden;
+  color: var(--sr-ink-soft);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ppl-chev {
+  color: var(--sr-ink-faint);
+  font-size: 17px;
+  line-height: 1;
+  transition: transform 180ms var(--sr-ease), color 180ms var(--sr-ease);
+}
+
+.ppl-row:hover .ppl-chev {
+  color: var(--div);
+  transform: translateX(2px);
+}
+
+@media (max-width: 900px) {
+  .ppl-columns {
+    columns: 1;
+  }
+
+  .ppl-toolbar-side {
+    width: 100%;
+  }
+
+  .soft-search {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ppl-row,
+  .ppl-chev {
+    transition: none;
+  }
+}
+
+/* ---- Hero /kepengurusan ---- */
+
+.ppl-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(20px, 4vw, 60px);
+  flex-wrap: wrap;
+  margin-bottom: clamp(28px, 4vw, 44px);
+  padding: clamp(28px, 4vw, 52px);
+  overflow: hidden;
+  border-radius: var(--sr-lg);
+  color: #fff;
+  background: var(--hmte-navy-deep);
+  isolation: isolate;
+}
+
+.ppl-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 56ch;
+}
+
+.ppl-hero-copy > p:first-child {
+  margin: 0 0 14px;
+  color: var(--hmte-gold);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ppl-hero-copy h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  /* Plafon clamp dijaga jauh di bawah 96px: ini halaman direktori, bukan hero
+     kampanye, dan judul yang berteriak justru menambah kelelahan visual. */
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.ppl-hero-copy h1 span {
+  color: var(--hmte-gold);
+}
+
+.ppl-hero-lead {
+  max-width: 52ch;
+  margin: 16px 0 0;
+  color: #C6D3E2;
+  /* Teks terang di atas gelap terbaca lebih tipis, jadi line-height ditambah. */
+  font-size: 14.5px;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+.ppl-hero-mark {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+
+.ppl-hero-mark img {
+  display: block;
+  width: clamp(88px, 11vw, 150px);
+  height: auto;
+}
+
+/*
+ * Ringkasan angka di hero. Ditambahkan saat /divisi dilebur ke sini: angkanya
+ * dulu ada di hero /divisi, dan menghapus halaman itu tanpa memindahkan
+ * ringkasannya akan menghilangkan satu-satunya tempat pengunjung bisa tahu
+ * berapa besar kepengurusan ini tanpa menghitung sendiri.
+ */
+.ppl-hero-stats {
+  display: flex;
+  gap: clamp(20px, 3vw, 40px);
+  flex-wrap: wrap;
+  margin: clamp(20px, 3vw, 30px) 0 0;
+}
+
+.ppl-hero-stats > div {
+  display: grid;
+  gap: 4px;
+}
+
+.ppl-hero-stats dt {
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ppl-hero-stats dd {
+  margin: 0;
+  color: var(--hmte-gold);
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+/*
+ * Papan bidang dulu berupa section selebar layar dengan latarnya sendiri di
+ * /divisi. Di sini ia satu balok di dalam .soft-shell, jadi padding dan latar
+ * seksinya dilepas; jaraknya diurus alirannya sendiri.
+ */
+.soft-shell > .division-index-board {
+  padding: 0;
+  margin-bottom: clamp(34px, 5vw, 56px);
+  background: none;
+}
+
+/* ============================================================
+   /program-kerja : bento + katalog
+   ============================================================ */
+
+/*
+ * Bento. Panel naratif menempati dua kolom dan dua baris; tiga tegel angka
+ * mengisi kolom ketiga. Ukurannya berbeda karena perannya berbeda: satu
+ * bercerita, tiga lainnya menghitung. Bukan variasi ukuran demi variasi.
+ */
+.pk-bento {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: clamp(48px, 7vw, 88px);
+}
+
+.pk-bento-lead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  grid-column: span 2;
+  grid-row: span 3;
+  min-height: 320px;
+  padding: clamp(28px, 3.5vw, 52px);
+  overflow: hidden;
+  border-radius: var(--sr-lg);
+  color: #fff;
+  background: var(--hmte-navy-deep);
+  isolation: isolate;
+}
+
+.pk-bento-lead-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.pk-bento-lead-copy > p:first-child {
+  margin: 0 0 14px;
+  color: var(--hmte-gold);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.pk-bento-lead-copy h1 {
+  max-width: 16ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.6vw, 46px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.pk-bento-lead-copy h1 span {
+  color: var(--hmte-gold);
+}
+
+.pk-bento-lead-note {
+  max-width: 46ch;
+  margin: 16px 0 0;
+  color: #C6D3E2;
+  font-size: 14px;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+.pk-tile {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 20px 24px;
+}
+
+.pk-tile b {
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.pk-tile span {
+  color: var(--sr-ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---- Program unggulan ---- */
+
+.pk-featured {
+  margin-bottom: clamp(48px, 7vw, 88px);
+}
+
+.pk-featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.pk-hero-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  border-radius: var(--sr-lg);
+  background: var(--sr-card);
+  box-shadow: var(--sr-shadow-1);
+  color: var(--sr-ink);
+  text-decoration: none;
+  transition:
+    transform 320ms var(--sr-ease),
+    box-shadow 320ms var(--sr-ease);
+}
+
+.pk-hero-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sr-shadow-2);
+}
+
+.pk-hero-card:focus-visible {
+  outline: 2px solid var(--div);
+  outline-offset: 3px;
+}
+
+.pk-hero-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--div-tint);
+}
+
+.pk-hero-media img {
+  object-fit: cover;
+  transition: transform 520ms var(--sr-ease);
+}
+
+.pk-hero-card:hover .pk-hero-media img {
+  transform: scale(1.04);
+}
+
+.pk-hero-body {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 20px 22px 22px;
+}
+
+.pk-hero-body h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+}
+
+.pk-hero-body > p {
+  margin: 0;
+  color: var(--sr-ink-soft);
+  font-size: 13.5px;
+  line-height: 1.62;
+}
+
+.pk-hero-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.pk-hero-foot time {
+  color: var(--div);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.pk-hero-foot b {
+  color: var(--div);
+  font-size: 16px;
+  transition: transform 280ms var(--sr-ease);
+}
+
+.pk-hero-card:hover .pk-hero-foot b {
+  transform: translateX(3px);
+}
+
+/* ---- Katalog ---- */
+
+.pk-subhead {
+  max-width: 52ch;
+  margin: 10px 0 0;
+  color: var(--sr-ink-soft);
+  font-size: 14px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.pk-filters {
+  display: grid;
+  gap: 12px;
+  margin-bottom: clamp(20px, 3vw, 30px);
+}
+
+.pk-filters-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.pk-card {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 12px;
+  padding: 20px 22px 18px;
+  color: var(--sr-ink);
+  text-decoration: none;
+  transition:
+    transform 300ms var(--sr-ease),
+    box-shadow 300ms var(--sr-ease);
+}
+
+.pk-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sr-shadow-2);
+}
+
+.pk-card:focus-visible {
+  outline: 2px solid var(--div);
+  outline-offset: 3px;
+}
+
+.pk-card-top {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pk-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pk-star {
+  color: var(--hmte-gold-deep);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.pk-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 17.5px;
+  font-weight: 600;
+  line-height: 1.26;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.pk-card > p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--sr-ink-soft);
+  font-size: 13px;
+  line-height: 1.62;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.pk-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pk-card-foot time {
+  overflow: hidden;
+  color: var(--div);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .pk-bento {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pk-bento-lead {
+    grid-column: span 3;
+    grid-row: auto;
+    min-height: 0;
+  }
+
+  .pk-tile {
+    padding: 16px 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .pk-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-hero-card,
+  .pk-hero-media img,
+  .pk-hero-foot b,
+  .pk-card {
+    transition: none;
+  }
+
+  .pk-hero-card:hover,
+  .pk-card:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================
+   /agenda : peta tahun + isi bulan
+   ============================================================ */
+
+.ag-bento {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+
+.ag-lead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  grid-column: span 2;
+  grid-row: span 3;
+  min-height: 300px;
+  padding: clamp(28px, 3.5vw, 52px);
+  overflow: hidden;
+  border-radius: var(--sr-lg);
+  color: #fff;
+  background: var(--hmte-navy-deep);
+  isolation: isolate;
+}
+
+.ag-lead-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.ag-lead-copy > p:first-child {
+  margin: 0 0 14px;
+  color: var(--hmte-gold);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.ag-lead-copy h1 {
+  max-width: 15ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.6vw, 46px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.ag-lead-copy h1 span {
+  color: var(--hmte-gold);
+}
+
+.ag-lead-note {
+  max-width: 48ch;
+  margin: 16px 0 0;
+  color: #C6D3E2;
+  font-size: 14px;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+.ag-tile {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 18px 22px;
+}
+
+.ag-tile b {
+  color: var(--hmte-navy);
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.ag-tile span {
+  color: var(--sr-ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---- Saringan bidang ---- */
+
+.ag-filter {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+/* ---- Peta tahun ----
+   Satu-satunya visualisasi waktu di seluruh situs. Dua belas tegel setara,
+   tanpa garis pemisah: jarak antar tegel yang memisahkan. */
+
+.ag-year {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: clamp(20px, 3vw, 30px);
+}
+
+.ag-month {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 104px;
+  padding: 14px 15px 13px;
+  border: 0;
+  border-radius: var(--sr-md);
+  color: var(--sr-ink);
+  background: var(--sr-card);
+  box-shadow: var(--sr-shadow-1);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 260ms var(--sr-ease),
+    box-shadow 260ms var(--sr-ease),
+    background-color 260ms var(--sr-ease);
+}
+
+.ag-month:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sr-shadow-2);
+}
+
+.ag-month:focus-visible {
+  outline: 2px solid var(--hmte-navy);
+  outline-offset: 2px;
+}
+
+.ag-month[data-active='true'] {
+  color: #fff;
+  background: var(--hmte-navy-deep);
+  box-shadow: var(--sr-shadow-2);
+}
+
+.ag-month-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--sr-ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.ag-month[data-active='true'] .ag-month-name {
+  color: #B9C9DC;
+}
+
+/* Penanda bulan berjalan. Menggantikan garis "hari ini" yang dulu melintasi
+   seluruh papan dan menambah satu garis lagi ke halaman yang sudah penuh. */
+.ag-month-name em {
+  padding: 2px 7px;
+  border-radius: var(--sr-pill);
+  color: var(--hmte-navy-deep);
+  background: var(--hmte-gold);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.ag-month-count {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.ag-month-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 7px;
+}
+
+.ag-month-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--div);
+}
+
+.ag-month[data-active='true'] .ag-month-dots i {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+/* ---- Isi bulan ---- */
+
+.ag-detail {
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.ag-detail-head {
+  margin-bottom: 20px;
+}
+
+.ag-detail-head h3 {
+  margin: 0;
+  color: var(--sr-ink);
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.ag-detail-head p {
+  margin: 5px 0 0;
+  color: var(--sr-ink-soft);
+  font-size: 13.5px;
+}
+
+.ag-detail-empty {
+  margin: 0;
+  padding: 28px 0 12px;
+  color: var(--sr-ink-soft);
+  font-size: 13.5px;
+}
+
+.ag-detail-body {
+  display: grid;
+  gap: 26px;
+}
+
+.ag-detail-group h4 {
+  margin: 0 0 10px;
+  color: var(--sr-ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.ag-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ag-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 12px;
+  gap: 15px;
+  align-items: center;
+  padding: 12px;
+  border-radius: var(--sr-md);
+  color: var(--sr-ink);
+  background: var(--sr-card-quiet);
+  text-decoration: none;
+  transition: background-color 200ms var(--sr-ease);
+}
+
+.ag-row:hover {
+  background: var(--div-tint);
+}
+
+.ag-row:focus-visible {
+  outline: 2px solid var(--div);
+  outline-offset: -2px;
+}
+
+.ag-row-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ag-row-copy strong {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+}
+
+.ag-row-copy small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--sr-ink-soft);
+  font-size: 12.5px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ag-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.ag-row-chev {
+  color: var(--sr-ink-faint);
+  font-size: 17px;
+  line-height: 1;
+  transition: transform 180ms var(--sr-ease), color 180ms var(--sr-ease);
+}
+
+.ag-row:hover .ag-row-chev {
+  color: var(--div);
+  transform: translateX(2px);
+}
+
+/* ---- Belum terjadwal ---- */
+
+.ag-undated {
+  margin-top: 20px;
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.ag-undated h3 {
+  margin: 0;
+  color: var(--sr-ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.ag-undated > p {
+  max-width: 62ch;
+  margin: 6px 0 0;
+  color: var(--sr-ink-soft);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.ag-undated ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ag-undated li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--sr-pill);
+  background: var(--sr-card-quiet);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 1000px) {
+  .ag-year {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .ag-lead {
+    grid-column: span 3;
+    grid-row: auto;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .ag-year {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .ag-month {
+    min-height: 88px;
+    padding: 11px 12px;
+  }
+
+  .ag-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .ag-row-chev {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-month,
+  .ag-row,
+  .ag-row-chev {
+    transition: none;
+  }
+
+  .ag-month:hover {
+    transform: none;
+  }
+}

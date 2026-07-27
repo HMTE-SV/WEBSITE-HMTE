@@ -3,9 +3,9 @@ import { AdminOrganizationManager } from '@/components/admin/AdminOrganizationMa
 
 export const metadata: Metadata = {
   title: 'Admin Kepengurusan HMTE',
-  description: 'Kelola data kepengurusan HMTE.',
+  description: 'Kelola data anggota kepengurusan HMTE.',
 }
 
 export default function AdminLeadersPage() {
-  return <AdminOrganizationManager />
+  return <AdminOrganizationManager kind="leaders" />
 }

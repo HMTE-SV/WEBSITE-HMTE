@@ -1,13 +1,22 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
+import { ArticleCover } from '@/components/site/ArticleCover'
 import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
 import { articleTabs } from '@/data/articles'
 import { getPublishedArticleFeed, type PublicArticle } from '@/lib/article-data'
 import { NewsroomFeed } from './NewsroomFeed'
 
-export const dynamic = 'force-dynamic'
+/*
+ * ISR, bukan force-dynamic.
+ *
+ * Dengan force-dynamic setiap kunjungan menembak Firestore, dan di paket Spark
+ * kuota baca habis oleh pengunjung yang membaca daftar berita yang sama persis.
+ * Lima menit adalah batas atas keterlambatan yang bisa terjadi seandainya
+ * revalidasi terarah gagal; jalur normalnya, /api/revalidate dipanggil panel
+ * begitu artikel terbit, jadi halaman ini sudah segar dalam hitungan detik.
+ */
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Berita HMTE TRE SV UGM',
@@ -83,10 +92,10 @@ export default async function NewsPage() {
           {featuredArticle ? (
             <Link className="newsroom-feature" href={`/berita/${featuredArticle.slug}`}>
               <div className="newsroom-feature-media">
-                <Image
+                <ArticleCover
                   src={featuredArticle.image}
                   alt={featuredArticle.title}
-                  fill
+                  slug={featuredArticle.slug}
                   priority
                   sizes="(max-width: 880px) 100vw, 66vw"
                 />

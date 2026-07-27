@@ -8,6 +8,7 @@ export const firestoreCollections = {
   articles: 'articles',
   gallery: 'gallery',
   leaders: 'leaders',
+  leaderContacts: 'leaderContacts',
   divisions: 'divisions',
   programs: 'programs',
   partners: 'partners',
@@ -64,6 +65,17 @@ export type GalleryDocument = PublishableDocument & {
   order: number
 }
 
+/*
+ * Dokumen ini BOLEH DIBACA SIAPA PUN selama `active == true`. Aturan
+ * `leaders` di firestore.rules memakai `isActivePublicRecord()`, dan rules
+ * Firestore tidak bisa menyaring per-field: begitu sebuah field ada di sini, ia
+ * terbaca oleh siapa saja yang memakai config Firebase publik dari bundle klien.
+ *
+ * Karena itu tidak ada `email`, tidak ada NIM, tidak ada nomor telepon di sini.
+ * Kontak pribadi tinggal di `leaderContacts`, yang hanya bisa dibaca admin.
+ * `instagram` dan `linkedin` tetap di sini karena keduanya memang akun publik
+ * dan ditampilkan di halaman pengurus.
+ */
 export type LeaderDocument = FirestoreDocument & {
   name: string
   role: string
@@ -71,12 +83,28 @@ export type LeaderDocument = FirestoreDocument & {
   photo: string
   batch?: string
   origin?: string
-  email?: string
   instagram?: string
   linkedin?: string
   bio?: string
   active: boolean
   order: number
+}
+
+/**
+ * Kontak pribadi pengurus, terpisah supaya bisa ditutup dari publik.
+ *
+ * `id` sengaja sama persis dengan id dokumen `leaders` pasangannya, jadi tidak
+ * perlu query dan tidak perlu field penghubung. Dokumen yang tidak ada berarti
+ * pengurus itu belum mengisi kontak, bukan error.
+ */
+export type LeaderContactDocument = FirestoreDocument & {
+  email: string
+  /**
+   * Digandakan dari dokumen `leaders` pasangannya. Bukan denormalisasi demi
+   * kecepatan: rules Firestore tidak bisa membaca dokumen lain untuk memutuskan,
+   * jadi batas wewenang per-bidang harus ada di dokumen yang sedang ditulis.
+   */
+  divisionCode?: DivisionCode
 }
 
 export type DivisionDocument = FirestoreDocument & {
@@ -102,6 +130,14 @@ export type ProgramDocument = FirestoreDocument & {
    * yang dipindah ke Firestore akan hilang dari halaman agenda.
    */
   months: number[]
+  /**
+   * Tanggal pasti, 'YYYY-MM-DD'. Opsional: sebagian besar program di Buku
+   * Panduan hanya punya bulan rencana, dan memang tidak akan pernah punya
+   * tanggal. Lihat `src/lib/program-schedule.ts` untuk alasan memakai string
+   * ISO alih-alih Timestamp.
+   */
+  startDate?: string
+  endDate?: string
   active: boolean
   order: number
 }
@@ -140,8 +176,25 @@ export type AdminUserDocument = FirestoreDocument & {
   active: boolean
 }
 
+/**
+ * Dokumen tunggal `settings/site`.
+ *
+ * Sengaja datar, bukan pasangan `{ key, value }` seperti rancangan pertamanya.
+ * Bentuk key/value memaksa setiap pembaca menebak isi `value` dan membuat rules
+ * mustahil memeriksa apa pun; dengan field bernama, satu tahun agenda yang
+ * salah ketik bisa ditolak di tempatnya.
+ *
+ * Ini satu-satunya dokumen yang boleh dibaca publik di collection `settings`,
+ * jadi tidak ada yang bersifat rahasia yang boleh ditambahkan di sini.
+ */
 export type SiteSettingsDocument = FirestoreDocument & {
-  key: string
-  value: unknown
+  cabinetName: string
+  periodLabel: string
+  agendaYear: number
+  tagline: string
+  instagram: string
+  email: string
+  address: string
+  closingCheer: string
   updatedBy?: string
 }

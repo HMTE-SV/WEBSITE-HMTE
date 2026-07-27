@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { articleTabs } from '@/data/articles'
 import { AdminEmptyState } from './AdminEmptyState'
+import { AdminImageField } from './AdminImageField'
 import { AdminRichTextEditor } from './AdminRichTextEditor'
 import { AdminShell } from './AdminShell'
 import {
@@ -29,6 +30,7 @@ import {
   isArticleSlugAvailable,
   updateContentDocument,
 } from '@/lib/firebase/content-services'
+import { requestRevalidation } from '@/lib/admin/revalidate'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import { slugify } from '@/lib/slug'
 import type { ContentStatus } from '@/types/content'
@@ -156,6 +158,11 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
       if (mode === 'create') {
         await createContentDocument(config.collectionName, payload)
         setIsDirty(false)
+
+        if (kind === 'articles') {
+          await requestRevalidation('articles')
+        }
+
         router.push(config.basePath)
         return
       }
@@ -164,6 +171,10 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
         await updateContentDocument(config.collectionName, documentId, payload)
         setValues(nextValues)
         setIsDirty(false)
+
+        if (kind === 'articles') {
+          await requestRevalidation('articles')
+        }
         setFeedback(nextValues.status === 'published' ? 'Konten tersimpan dan sudah tampil publik.' : 'Konten berhasil disimpan.')
       }
     } catch (error) {
@@ -233,7 +244,13 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
               {kind === 'events' || kind === 'articles' ? (
                 <section className="admin-form-section">
                   <div className="admin-form-section-heading"><span>03</span><div><h2>Media utama</h2><p>Gunakan gambar landscape dari ImageKit untuk menjaga performa website.</p></div></div>
-                  <div className="admin-field"><label htmlFor="content-cover">URL cover ImageKit</label><input id="content-cover" type="url" value={values.coverImage} onChange={(event) => updateField('coverImage', event.target.value)} placeholder="https://ik.imagekit.io/..." /></div>
+                  <AdminImageField
+                    folder="berita"
+                    hint="Gambar landscape, sisi terpanjang minimal 1200px. Maksimal 3MB, format JPG, PNG, atau WebP."
+                    label="Cover"
+                    onChange={(url) => updateField('coverImage', url)}
+                    value={values.coverImage}
+                  />
                   {kind === 'articles' && values.coverImage && isCoverPreviewable ? <div className="admin-cover-preview"><Image src={values.coverImage} alt="Preview cover artikel" fill sizes="(max-width: 900px) 100vw, 720px" /></div> : null}
                 </section>
               ) : null}

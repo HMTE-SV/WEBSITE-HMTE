@@ -1,11 +1,23 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ArticleCover } from '@/components/site/ArticleCover'
 import { PublicPageFrame } from '@/components/site/PublicPage'
 import { getPublishedArticleBySlug, getPublishedArticleFeed } from '@/lib/article-data'
 
-export const dynamic = 'force-dynamic'
+/* Alasan sama dengan /berita. Lihat komentar di src/app/berita/page.tsx. */
+export const revalidate = 300
+
+/*
+ * Tanpa ini rute dinamis tetap dirender per permintaan dan `revalidate` di atas
+ * tidak berlaku sama sekali. Artikel yang terbit setelah build tetap terlayani
+ * karena dynamicParams dibiarkan menyala secara bawaan: slug yang belum ada di
+ * daftar dirender sekali lalu ikut disimpan.
+ */
+export async function generateStaticParams() {
+  const articles = await getPublishedArticleFeed().catch(() => [])
+  return articles.map((article) => ({ slug: article.slug }))
+}
 
 type ArticleDetailPageProps = {
   params: Promise<{ slug: string }>
@@ -25,7 +37,11 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
       openGraph: {
         title: article.title,
         description: article.excerpt,
-        images: [article.image],
+        // Dihilangkan kalau berita ini tidak punya sampul. Sampul buatan kita
+        // adalah SVG yang dirender di halaman, dan tidak ada pengambil
+        // pratinjau tautan yang bisa merendernya. Membiarkan kosong membuat
+        // pratinjau jatuh ke gambar bawaan situs, yang jujur.
+        ...(article.image ? { images: [article.image] } : {}),
         type: 'article',
       },
     }
@@ -67,7 +83,13 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
 
         <div className="public-shell article-story-media">
           <figure>
-            <Image src={article.image} alt={article.title} fill priority sizes="(max-width: 760px) 100vw, 1200px" />
+            <ArticleCover
+              src={article.image}
+              alt={article.title}
+              slug={article.slug}
+              priority
+              sizes="(max-width: 760px) 100vw, 1200px"
+            />
             <figcaption>{article.categoryLabel} · Dokumentasi {article.publisher}</figcaption>
           </figure>
         </div>

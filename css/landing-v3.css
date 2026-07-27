@@ -80,7 +80,7 @@
 .about-field-identity strong,
 .about-field-identity span {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -139,7 +139,7 @@
 .about-field-intro > p {
   margin: 0 0 24px;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -180,7 +180,7 @@
   height: 42px;
   border-radius: 50%;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--hmte-navy-deep);
   background: var(--hmte-gold);
 }
@@ -266,18 +266,17 @@
   margin-top: clamp(46px, 6vw, 78px);
   padding: clamp(34px, 5vw, 72px);
   overflow: hidden;
+  border-radius: var(--sr-lg, 24px);
   color: #fff;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px) 0 0 / 72px 72px,
-    var(--hmte-navy);
-  border-top: 4px solid var(--hmte-gold);
+  background: var(--hmte-navy);
+  box-shadow: var(--sr-shadow-2);
 }
 
 .news-deck-empty > span {
   align-self: start;
   color: var(--hmte-gold);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .13em;
   text-transform: uppercase;
@@ -316,7 +315,7 @@
   color: #fff;
   border-bottom: 1px solid var(--hmte-gold);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -361,8 +360,10 @@
   margin-top: 18px;
   overflow: hidden;
   isolation: isolate;
+  border-radius: var(--sr-lg, 24px);
   color: #fff;
   background: #001533;
+  box-shadow: var(--sr-shadow-2);
 }
 
 .news-deck-ambient {
@@ -428,7 +429,7 @@
   left: 24px;
   padding: 8px 11px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 750;
   color: var(--hmte-navy-deep);
   background: var(--hmte-gold);
@@ -451,7 +452,7 @@
 .news-deck-meta {
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.52);
@@ -505,7 +506,6 @@
 }
 
 .news-deck-queue {
-  border-left: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(0, 13, 34, 0.68);
 }
 
@@ -516,7 +516,7 @@
   padding: 24px 22px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.58);
@@ -543,7 +543,7 @@
 
 .news-deck-queue button > span {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   color: var(--hmte-gold);
 }
 
@@ -560,7 +560,7 @@
 .news-deck-queue small {
   grid-column: 2;
   margin-top: 7px;
-  font-size: 9px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.4);
 }
 
@@ -589,7 +589,7 @@
 .news-deck-next > span,
 .news-deck-next small {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -646,34 +646,32 @@
 .org-switchboard-body {
   margin-top: clamp(52px, 7vw, 94px);
   overflow: hidden;
+  border-radius: var(--sr-lg, 24px);
   color: #fff;
   background: #001637;
+  box-shadow: var(--sr-shadow-2);
 }
 
 .org-switches {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  gap: 10px;
+  padding: clamp(18px, 2.4vw, 26px);
 }
 
 .org-switches button {
   min-width: 0;
   min-height: 98px;
-  padding: 18px 12px;
+  padding: 18px 14px;
   border: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--sr-md, 18px);
   text-align: left;
   color: rgba(255, 255, 255, 0.64);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
-}
-
-.org-switches button:last-child {
-  border-right: 0;
-}
-
-.org-switches button:nth-child(-n + 4) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transition:
+    color 220ms var(--ease-out),
+    background-color 260ms var(--ease-out);
 }
 
 .org-switches button:hover,
@@ -686,8 +684,8 @@
 .org-switches small {
   display: block;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.07em;
+  font-size: 11px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -727,8 +725,8 @@
 
 .org-signal-head span {
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--hmte-gold);
 }
@@ -754,7 +752,8 @@
 .org-signal-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.5fr);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  gap: clamp(14px, 1.6vw, 20px);
+  padding: 0 clamp(18px, 2.4vw, 26px) clamp(18px, 2.4vw, 26px);
 }
 
 .org-signal-people,
@@ -763,7 +762,7 @@
 }
 
 .org-signal-programs {
-  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--sr-lg, 24px);
   background: #071f49;
 }
 
@@ -789,6 +788,7 @@
   position: relative;
   min-width: 0;
   overflow: hidden;
+  border-radius: var(--sr-md, 18px);
   color: #fff;
   background: rgba(255, 255, 255, 0.05);
 }
@@ -835,26 +835,26 @@
 .org-person p {
   overflow: hidden;
   margin: 6px 0 0;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.org-signal-program-list {
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .org-signal-program-list > div {
   display: grid;
   grid-template-columns: 25px minmax(0, 1fr);
   padding: 19px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.org-signal-program-list > div:last-child {
+  border-bottom: 0;
 }
 
 .org-signal-program-list span {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 11px;
   color: var(--hmte-gold);
 }
 
@@ -868,8 +868,8 @@
 .org-signal-program-list p {
   grid-column: 2;
   margin: 6px 0 0;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.58);
 }
 
 .org-signal-programs > a {
@@ -888,7 +888,7 @@
   justify-content: space-between;
   gap: 28px;
   padding: 24px clamp(28px, 4vw, 54px);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .org-signal-foot p {
