@@ -8,7 +8,17 @@ export type AdminNavItem = {
   roles: readonly AdminRole[]
 }
 
-export type AdminNavIcon = 'dashboard' | 'announcement' | 'calendar' | 'article' | 'gallery' | 'people' | 'inbox' | 'settings'
+export type AdminNavIcon =
+  | 'dashboard'
+  | 'announcement'
+  | 'calendar'
+  | 'article'
+  | 'gallery'
+  | 'people'
+  | 'program'
+  | 'division'
+  | 'inbox'
+  | 'settings'
 
 export const adminNavItems = [
   {
@@ -29,7 +39,10 @@ export const adminNavItems = [
     group: 'publikasi',
     href: '/admin/events',
     icon: 'calendar',
-    label: 'Agenda',
+    // Bukan "Agenda". Halaman publik /agenda sekarang digambar dari program
+    // kerja, bukan dari collection ini, jadi label lama menunjuk ke tempat yang
+    // salah setiap kali pengurus mencari jadwal proker.
+    label: 'Kegiatan Bertanggal',
     roles: ['superadmin', 'editor', 'viewer'],
   },
   {
@@ -55,10 +68,31 @@ export const adminNavItems = [
   },
   {
     group: 'organisasi',
+    href: '/admin/programs',
+    icon: 'program',
+    label: 'Program Kerja',
+    roles: ['superadmin', 'editor', 'viewer'],
+  },
+  {
+    group: 'organisasi',
+    href: '/admin/divisions',
+    icon: 'division',
+    label: 'Divisi',
+    roles: ['superadmin', 'editor', 'viewer'],
+  },
+  {
+    group: 'organisasi',
     href: '/admin/aspirations',
     icon: 'inbox',
     label: 'Aspirasi',
     roles: ['superadmin', 'editor', 'viewer'],
+  },
+  {
+    group: 'sistem',
+    href: '/admin/users',
+    icon: 'people',
+    label: 'Akun Admin',
+    roles: ['superadmin'],
   },
   {
     group: 'sistem',

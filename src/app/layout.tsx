@@ -7,7 +7,7 @@ import '../../css/landing-about-v5.css'
 import '../../css/contact-postal.css'
 import '../../css/org-pages.css'
 import '../../css/hero-backdrop.css'
-import '../../css/agenda-year.css'
+import '../../css/ui-soft.css'
 
 const siteUrl = 'https://website-hmte.vercel.app'
 const siteName = 'HMTE TRE SV UGM'

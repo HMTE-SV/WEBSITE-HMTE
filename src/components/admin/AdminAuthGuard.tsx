@@ -7,7 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { AdminLogoutButton } from './AdminLogoutButton'
 import { AdminSessionProvider } from './AdminSessionContext'
 import { canAccessAdminPath } from '@/data/admin-nav'
-import { getAdminUserProfile } from '@/lib/firebase/admin-users'
+import { getAdminSession } from '@/lib/firebase/admin-users'
 import { getFirebaseAuth, hasFirebaseConfig } from '@/lib/firebase/client'
 import type { AdminUser } from '@/types/admin'
 
@@ -49,15 +49,15 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
         setState('loading')
         setError('')
 
-        void getAdminUserProfile(user.uid)
+        void getAdminSession(user)
           .then((profile) => {
             if (!isMounted) {
               return
             }
 
-            if (!profile || !profile.active) {
+            if (!profile) {
               setSession(null)
-              setError('Akun Firebase ini belum memiliki profil admin aktif di collection adminUsers.')
+              setError('Akun ini belum diberi role admin. Minta superadmin menambahkannya di menu Akun admin.')
               setState('forbidden')
               return
             }
@@ -99,7 +99,22 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   }, [isFirebaseReady, pathname, router])
 
   if (state === 'authorized' && session) {
-    return <AdminSessionProvider session={session}>{children}</AdminSessionProvider>
+    return (
+      <AdminSessionProvider session={session}>
+        {/*
+          Peringatan ini mencegah bentuk kebingungan yang paling melelahkan:
+          panel terbuka lengkap, tapi setiap simpan ditolak Firestore tanpa
+          sebab yang kelihatan. Sebabnya wewenangnya belum ada di token.
+        */}
+        {session.claimsPending ? (
+          <p className="admin-form-error" role="alert">
+            Wewenang akun ini belum terpasang di token, jadi semua perubahan akan ditolak.
+            Jalankan <code>npm run sync:claims</code> di server, lalu masuk ulang.
+          </p>
+        ) : null}
+        {children}
+      </AdminSessionProvider>
+    )
   }
 
   const hasConfigError = !isFirebaseReady

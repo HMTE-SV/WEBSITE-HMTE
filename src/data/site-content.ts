@@ -12,8 +12,7 @@ export const siteNav = [
   {
     label: 'Organisasi',
     children: [
-      { label: 'Pengurus & Departemen', href: '/divisi' },
-      { label: 'Pengurus', href: '/kepengurusan' },
+      { label: 'Kepengurusan', href: '/kepengurusan' },
       { label: 'Program Kerja', href: '/program-kerja' },
     ],
   },
@@ -87,6 +86,20 @@ export const getToKnowContent = {
   ],
 }
 
+/**
+ * Nilai bawaan tahun papan /agenda.
+ *
+ * Sumber yang sesungguhnya sekarang `settings/site` di Firestore, diubah dari
+ * /admin/settings. Yang di sini dipakai kalau dokumen itu belum ada atau gagal
+ * dibaca, dan oleh `getAgendaYear()` yang harus tetap murni tanpa Firebase.
+ *
+ * Sengaja konstanta, bukan `new Date().getFullYear()`. Papan menggambar tahun
+ * periode kepengurusan, dan garis "hari ini" perlu tahu apakah hari ini memang
+ * jatuh di tahun itu. Kalau ikut jam sistem, papan berubah diam-diam tiap 1
+ * Januari tanpa ada yang memutuskannya.
+ */
+export const agendaYear = 2026
+
 export const kabinetIntro = {
   title: 'Pengurus Harian',
   mutedTitle: ' & departemen',
@@ -156,13 +169,13 @@ export const ctaContent = {
   secondaryAction: 'Hubungi pengurus',
 }
 
+/*
+ * Nama kabinet, periode, tahun, dan semboyan sudah pindah ke settings/site dan
+ * diubah dari /admin/settings. Yang tersisa di sini hanya nama lembaga, yang
+ * tidak berganti bersama kepengurusan.
+ */
 export const footerContent = {
-  addressLines: [
-    ['Himpunan Mahasiswa Teknik Elektro', 'Program Studi Teknologi Rekayasa Elektro · Sekolah Vokasi UGM'],
-    ['Kabinet Abya Vistara', 'Periode 2026/2027'],
-  ],
-  bottomLeft: '© 2026 HMTE TRE SV UGM · KABINET ABYA VISTARA',
-  bottomRight: 'ELEKTRO... SATU!!!',
+  organizationName: 'Himpunan Mahasiswa Teknik Elektro',
 }
 
 export const footerColumns = [
@@ -174,11 +187,7 @@ export const footerColumns = [
         "href": "/#tentang"
       },
       {
-        "label": "Pengurus & Departemen",
-        "href": "/divisi"
-      },
-      {
-        "label": "Pengurus",
+        "label": "Kepengurusan",
         "href": "/kepengurusan"
       },
       {

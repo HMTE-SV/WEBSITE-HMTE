@@ -183,3 +183,48 @@
     padding: 22px;
   }
 }
+
+/* ============================================================
+   ARTICLE COVER
+   Sampul untuk berita yang tidak punya gambar. Memakai bidang
+   hero yang sama, dicerminkan per artikel supaya lima bentuk
+   dasar tidak terbaca berulang di satu layar feed.
+   Pasangannya: src/components/site/ArticleCover.tsx
+   ============================================================ */
+
+.article-cover-art {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+}
+
+/*
+ * Dicerminkan, bukan diputar. Rotasi memindahkan sumber cahaya ke bawah dan
+ * bolanya langsung terbaca terbalik; pencerminan mempertahankan arah atas.
+ */
+.article-cover-art[data-flip='x'] .hero-backdrop-figure {
+  transform: scaleX(-1);
+}
+
+.article-cover-art[data-flip='y'] .hero-backdrop-figure {
+  transform: scaleY(-1);
+}
+
+.article-cover-art[data-flip='xy'] .hero-backdrop-figure {
+  transform: scale(-1);
+}
+
+/*
+ * Di dalam kartu, bidangnya jauh lebih kecil daripada hero selebar layar, jadi
+ * bentuknya perlu digeser masuk agar tidak sekadar tampak sebagai gradien
+ * datar. Sedikit lebih terang juga, karena sampul harus punya bobot sendiri
+ * alih-alih menghilang ke dalam latar kartu.
+ */
+.article-cover-art .hero-backdrop {
+  --backdrop-light-strength: 0.24;
+}
+
+.article-cover-art .hero-backdrop-figure {
+  transform-origin: center;
+}

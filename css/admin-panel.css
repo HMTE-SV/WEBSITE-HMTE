@@ -622,6 +622,71 @@
 .admin-title-field input { min-height: 54px !important; font-family: var(--font-display) !important; font-size: 18px !important; font-weight: 600 !important; letter-spacing: -.02em; }
 .admin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 15px; }
 
+/*
+ * Pemilih bulan dan pratinjau jadwal program.
+ *
+ * Menggantikan isian teks "3, 6, 9, 12" yang dulu meminta pengurus mengetik
+ * indeks kolom peta agenda dari kepala sendiri. Dua belas kotak menghapus
+ * seluruh kelas kesalahan itu: angka di luar 1-12 tidak punya jalan masuk.
+ *
+ * Sudutnya membulat mengikuti --sr-* dari css/ui-soft.css, bukan sudut siku
+ * yang dipakai panel lama. Ini bagian baru, dan tidak ada gunanya menambah
+ * permukaan tajam ke sistem yang sedang ditinggalkan.
+ */
+.admin-month-picker { display: grid; gap: 10px; margin: 0; padding: 16px; border: 1px solid var(--admin-line); border-radius: var(--sr-md, 18px); background: var(--admin-surface-soft); }
+.admin-month-picker legend { padding: 0; color: var(--hmte-navy); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.admin-month-grid { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 8px; }
+.admin-month-box {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--sr-sm, 12px);
+  background: white;
+  color: var(--admin-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+.admin-month-box:hover { color: var(--hmte-navy); border-color: var(--hmte-gold-deep); }
+.admin-month-box[aria-pressed='true'] { color: var(--hmte-navy-deep); border-color: var(--hmte-gold-deep); background: var(--hmte-gold); }
+.admin-month-box:focus-visible { outline: 2px solid rgba(var(--hmte-gold-rgb), .45); outline-offset: 2px; }
+
+.admin-schedule-preview { display: grid; gap: 6px; padding: 16px 18px; border-radius: var(--sr-md, 18px); background: rgba(var(--hmte-navy-rgb), .05); }
+.admin-schedule-preview-kicker { color: var(--hmte-gold-deep); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.admin-schedule-preview strong { color: var(--hmte-navy); font-family: var(--font-display); font-size: 19px; letter-spacing: -.02em; }
+.admin-schedule-preview p { margin: 0; color: var(--admin-muted); font-size: 11px; line-height: 1.55; }
+
+/* Formulir pembuatan akun pengurus. */
+.admin-account-form { display: grid; gap: 16px; padding: 22px 24px; border-radius: var(--sr-lg, 22px); background: var(--admin-surface-soft); }
+.admin-account-form h2 { margin: 0; color: var(--hmte-navy); font-family: var(--font-display); font-size: 20px; letter-spacing: -.02em; }
+.admin-account-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.admin-account-form label { display: grid; gap: 6px; min-width: 0; }
+.admin-account-form label > span { color: var(--admin-muted); font-size: 12px; font-weight: 600; }
+.admin-account-form input, .admin-account-form select { width: 100%; padding: 10px 12px; border: 1px solid var(--admin-line); border-radius: var(--sr-sm, 12px); background: var(--admin-surface); color: var(--hmte-navy); font: inherit; font-size: 14px; }
+.admin-account-form input:focus-visible, .admin-account-form select:focus-visible { outline: 2px solid rgba(var(--hmte-gold-rgb), .45); outline-offset: 1px; }
+.admin-account-form select:disabled { color: var(--admin-muted); background: var(--admin-surface-soft); }
+.admin-account-form .admin-primary-button { justify-self: start; }
+
+/* Tautan setel sandi. Dibuat mudah disalin utuh, karena tautannya panjang dan
+   terpotong sedikit saja sudah tidak bisa dipakai. */
+.admin-invite-link { width: 100%; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--admin-line); border-radius: var(--sr-sm, 12px); background: var(--admin-surface); color: var(--hmte-navy); font-family: var(--font-mono); font-size: 11px; line-height: 1.5; resize: vertical; word-break: break-all; }
+
+/* Isian gambar dengan unggah langsung ke ImageKit. */
+.admin-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.admin-image-field-row { display: grid; grid-template-columns: 96px minmax(0,1fr); gap: 14px; align-items: start; }
+.admin-image-field-preview { width: 96px; height: 96px; object-fit: cover; border: 1px solid var(--admin-line); border-radius: var(--sr-sm, 12px); background: var(--admin-surface-soft); }
+.admin-image-field-preview.is-empty { display: grid; place-items: center; color: var(--admin-muted); font-family: var(--font-mono); font-size: 11px; }
+.admin-image-field-controls { display: grid; gap: 9px; }
+.admin-image-field-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-image-field .admin-form-error { margin: 0; }
+
+.admin-dashboard .admin-form-warning { display: grid; gap: 7px; margin: 0 0 14px; padding: 12px 14px 12px 30px; border-radius: var(--sr-sm, 12px); background: rgba(var(--hmte-gold-rgb), .16); color: var(--hmte-navy); font-size: 11px; line-height: 1.55; }
+
 .admin-input-prefix { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; border: 1px solid var(--admin-line-strong); border-radius: 5px; background: var(--admin-surface-soft); overflow: hidden; }
 .admin-input-prefix > span { padding: 0 0 0 11px; color: var(--admin-muted); font-family: var(--font-mono); font-size: 9px; }
 .admin-input-prefix input { border: 0 !important; background: transparent !important; }
@@ -650,10 +715,15 @@
 .admin-rich-editor { overflow: hidden; border: 1px solid var(--admin-line-strong); background: white; }
 .admin-rich-editor:focus-within { border-color: var(--hmte-gold-deep); box-shadow: 0 0 0 2px rgba(var(--hmte-gold-rgb),.18); }
 .admin-rich-editor.is-loading { min-height: 300px; display: grid; place-items: center; color: var(--admin-muted); font-family: var(--font-mono); font-size: 9px; }
-.admin-editor-toolbar { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding: 8px; border-bottom: 1px solid var(--admin-line); background: var(--admin-surface-soft); }
+/*
+ * Menempel di atas saat digulir. Artikel yang sungguhan panjangnya ribuan kata,
+ * dan toolbar yang ikut hilang ke atas memaksa penulis menggulung balik ke awal
+ * halaman setiap kali ingin memberi satu heading.
+ */
+.admin-editor-toolbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 9px; border-bottom: 1px solid var(--admin-line); background: rgba(255,254,250,.94); backdrop-filter: blur(12px); }
 .admin-editor-toolbar > div { display: flex; gap: 3px; padding-right: 5px; border-right: 1px solid var(--admin-line); }
 .admin-editor-toolbar > div:last-child { border-right: 0; }
-.admin-editor-toolbar button { min-width: 31px; min-height: 30px; padding: 0 8px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--admin-muted); cursor: pointer; font-family: var(--font-mono); font-size: 8px; font-weight: 700; }
+.admin-editor-toolbar button { min-width: 36px; min-height: 34px; padding: 0 11px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--admin-muted); cursor: pointer; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .02em; transition: background .16s ease, color .16s ease, border-color .16s ease; }
 .admin-editor-toolbar button:hover { color: var(--hmte-navy); border-color: var(--admin-line); background: white; }
 .admin-editor-toolbar button.is-active,
 .admin-editor-toolbar button[aria-pressed='true'] { color: var(--hmte-navy-deep); border-color: rgba(var(--hmte-gold-rgb),.42); background: rgba(var(--hmte-gold-rgb),.2); }
@@ -672,8 +742,36 @@
 .admin-rich-editor .tiptap a { color: var(--hmte-teal); text-decoration: underline; text-underline-offset: 3px; }
 .admin-rich-editor .tiptap img { max-width: 100%; height: auto; display: block; margin: 24px auto; }
 .admin-rich-editor .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: #9aa4ad; pointer-events: none; }
-.admin-editor-footer { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-top: 1px solid var(--admin-line); color: var(--admin-muted); background: var(--admin-surface-soft); font-family: var(--font-mono); font-size: 7px; text-transform: uppercase; }
+.admin-editor-footer { display: flex; gap: 18px; padding: 9px 13px; border-top: 1px solid var(--admin-line); color: var(--admin-muted); background: var(--admin-surface-soft); font-family: var(--font-mono); font-size: 8px; letter-spacing: .04em; text-transform: uppercase; }
 .admin-editor-inline-error { margin: 0; padding: 9px 12px; border-top: 1px solid rgba(169,54,54,.2); color: var(--admin-danger); background: rgba(169,54,54,.05); font-size: 9px; }
+
+/* Panel tautan dan gambar. Menggantikan window.prompt yang berantai tiga. */
+.admin-editor-panel { display: grid; gap: 11px; padding: 15px; border-bottom: 1px solid var(--admin-line); background: var(--admin-surface-soft); }
+.admin-editor-panel label { display: grid; gap: 5px; }
+.admin-editor-panel label > span { color: var(--admin-muted); font-family: var(--font-mono); font-size: 8px; letter-spacing: .04em; text-transform: uppercase; }
+.admin-editor-panel input { width: 100%; padding: 10px 12px; border: 1px solid var(--admin-line-strong); border-radius: 8px; background: white; color: var(--admin-ink); font-size: 13px; }
+.admin-editor-panel input:focus { outline: 0; border-color: var(--hmte-gold-deep); box-shadow: 0 0 0 2px rgba(var(--hmte-gold-rgb),.18); }
+.admin-editor-panel-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-editor-panel .admin-field-hint { margin: 0; }
+
+/* Menu apung di atas teks yang disorot. */
+.admin-editor-bubble { display: flex; gap: 3px; padding: 5px; border-radius: 10px; background: var(--hmte-navy-deep); box-shadow: 0 14px 38px rgba(var(--hmte-navy-rgb),.34); }
+.admin-editor-bubble button { min-width: 34px; min-height: 30px; padding: 0 10px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: rgba(255,255,255,.74); cursor: pointer; font-family: var(--font-mono); font-size: 10px; font-weight: 700; }
+.admin-editor-bubble button:hover { color: #fff; background: rgba(255,255,255,.12); }
+.admin-editor-bubble button[aria-pressed='true'] { color: var(--hmte-navy-deep); background: var(--hmte-gold); }
+
+/*
+ * Mode fokus. Editor mengambil alih layar, dan kolom teksnya dibatasi lebarnya
+ * supaya barisnya tetap terbaca. Bukan sekadar kenyamanan: formulir berita
+ * punya belasan isian lain, dan menulis naskah panjang di celah setinggi 440px
+ * di antaranya adalah alasan orang menulis di aplikasi lain lalu menempel ke sini.
+ */
+.admin-rich-editor[data-focus-mode='on'] { position: fixed; z-index: 60; inset: 0; display: flex; flex-direction: column; border-radius: 0; overflow-y: auto; }
+.admin-rich-editor[data-focus-mode='on'] .tiptap { flex: 1; width: min(100%, 74ch); margin: 0 auto; }
+
+.admin-rich-editor .tiptap hr { margin: 2em 0; border: 0; border-top: 1px solid var(--admin-line-strong); }
+.admin-rich-editor .tiptap pre { margin: 1.5em 0; padding: 15px 17px; border-radius: 10px; background: var(--hmte-navy-deep); color: #e8eefb; font-family: var(--font-mono); font-size: 12px; line-height: 1.62; overflow-x: auto; }
+.admin-rich-editor .tiptap pre code { background: none; color: inherit; }
 
 .admin-editor-actions { position: sticky; bottom: 12px; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 14px; border: 1px solid var(--admin-line-strong); background: rgba(255,254,250,.94); box-shadow: 0 14px 45px rgba(var(--hmte-navy-rgb), .13); backdrop-filter: blur(14px); }
 .admin-editor-actions > div { display: flex; align-items: center; gap: 9px; }
@@ -781,6 +879,7 @@
   .admin-search-field { max-width: none; min-width: 0; }
   .admin-filter-tabs { overflow-x: auto; padding-bottom: 2px; }
   .admin-form-grid { grid-template-columns: 1fr; }
+  .admin-month-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
   .admin-publish-panel { grid-template-columns: 1fr; }
   .admin-editor-actions { position: static; align-items: stretch; flex-direction: column; }
   .admin-editor-actions > div:last-child { display: grid; grid-template-columns: 1fr; }

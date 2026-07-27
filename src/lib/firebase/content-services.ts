@@ -6,9 +6,11 @@ import {
   getDoc,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
   type DocumentData,
@@ -42,6 +44,32 @@ export async function listContentDocuments<T extends FirestoreDocument>(
 ) {
   const snapshot = await getDocs(query(getCollection<T>(collectionName), ...constraints))
   return snapshot.docs.map((documentSnapshot) => documentSnapshot.data())
+}
+
+/**
+ * Versi langganan dari `listContentDocuments`.
+ *
+ * Panel dipegang beberapa pengurus sekaligus, dan dengan `getDocs` sekali jalan
+ * dua orang yang bekerja bersamaan tidak pernah melihat perubahan satu sama
+ * lain sampai halamannya dimuat ulang. Yang lebih berbahaya: keduanya bisa
+ * mengedit baris yang sama dari kondisi awal berbeda tanpa sadar.
+ *
+ * Mengembalikan fungsi berhenti berlangganan. Wajib dipanggil saat komponen
+ * dilepas, kalau tidak listener-nya menumpuk tiap kali menu dibuka.
+ */
+export function subscribeToContentDocuments<T extends FirestoreDocument>(
+  collectionName: FirestoreCollectionName,
+  handlers: {
+    onData: (documents: T[]) => void
+    onError: (error: Error) => void
+  },
+  constraints: QueryConstraint[] = [],
+) {
+  return onSnapshot(
+    query(getCollection<T>(collectionName), ...constraints),
+    (snapshot) => handlers.onData(snapshot.docs.map((documentSnapshot) => documentSnapshot.data())),
+    (error) => handlers.onError(error),
+  )
 }
 
 export async function getContentDocument<T extends FirestoreDocument>(
@@ -94,6 +122,34 @@ export async function updateContentDocument<T extends FirestoreDocument>(
   }
 
   await updateDoc(documentRef, payload)
+}
+
+/**
+ * Menulis dokumen pada id yang sudah ditentukan, membuat kalau belum ada.
+ *
+ * Dipakai `leaderContacts`, yang idnya harus sama persis dengan id dokumen
+ * `leaders` pasangannya. `addDoc` tidak bisa dipakai karena ia selalu mengarang
+ * id sendiri.
+ *
+ * `exists` dikirim pemanggil, bukan dibaca ulang di sini, supaya satu daftar
+ * yang sudah diambil tidak berubah jadi satu pembacaan tambahan per simpan.
+ * Bedanya penting: rules menuntut `createdAt` yang baru saat membuat, dan
+ * `createdAt` yang tidak berubah saat memperbarui.
+ */
+export async function writeContentDocumentAtId<T extends FirestoreDocument>(
+  collectionName: FirestoreCollectionName,
+  id: string,
+  data: CreateDocumentInput<T>,
+  exists: boolean,
+) {
+  const documentRef = doc(getFirebaseDb(), collectionName, id)
+
+  if (exists) {
+    await updateDoc(documentRef, withUpdateTimestamp(data) as DocumentData)
+    return
+  }
+
+  await setDoc(documentRef, withCreateTimestamps(data) as DocumentData)
 }
 
 export async function deleteContentDocument(collectionName: FirestoreCollectionName, id: string) {

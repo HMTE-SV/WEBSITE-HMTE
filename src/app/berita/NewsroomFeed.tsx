@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { ArticleCover } from '@/components/site/ArticleCover'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
@@ -91,6 +91,13 @@ export function NewsroomFeed({ articles, tabs }: NewsroomFeedProps) {
           </div>
         </div>
 
+        {filteredArticles.length === 0 ? (
+          <div className="soft-empty" aria-live="polite">
+            <strong>Belum ada kabar di kategori ini</strong>
+            <p>Coba kategori lain, atau kembali lagi setelah redaksi menerbitkan artikel baru.</p>
+          </div>
+        ) : null}
+
         <div className="newsroom-grid" ref={gridRef} aria-live="polite">
           {visibleArticles.map((article, index) => (
             <Link
@@ -102,10 +109,10 @@ export function NewsroomFeed({ articles, tabs }: NewsroomFeedProps) {
             >
               <article>
                 <div className="newsroom-card-media">
-                  <Image
+                  <ArticleCover
                     src={article.image}
                     alt={article.title}
-                    fill
+                    slug={article.slug}
                     sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"
                   />
                   <span className="newsroom-card-index">{String(index + 1).padStart(2, '0')}</span>

@@ -1,7 +1,24 @@
 import Image from 'next/image'
 import { footerColumns, footerContent } from '@/data/site-content'
+import { getSiteSettings } from '@/lib/site-settings-data'
+import { formatCabinetTitle, formatPeriodTitle } from '@/lib/site-settings'
 
-export function Footer() {
+/*
+ * Kaki halaman membaca pengaturan situs, bukan konstanta.
+ *
+ * Nama kabinet, periode, dan tahun hak cipta dulu tertulis tiga kali di
+ * src/data/site-content.ts, dan pergantian kepengurusan berarti menyunting kode
+ * lalu deploy ulang. Sekarang ketiganya datang dari settings/site, yang bisa
+ * diubah superadmin dari /admin/settings. Pembacaannya tidak pernah gagal:
+ * getSiteSettings() jatuh ke nilai bawaan yang sama dengan teks lama.
+ *
+ * Daftar tautan sengaja TIDAK ikut pindah. Isinya rute situs, bukan identitas
+ * kepengurusan, dan rute berubah bersama kode, bukan bersama kabinet.
+ */
+export async function Footer() {
+  const settings = await getSiteSettings()
+  const cabinetTitle = formatCabinetTitle(settings)
+
   return (
     <footer className="tre-footer" id="site-footer">
       <div className="container">
@@ -17,14 +34,14 @@ export function Footer() {
             <span className="ftr-lockup-rule" aria-hidden="true" />
             <Image
               src="/assets/abya-vistara/logo-kabinet.webp"
-              alt="Logo Kabinet Abya Vistara"
+              alt={`Logo ${cabinetTitle}`}
               width={128}
               height={128}
               className="ftr-cabinet-logo"
             />
             <span className="ftr-cabinet-name">
               <small>Kabinet</small>
-              <strong>Abya Vistara</strong>
+              <strong>{settings.cabinetName}</strong>
             </span>
           </div>
           <p className="ftr-masthead-note">
@@ -35,16 +52,20 @@ export function Footer() {
 
         <div className="top">
           <div className="col">
-            {footerContent.addressLines.map((lines) => (
-              <p className="addr" key={lines.join('|')}>
-                {lines.map((line, index) => (
-                  <span key={line}>
-                    {line}
-                    {index < lines.length - 1 ? <br /> : null}
-                  </span>
-                ))}
-              </p>
-            ))}
+            <p className="addr">
+              <span>
+                {footerContent.organizationName}
+                <br />
+              </span>
+              <span>{settings.address}</span>
+            </p>
+            <p className="addr">
+              <span>
+                {cabinetTitle}
+                <br />
+              </span>
+              <span>{formatPeriodTitle(settings)}</span>
+            </p>
           </div>
 
           {footerColumns.map((column) => (
@@ -78,8 +99,10 @@ export function Footer() {
           ))}
         </div>
         <div className="bottom">
-          <span>{footerContent.bottomLeft}</span>
-          <span>{footerContent.bottomRight}</span>
+          <span>
+            © {settings.agendaYear} HMTE TRE SV UGM · {cabinetTitle.toUpperCase()}
+          </span>
+          <span>{settings.closingCheer}</span>
         </div>
       </div>
     </footer>

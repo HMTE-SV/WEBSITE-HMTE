@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useCallback, useEffect, useState } from 'react'
 import { AdminEmptyState } from './AdminEmptyState'
+import { AdminImageField } from './AdminImageField'
 import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
 import { canAdminWrite } from '@/data/admin-nav'
@@ -142,17 +143,13 @@ export function AdminGalleryManager() {
                   required
                 />
               </div>
-              <div className="admin-field">
-                <label htmlFor="gallery-image-url">URL ImageKit</label>
-                <input
-                  id="gallery-image-url"
-                  type="url"
-                  value={imageUrl}
-                  onChange={(event) => setImageUrl(event.target.value)}
-                  placeholder="https://ik.imagekit.io/..."
-                  required
-                />
-              </div>
+              <AdminImageField
+                folder="galeri"
+                hint="Maksimal 5MB, format JPG, PNG, atau WebP."
+                label="Gambar"
+                onChange={setImageUrl}
+                value={imageUrl}
+              />
             </div>
             <div className="admin-field">
               <label htmlFor="gallery-caption">Caption</label>

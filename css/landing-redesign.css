@@ -230,7 +230,7 @@
 .landing-eyebrow,
 .about-dial-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -574,7 +574,7 @@
   padding-bottom: 6px;
   border-bottom: 1px solid var(--hmte-gold-deep);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -614,7 +614,7 @@
 
 .landing-news-categories button > span {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--hmte-gold-deep);
 }
@@ -647,7 +647,7 @@
   gap: 12px;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--text-muted);
@@ -741,7 +741,7 @@
   padding: 9px 14px;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -872,7 +872,7 @@
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -908,7 +908,7 @@
   height: 24px;
   border-radius: 50%;
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
   color: #fff;
   background: var(--hmte-navy);
@@ -956,7 +956,7 @@
   margin-top: auto;
   padding-top: 28px;
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1145,7 +1145,7 @@
 .org-rail-num {
   justify-self: center;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--hmte-gold-deep);
@@ -1232,7 +1232,7 @@
 
 .org-panel-code {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1263,7 +1263,7 @@
   gap: 18px;
   margin-bottom: 20px;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -1343,7 +1343,7 @@
 .org-member-copy span {
   display: block;
   overflow: hidden;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1368,7 +1368,7 @@
 
 .org-program-row > span {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--hmte-gold-deep);
 }
@@ -1503,7 +1503,7 @@
   }
 
   .org-rail-num {
-    font-size: 8px;
+    font-size: 11px;
   }
 }
 
@@ -1574,7 +1574,7 @@
 
 .moment-wall-kicker {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1641,6 +1641,7 @@
   justify-content: space-between;
   gap: 30px;
   padding: clamp(24px, 3vw, 40px);
+  border-radius: var(--sr-lg, 24px);
   background: var(--hmte-gold);
   color: var(--hmte-navy-deep);
   transform: translateY(40px) rotate(-0.8deg);
@@ -1666,9 +1667,9 @@
 
 .moment-tile--quote span {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   color: rgba(1, 15, 36, 0.72);
 }
@@ -1677,6 +1678,7 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 4 / 3;
+  border-radius: var(--sr-lg, 24px);
   background: rgba(255, 255, 255, 0.06);
   /* Per-tile parallax: each photo drifts at its own rate while the section
      crosses the viewport. Transform-only, driven by --wall-progress. */
@@ -1708,9 +1710,9 @@
   gap: 10px;
   margin-top: 12px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.78);
   transform: translate3d(0, calc(var(--wall-progress, 0) * var(--drift, 0px)), 0);

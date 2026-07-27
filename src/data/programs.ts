@@ -15,6 +15,11 @@ export const programsByDivision = {
       status: 'Terjadwal',
       date: 'April',
       months: [4],
+      // Contoh program yang tanggalnya sudah ditetapkan. Sisanya sengaja
+      // dibiarkan tanpa tanggal: Buku Panduan memang hanya menyebut bulan, dan
+      // mengarang tanggal justru mengulang kesalahan yang sedang diperbaiki.
+      startDate: '2026-04-12',
+      endDate: '2026-04-14',
     },
     {
       name: 'SOTM',

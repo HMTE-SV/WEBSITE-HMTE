@@ -1,16 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AdminEmptyState } from './AdminEmptyState'
 import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
 import { canAdminWrite } from '@/data/admin-nav'
 import {
   deleteContentDocument,
-  listContentDocuments,
+  subscribeToContentDocuments,
   setContentStatus,
 } from '@/lib/firebase/content-services'
+import { requestRevalidation } from '@/lib/admin/revalidate'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import {
   contentCrudConfigs,
@@ -65,29 +66,30 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
-  const loadDocuments = useCallback(async () => {
+  /*
+   * Langganan, bukan sekali ambil. Redaksi sering bekerja berbarengan, dan
+   * status terbit yang diubah satu orang harus langsung terlihat yang lain.
+   * `isLoading` sudah lahir dari `hasFirebaseConfig()`, jadi jalur tanpa
+   * konfigurasi tidak perlu menyetel apa pun.
+   */
+  useEffect(() => {
     if (!hasFirebaseConfig()) {
-      setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
-    setError('')
-
-    try {
-      const nextDocuments = await listContentDocuments<ManagedContentDocument>(config.collectionName)
-      setDocuments(nextDocuments.sort((first, second) => getDocumentTimestamp(second) - getDocumentTimestamp(first)))
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Gagal memuat data.')
-    } finally {
-      setIsLoading(false)
-    }
+    return subscribeToContentDocuments<ManagedContentDocument>(config.collectionName, {
+      onData: (nextDocuments) => {
+        setDocuments(
+          [...nextDocuments].sort((first, second) => getDocumentTimestamp(second) - getDocumentTimestamp(first)),
+        )
+        setIsLoading(false)
+      },
+      onError: (subscribeError) => {
+        setError(subscribeError.message || 'Gagal memuat data.')
+        setIsLoading(false)
+      },
+    })
   }, [config.collectionName])
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => void loadDocuments(), 0)
-    return () => window.clearTimeout(timeout)
-  }, [loadDocuments])
 
   const filteredDocuments = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase()
@@ -113,7 +115,11 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
       const nextStatus = getNextPublishStatus(document.status)
       await setContentStatus(config.collectionName, document.id, nextStatus)
       setFeedback(nextStatus === 'published' ? 'Konten berhasil diterbitkan.' : 'Konten dikembalikan ke draft.')
-      await loadDocuments()
+
+      if (kind === 'articles') {
+        await requestRevalidation('articles')
+      }
+
     } catch (statusError) {
       setError(statusError instanceof Error ? statusError.message : 'Gagal memperbarui status.')
     } finally {
@@ -133,7 +139,11 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
     try {
       await deleteContentDocument(config.collectionName, document.id)
       setFeedback('Konten berhasil dihapus.')
-      await loadDocuments()
+
+      if (kind === 'articles') {
+        await requestRevalidation('articles')
+      }
+
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus konten.')
     } finally {

@@ -45,3 +45,10 @@ ASSET/anggota-hmte.md
 # fisiknya. Diabaikan supaya `git add -A` tidak melacaknya lagi.
 # Hapus dengan `del src\data\events.ts` setelah dev server dimatikan.
 src/data/events.ts
+
+# Firebase emulator
+firestore-debug.log
+firebase-debug.log
+
+# Kunci Admin SDK. Kredensial penuh: jangan pernah masuk repo.
+service-account.json
