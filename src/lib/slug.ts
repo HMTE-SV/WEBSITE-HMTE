@@ -8,6 +8,15 @@ export function slugify(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
+// Versi longgar untuk dipakai saat mengetik: karakter tak valid tetap dibersihkan,
+// tetapi satu tanda hubung di akhir dipertahankan supaya slug multi-kata bisa diketik.
+export function normalizeSlugInput(value: string) {
+  const core = slugify(value)
+  const endsWithSeparator = value.length > 0 && !/[a-z0-9]$/i.test(value)
+
+  return core && endsWithSeparator ? `${core}-` : core
+}
+
 export function createUniqueSlug(value: string, takenSlugs: Iterable<string> = []) {
   const baseSlug = slugify(value)
   const existingSlugs = new Set(takenSlugs)

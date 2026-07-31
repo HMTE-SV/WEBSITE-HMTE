@@ -77,6 +77,10 @@ export function validateArticleInput(input: ArticleInput): ValidationResult {
     errors.push('Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung.')
   }
 
+  if (input.slug.length > 120) {
+    errors.push('Slug maksimal 120 karakter.')
+  }
+
   if (input.coverImage?.trim()) {
     errors.push(...validateGalleryImageUrl(input.coverImage.trim()).errors)
   }
