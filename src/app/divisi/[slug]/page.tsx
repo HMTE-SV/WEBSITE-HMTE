@@ -3,9 +3,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PublicPageFrame } from '@/components/site/PublicPage'
+import { getDivisionMediaSlotKey } from '@/data/media-slots'
 import { leadershipDivisionOrder } from '@/data/divisions'
 import { divisionVisuals } from '@/data/organization-presentation'
 import { getOrganizationData } from '@/lib/organization-data'
+import { getPublicMediaSlots } from '@/lib/media-slot-data'
 import {
   getDivisionHref,
   getLeaderHref,
@@ -22,6 +24,12 @@ function getInitials(name: string) {
   const parts = name.trim().split(/\s+/)
   return `${parts[0]?.[0] ?? ''}${parts.at(-1)?.[0] ?? ''}`.toUpperCase()
 }
+
+/*
+ * Jaring pengaman, sama alasannya dengan halaman daftarnya. Lihat komentar
+ * `revalidate` di src/app/page.tsx.
+ */
+export const revalidate = 300
 
 export function generateStaticParams() {
   return leadershipDivisionOrder.map((code) => ({ slug: toOrganizationSlug(code) }))
@@ -42,7 +50,11 @@ export async function generateMetadata({ params }: DivisionDetailPageProps): Pro
 }
 
 export default async function DivisionDetailPage({ params }: DivisionDetailPageProps) {
-  const [{ slug }, organization] = await Promise.all([params, getOrganizationData()])
+  const [{ slug }, organization, mediaSlots] = await Promise.all([
+    params,
+    getOrganizationData(),
+    getPublicMediaSlots(),
+  ])
   const division = organization.divisions.find((item) => toOrganizationSlug(item.code) === slug)
 
   if (!division) {
@@ -61,17 +73,19 @@ export default async function DivisionDetailPage({ params }: DivisionDetailPageP
     (counts, program) => ({ ...counts, [program.status]: counts[program.status] + 1 }),
     { Terjadwal: 0, Berkala: 0 } satisfies Record<ProgramStatus, number>,
   )
+  const divisionHero = mediaSlots[getDivisionMediaSlotKey(division.code)]
 
   return (
     <PublicPageFrame activeHref="/divisi">
       <section className="division-detail-hero" aria-labelledby="division-title">
         <Image
           className="division-detail-hero-image"
-          src={divisionVisuals[division.code]}
+          src={divisionHero.url || divisionVisuals[division.code]}
           alt=""
           fill
           priority
           sizes="100vw"
+          style={{ objectPosition: `${divisionHero.focalPointX}% ${divisionHero.focalPointY}%` }}
         />
         <div className="division-detail-hero-tone" aria-hidden="true" />
         <span className="division-detail-index" aria-hidden="true">{divisionNumber}</span>

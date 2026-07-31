@@ -6,6 +6,7 @@ import { organizationRolesByDivision } from '@/data/organization-roles'
 import { getDivisionHref, getLeaderHref } from '@/lib/organization-slugs'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 import { useDirectory } from './directory/DirectoryProvider'
+import { useMediaSlot } from './MediaSlotProvider'
 
 type LeadershipDirectoryProps = {
   divisions: Division[]
@@ -15,11 +16,13 @@ type LeadershipDirectoryProps = {
 }
 
 function MemberImage({ member }: { member: Leader }) {
+  const logo = useMediaSlot('brand.logo.primary')
+
   if (member.photo) {
     return <Image src={member.photo} alt={member.name} fill sizes="(max-width: 700px) 66vw, 220px" />
   }
 
-  return <Image className="org-person-logo" src="/assets/logo-hmte.svg" alt="" width={96} height={44} />
+  return <Image className="org-person-logo" src={logo.url} alt="" width={96} height={44} />
 }
 
 export function LeadershipDirectory({
@@ -27,11 +30,22 @@ export function LeadershipDirectory({
   leadersByDivision,
   programsByDivision,
 }: LeadershipDirectoryProps) {
+  const logo = useMediaSlot('brand.logo.primary')
   const { selectedDivision } = useDirectory()
   const division = divisionsByCode[selectedDivision]
   const members = leadersByDivision[selectedDivision] ?? []
   const programs = programsByDivision[selectedDivision] ?? []
   const roles = organizationRolesByDivision[selectedDivision]
+
+  /*
+   * Tanpa penjagaan ini, satu bidang yang hilang dari Firestore menjatuhkan
+   * seluruh beranda: `division.shortName` dibaca beberapa baris di bawah, dan
+   * error saat render di klien menghapus semua yang ada di bawah GetToKnow,
+   * bukan cuma kartu ini.
+   */
+  if (!division) {
+    return null
+  }
 
   return (
     <article className="org-signal" key={selectedDivision} aria-live="polite">
@@ -74,7 +88,7 @@ export function LeadershipDirectory({
                     key={role.name}
                   >
                     <div className="org-person-photo">
-                      <Image className="org-person-logo" src="/assets/logo-hmte.svg" alt="" width={96} height={44} />
+                      <Image className="org-person-logo" src={logo.url} alt="" width={96} height={44} />
                     </div>
                     <div>
                       <h4>{role.name}</h4>

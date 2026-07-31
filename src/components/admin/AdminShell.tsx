@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { AdminIcon } from './AdminIcon'
 import { AdminLogoutButton } from './AdminLogoutButton'
 import { useAdminSession } from './AdminSessionContext'
+import { useMediaSlot } from '@/components/site/MediaSlotProvider'
 import { getAdminNavItemsForRole, type AdminNavItem } from '@/data/admin-nav'
 
 type AdminShellProps = {
@@ -24,6 +25,7 @@ const navigationGroups = [
 ] as const satisfies ReadonlyArray<readonly [AdminNavItem['group'], string]>
 
 export function AdminShell({ activeHref, children, description, kicker, title }: AdminShellProps) {
+  const logo = useMediaSlot('brand.logo.primary')
   const session = useAdminSession()
   const navItems = getAdminNavItemsForRole(session.role)
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
@@ -40,7 +42,7 @@ export function AdminShell({ activeHref, children, description, kicker, title }:
         <div className="admin-sidebar-main">
           <div className="admin-brand-row">
             <Link className="admin-brand" href="/admin" aria-label="Dashboard admin HMTE">
-              <Image src="/assets/logo-hmte.svg" alt="HMTE TRE SV UGM" width={138} height={41} priority />
+              <Image src={logo.url} alt={logo.alt} width={138} height={41} priority />
               <span>Control room</span>
             </Link>
             <button className="admin-nav-close" type="button" aria-label="Tutup navigasi" onClick={() => setIsNavigationOpen(false)}>

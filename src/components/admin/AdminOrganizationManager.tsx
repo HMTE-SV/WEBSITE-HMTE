@@ -10,15 +10,26 @@ import { canAdminWrite } from '@/data/admin-nav'
 import {
   buildLeaderContactPayload,
   buildOrganizationPayload,
+  emptyProgramResource,
+  emptyTimelineEntry,
   getEmptyOrganizationFormValues,
   organizationCrudConfigs,
   organizationDocumentToFormValues,
+  removeListRow,
+  toggleCoordinator,
   toggleProgramMonth,
+  updateListRow,
   validateOrganizationValues,
   type ManagedOrganizationDocument,
   type OrganizationFormValues,
   type OrganizationKind,
 } from '@/lib/admin/organization-crud'
+import {
+  PROGRAM_RESOURCE_LIMIT,
+  PROGRAM_TIMELINE_LIMIT,
+  type ProgramResource,
+  type ProgramTimelineEntry,
+} from '@/lib/program-detail'
 import {
   buildProgramSchedule,
   formatScheduleShort,
@@ -38,7 +49,7 @@ import { SITE_SETTINGS_ID } from '@/lib/site-settings-data'
 import { normalizeSiteSettings } from '@/lib/site-settings'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import type { DivisionCode, ProgramStatus } from '@/types/content'
-import type { LeaderContactDocument, SiteSettingsDocument } from '@/types/firestore'
+import type { LeaderContactDocument, LeaderDocument, SiteSettingsDocument } from '@/types/firestore'
 
 const programStatuses: ProgramStatus[] = ['Terjadwal', 'Berkala']
 
@@ -85,7 +96,22 @@ function getDocumentDetail(kind: OrganizationKind, document: ManagedOrganization
   }
 
   if (kind === 'programs' && 'desc' in document) {
-    return `${document.status} / ${document.date}`
+    /*
+     * Kolom ini juga menyebut apakah halaman rincian program sudah berisi.
+     * Tanpa itu, satu-satunya cara pengurus tahu program mana yang halamannya
+     * masih kosong adalah membuka tiga puluh tujuh baris satu per satu.
+     */
+    const hasDetail =
+      Boolean(document.summary?.trim()) ||
+      (document.objectives?.length || 0) > 0 ||
+      (document.timeline?.length || 0) > 0
+
+    const marks = [
+      document.featured ? 'Sorotan' : '',
+      hasDetail ? 'Rincian terisi' : 'Rincian kosong',
+    ].filter(Boolean)
+
+    return `${document.status} / ${document.date} · ${marks.join(' · ')}`
   }
 
   if ('description' in document) {
@@ -123,6 +149,15 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
   const hasNoDivision = isDivisionScoped && !lockedDivision
   const [items, setItems] = useState<ManagedOrganizationDocument[]>([])
   const [contacts, setContacts] = useState<Record<string, LeaderContactDocument>>({})
+  /*
+   * Daftar pengurus, dipakai halaman program untuk memilih penanggung jawab.
+   *
+   * Kosong di halaman lain, dan langganannya pun tidak dipasang di sana. Kalau
+   * halaman divisi ikut berlangganan, tiap pengurus yang membuka menu itu
+   * membayar pembacaan seluruh collection `leaders` untuk daftar yang tidak
+   * pernah dirender.
+   */
+  const [leaderRoster, setLeaderRoster] = useState<LeaderDocument[]>([])
   const [editingId, setEditingId] = useState('')
   const [values, setValues] = useState<OrganizationFormValues>(() => {
     const base = getEmptyOrganizationFormValues(kind)
@@ -215,9 +250,27 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
         })
       : null
 
+    // Sama alasannya: daftar pengurus hanya relevan di halaman program kerja,
+    // sebagai sumber pilihan penanggung jawab.
+    const unsubscribeLeaders = kind === 'programs'
+      ? subscribeToContentDocuments<LeaderDocument>('leaders', {
+          onData: (documents) => {
+            setLeaderRoster(
+              [...documents].sort((first, second) => first.order - second.order),
+            )
+          },
+          onError: () => {
+            // Sengaja diam. Gagal memuat daftar pengurus berarti pemilih
+            // penanggung jawab kosong, dan itu tidak boleh menghalangi
+            // penyuntingan program yang tidak ada hubungannya.
+          },
+        })
+      : null
+
     return () => {
       unsubscribeItems()
       unsubscribeContacts?.()
+      unsubscribeLeaders?.()
     }
   }, [config.collectionName, kind])
 
@@ -372,6 +425,33 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
     endDate: values.endDate,
   })
   const copy = organizationPageCopy[kind]
+
+  /*
+   * Pilihan penanggung jawab dibatasi pengurus bidang yang sedang dipilih di
+   * form, bukan bidang milik akun. Superadmin bisa memindahkan program antar
+   * bidang, dan daftar nama harus ikut berpindah bersamanya.
+   */
+  const divisionLeaders = leaderRoster.filter(
+    (leader) => leader.active && leader.divisionCode === values.divisionCode,
+  )
+  const selectedCoordinatorKeys = new Set(
+    values.coordinators.map((name) => name.trim().toLocaleLowerCase('id-ID')),
+  )
+  /*
+   * Nama yang tersimpan tapi tidak ada lagi di daftar pengurus bidang ini.
+   *
+   * Terjadi kalau orangnya dihapus, dinonaktifkan, pindah bidang, atau namanya
+   * diperbaiki ejaannya. Ditampilkan terpisah dan tetap bisa dilepas, bukan
+   * dibuang diam-diam: nama itu masih tercetak di halaman publik, dan pengurus
+   * harus bisa melihat serta menghapusnya dari sini.
+   */
+  const orphanCoordinators = values.coordinators.filter(
+    (name) =>
+      !divisionLeaders.some(
+        (leader) =>
+          leader.name.trim().toLocaleLowerCase('id-ID') === name.trim().toLocaleLowerCase('id-ID'),
+      ),
+  )
 
   // Divisi tidak punya `divisionCode`; ia adalah divisinya sendiri. Menyaringnya
   // dengan field yang tidak ada akan mengosongkan seluruh daftar.
@@ -654,6 +734,303 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                     kalimat khusus, misalnya &quot;Menyesuaikan kalender akademik&quot;.
                   </p>
                 </div>
+
+                {/*
+                  Mulai di sini seluruh isi halaman rincian program. Sebelumnya
+                  bagian ini tidak ada sama sekali di panel: ringkasan, tahapan,
+                  dan poin fokus hanya dimiliki tiga program unggulan, dan
+                  ketiganya ditulis sebagai konstanta di dalam repo. Program
+                  keempat mustahil punya halaman yang berisi tanpa mengubah kode.
+                */}
+                <fieldset className="admin-detail-group">
+                  <legend>Isi halaman rincian</legend>
+                  <p className="admin-field-hint">
+                    Semuanya boleh dikosongkan. Bagian yang kosong tidak digambar di halaman
+                    program, bukan tampil sebagai kotak kosong.
+                  </p>
+
+                  <div className="admin-field">
+                    <label htmlFor="org-summary">Ringkasan panjang</label>
+                    <textarea
+                      id="org-summary"
+                      value={values.summary}
+                      onChange={(event) => updateField('summary', event.target.value)}
+                      rows={4}
+                      aria-describedby="org-summary-hint"
+                    />
+                    <p className="admin-field-hint" id="org-summary-hint">
+                      Satu sampai tiga paragraf pendek. Deskripsi singkat di atas tetap dipakai
+                      untuk kartu di katalog, jadi tidak perlu diulang persis.
+                    </p>
+                  </div>
+
+                  <div className="admin-field">
+                    <label htmlFor="org-objectives">Poin fokus</label>
+                    <textarea
+                      id="org-objectives"
+                      value={values.objectives}
+                      onChange={(event) => updateField('objectives', event.target.value)}
+                      rows={4}
+                      placeholder={'Kesiapan pengurus menjalankan tanggung jawab organisasi\nPengembangan hard skill dan soft skill'}
+                      aria-describedby="org-objectives-hint"
+                    />
+                    <p className="admin-field-hint" id="org-objectives-hint">
+                      Satu poin per baris, tanpa tanda hubung di depan. Baris kosong diabaikan.
+                    </p>
+                  </div>
+
+                  <div className="admin-repeat">
+                    <div className="admin-repeat-head">
+                      <span>Tahapan pelaksanaan</span>
+                      <button
+                        type="button"
+                        disabled={values.timeline.length >= PROGRAM_TIMELINE_LIMIT}
+                        onClick={() =>
+                          updateField('timeline', [...values.timeline, emptyTimelineEntry()])
+                        }
+                      >
+                        Tambah tahapan
+                      </button>
+                    </div>
+
+                    {values.timeline.length === 0 ? (
+                      <p className="admin-field-hint">
+                        Belum ada tahapan. Program satu hari memang tidak butuh ini.
+                      </p>
+                    ) : (
+                      values.timeline.map((entry, index) => (
+                        <div className="admin-repeat-row" key={`timeline-${index}`}>
+                          <div className="admin-form-grid">
+                            <div className="admin-field">
+                              <label htmlFor={`org-timeline-label-${index}`}>Judul tahapan</label>
+                              <input
+                                id={`org-timeline-label-${index}`}
+                                value={entry.label}
+                                onChange={(event) =>
+                                  updateField(
+                                    'timeline',
+                                    updateListRow<ProgramTimelineEntry>(values.timeline, index, {
+                                      label: event.target.value,
+                                    }),
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="admin-field">
+                              <label htmlFor={`org-timeline-when-${index}`}>Waktu</label>
+                              <input
+                                id={`org-timeline-when-${index}`}
+                                value={entry.when}
+                                placeholder="April"
+                                onChange={(event) =>
+                                  updateField(
+                                    'timeline',
+                                    updateListRow<ProgramTimelineEntry>(values.timeline, index, {
+                                      when: event.target.value,
+                                    }),
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="admin-field">
+                            <label htmlFor={`org-timeline-detail-${index}`}>Keterangan</label>
+                            <textarea
+                              id={`org-timeline-detail-${index}`}
+                              value={entry.detail}
+                              rows={2}
+                              onChange={(event) =>
+                                updateField(
+                                  'timeline',
+                                  updateListRow<ProgramTimelineEntry>(values.timeline, index, {
+                                    detail: event.target.value,
+                                  }),
+                                )
+                              }
+                            />
+                          </div>
+                          <button
+                            className="admin-repeat-remove"
+                            type="button"
+                            onClick={() =>
+                              updateField('timeline', removeListRow(values.timeline, index))
+                            }
+                          >
+                            Hapus tahapan {index + 1}
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="admin-repeat">
+                    <div className="admin-repeat-head">
+                      <span>Berkas dan tautan</span>
+                      <button
+                        type="button"
+                        disabled={values.resources.length >= PROGRAM_RESOURCE_LIMIT}
+                        onClick={() =>
+                          updateField('resources', [...values.resources, emptyProgramResource()])
+                        }
+                      >
+                        Tambah berkas
+                      </button>
+                    </div>
+
+                    {values.resources.length === 0 ? (
+                      <p className="admin-field-hint">
+                        Belum ada berkas. Tempel tautan proposal, formulir pendaftaran, atau
+                        laporan yang sudah bisa diakses publik.
+                      </p>
+                    ) : (
+                      values.resources.map((entry, index) => (
+                        <div className="admin-repeat-row" key={`resource-${index}`}>
+                          <div className="admin-form-grid">
+                            <div className="admin-field">
+                              <label htmlFor={`org-resource-label-${index}`}>Nama berkas</label>
+                              <input
+                                id={`org-resource-label-${index}`}
+                                value={entry.label}
+                                placeholder="Formulir pendaftaran"
+                                onChange={(event) =>
+                                  updateField(
+                                    'resources',
+                                    updateListRow<ProgramResource>(values.resources, index, {
+                                      label: event.target.value,
+                                    }),
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="admin-field">
+                              <label htmlFor={`org-resource-note-${index}`}>Keterangan</label>
+                              <input
+                                id={`org-resource-note-${index}`}
+                                value={entry.note}
+                                placeholder="PDF · 400 KB"
+                                onChange={(event) =>
+                                  updateField(
+                                    'resources',
+                                    updateListRow<ProgramResource>(values.resources, index, {
+                                      note: event.target.value,
+                                    }),
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="admin-field">
+                            <label htmlFor={`org-resource-url-${index}`}>Alamat</label>
+                            <input
+                              id={`org-resource-url-${index}`}
+                              value={entry.url}
+                              inputMode="url"
+                              placeholder="https://"
+                              onChange={(event) =>
+                                updateField(
+                                  'resources',
+                                  updateListRow<ProgramResource>(values.resources, index, {
+                                    url: event.target.value,
+                                  }),
+                                )
+                              }
+                            />
+                          </div>
+                          <button
+                            className="admin-repeat-remove"
+                            type="button"
+                            onClick={() =>
+                              updateField('resources', removeListRow(values.resources, index))
+                            }
+                          >
+                            Hapus berkas {index + 1}
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="admin-repeat">
+                    <div className="admin-repeat-head">
+                      <span>Penanggung jawab</span>
+                    </div>
+                    <p className="admin-field-hint" id="org-coordinator-hint">
+                      Dipilih dari pengurus aktif bidang {values.divisionCode}. Yang tersimpan
+                      namanya, bukan acuan ke dokumen, jadi menghapus pengurus tidak merusak
+                      halaman program.
+                    </p>
+
+                    {divisionLeaders.length === 0 ? (
+                      <p className="admin-field-hint">
+                        Belum ada pengurus aktif di bidang ini. Tambahkan lewat menu Pengurus dulu.
+                      </p>
+                    ) : (
+                      <div className="admin-chip-picker" aria-describedby="org-coordinator-hint">
+                        {divisionLeaders.map((leader) => {
+                          const isSelected = selectedCoordinatorKeys.has(
+                            leader.name.trim().toLocaleLowerCase('id-ID'),
+                          )
+
+                          return (
+                            <button
+                              type="button"
+                              key={leader.id}
+                              aria-pressed={isSelected}
+                              onClick={() =>
+                                updateField(
+                                  'coordinators',
+                                  toggleCoordinator(values.coordinators, leader.name),
+                                )
+                              }
+                            >
+                              <b>{leader.name}</b>
+                              <small>{leader.role}</small>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {orphanCoordinators.length > 0 ? (
+                      <div className="admin-chip-orphans">
+                        <p className="admin-field-hint">
+                          Nama berikut tersimpan di program ini tapi tidak ada di daftar pengurus
+                          aktif bidang {values.divisionCode}. Tetap tampil di halaman publik sampai
+                          dilepas.
+                        </p>
+                        <div className="admin-chip-picker">
+                          {orphanCoordinators.map((name) => (
+                            <button
+                              type="button"
+                              key={`orphan-${name}`}
+                              aria-pressed
+                              onClick={() =>
+                                updateField('coordinators', toggleCoordinator(values.coordinators, name))
+                              }
+                            >
+                              <b>{name}</b>
+                              <small>Lepas</small>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </fieldset>
+
+                <label className="admin-check-row">
+                  <input
+                    type="checkbox"
+                    checked={values.featured}
+                    onChange={(event) => updateField('featured', event.target.checked)}
+                  />
+                  Tandai sebagai program sorotan
+                </label>
+                <p className="admin-field-hint">
+                  Program sorotan tampil paling besar di bagian atas /program-kerja. Sebelum ini,
+                  ketiganya dipatok dari daftar nama di dalam kode, jadi mengganti nama program
+                  lewat panel diam-diam menghilangkan sorotannya.
+                </p>
               </>
             ) : null}
 

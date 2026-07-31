@@ -1,20 +1,29 @@
 import type { Timestamp } from 'firebase/firestore'
+import type { ProgramResource, ProgramTimelineEntry } from '@/lib/program-detail'
+import type { SiteSettings } from '@/lib/site-settings'
+import type { PageContent } from '@/lib/page-content'
 import type { AdminRole } from './admin'
 import type { ArticleCategoryKey, ContentStatus, DivisionCode, ProgramStatus } from './content'
 
 export const firestoreCollections = {
   announcements: 'announcements',
-  events: 'events',
   articles: 'articles',
+  auditLogs: 'auditLogs',
+  contentRevisions: 'contentRevisions',
   gallery: 'gallery',
   leaders: 'leaders',
   leaderContacts: 'leaderContacts',
   divisions: 'divisions',
+  media: 'media',
+  mediaSlots: 'mediaSlots',
   programs: 'programs',
   partners: 'partners',
+  pageContents: 'pageContents',
+  pageContentDrafts: 'pageContentDrafts',
   aspirations: 'aspirations',
   adminUsers: 'adminUsers',
   settings: 'settings',
+  siteSettingsDrafts: 'siteSettingsDrafts',
 } as const
 
 export type FirestoreCollectionName = (typeof firestoreCollections)[keyof typeof firestoreCollections]
@@ -23,6 +32,90 @@ export type FirestoreDocument = {
   id: string
   createdAt?: Timestamp
   updatedAt?: Timestamp
+}
+
+export const auditedContentCollections = [
+  'announcements',
+  'articles',
+  'divisions',
+  'gallery',
+  'leaders',
+  'media',
+  'mediaSlots',
+  'partners',
+  'pageContents',
+  'pageContentDrafts',
+  'programs',
+  'settings',
+  'siteSettingsDrafts',
+] as const satisfies readonly FirestoreCollectionName[]
+
+export type AuditedContentCollectionName = (typeof auditedContentCollections)[number]
+export type AuditAction = 'create' | 'update' | 'delete' | 'restore'
+export type AuditSnapshot = Record<string, unknown>
+
+export type ContentRevisionDocument = FirestoreDocument & {
+  entityType: AuditedContentCollectionName
+  entityId: string
+  action: AuditAction
+  actorUid: string
+  actorEmail: string
+  actorRole: AdminRole
+  changedFields: string[]
+  before: AuditSnapshot | null
+  after: AuditSnapshot | null
+}
+
+export type AuditLogDocument = FirestoreDocument & {
+  entityType: AuditedContentCollectionName
+  entityId: string
+  action: AuditAction
+  actorUid: string
+  actorEmail: string
+  actorRole: AdminRole
+  changedFields: string[]
+  revisionId: string
+  summary: string
+}
+
+export const mediaConsentStatuses = ['unknown', 'confirmed', 'not_required'] as const
+export type MediaConsentStatus = (typeof mediaConsentStatuses)[number]
+export const mediaStatuses = ['active', 'archived'] as const
+export type MediaStatus = (typeof mediaStatuses)[number]
+
+export type MediaDocument = FirestoreDocument & {
+  fileId: string
+  fileName: string
+  originalFileName: string
+  filePath: string
+  folder: 'pengurus' | 'berita' | 'galeri' | 'situs'
+  url: string
+  thumbnailUrl?: string
+  mimeType: string
+  size: number
+  width: number
+  height: number
+  alt: string
+  caption: string
+  credit: string
+  consentStatus: MediaConsentStatus
+  focalPointX: number
+  focalPointY: number
+  status: MediaStatus
+}
+
+export type MediaSlotDocument = FirestoreDocument & {
+  slotKey: string
+  label: string
+  description: string
+  mediaId: string
+  fallbackUrl: string
+  mediaUrl?: string
+  mediaAlt?: string
+  mediaWidth?: number
+  mediaHeight?: number
+  focalPointX?: number
+  focalPointY?: number
 }
 
 export type PublishableDocument = FirestoreDocument & {
@@ -36,14 +129,6 @@ export type AnnouncementDocument = PublishableDocument & {
   body?: string
   date: string
   priority?: number
-}
-
-export type EventDocument = PublishableDocument & {
-  title: string
-  excerpt: string
-  date: string
-  location?: string
-  coverImage?: string
 }
 
 export type ArticleDocument = PublishableDocument & {
@@ -138,6 +223,22 @@ export type ProgramDocument = FirestoreDocument & {
    */
   startDate?: string
   endDate?: string
+  /**
+   * Isi halaman rincian program.
+   *
+   * Opsional seluruhnya: 37 program sudah tersimpan sebelum field ini ada, dan
+   * dokumen lama tidak boleh jadi tidak sah hanya karena skemanya bertambah.
+   * Yang membaca wajib lewat normalizer di src/lib/program-detail.ts, bukan
+   * memakai nilainya mentah, karena bentuk yang datang dari dokumen lama adalah
+   * `undefined` dan bentuk yang datang dari panel versi lain belum tentu sesuai
+   * tipe di sini. TypeScript tidak memeriksa apa pun di batas Firestore.
+   */
+  summary?: string
+  objectives?: string[]
+  timeline?: ProgramTimelineEntry[]
+  resources?: ProgramResource[]
+  coordinators?: string[]
+  featured?: boolean
   active: boolean
   order: number
 }
@@ -187,14 +288,26 @@ export type AdminUserDocument = FirestoreDocument & {
  * Ini satu-satunya dokumen yang boleh dibaca publik di collection `settings`,
  * jadi tidak ada yang bersifat rahasia yang boleh ditambahkan di sini.
  */
-export type SiteSettingsDocument = FirestoreDocument & {
-  cabinetName: string
-  periodLabel: string
-  agendaYear: number
-  tagline: string
-  instagram: string
-  email: string
-  address: string
-  closingCheer: string
+export type SiteSettingsDocument = FirestoreDocument & SiteSettings & {
   updatedBy?: string
+}
+
+/**
+ * Draf privat untuk pengaturan global. Dipisah dari `settings/site` karena
+ * dokumen terbit dibaca publik dan Firestore tidak dapat menyembunyikan field.
+ */
+export type SiteSettingsDraftDocument = FirestoreDocument & SiteSettings & {
+  publicationState: 'draft' | 'published'
+  updatedBy?: string
+  lastPublishedAt?: Timestamp
+}
+
+export type PageContentDocument = FirestoreDocument & PageContent & {
+  updatedBy?: string
+}
+
+export type PageContentDraftDocument = FirestoreDocument & PageContent & {
+  publicationState: 'draft' | 'published'
+  updatedBy?: string
+  lastPublishedAt?: Timestamp
 }

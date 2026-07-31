@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { siteNav } from '@/data/site-content'
+import { useMediaSlot } from '@/components/site/MediaSlotProvider'
+import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 
 type HeaderProps = {
   activeHref?: string
@@ -11,6 +12,9 @@ type HeaderProps = {
 }
 
 export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) {
+  const logo = useMediaSlot('brand.logo.primary')
+  const settings = useSiteSettings()
+  const navigation = settings.navigation.filter((item) => item.visible)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [openGroup, setOpenGroup] = useState<string | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -70,8 +74,8 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
       <div className="container">
         <Link href="/" className="brand" aria-label="HMTE TRE SV UGM — Beranda" onClick={closeAll}>
           <Image
-            src="/assets/logo-hmte.svg"
-            alt="HMTE TRE SV UGM"
+            src={logo.url}
+            alt={logo.alt}
             width={96}
             height={28}
             className="brand-logo"
@@ -96,8 +100,9 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
           className={isMenuOpen ? 'is-open' : undefined}
           aria-label="Navigasi utama"
         >
-          {siteNav.map((item) => {
-            if (!item.children) {
+          {navigation.map((item) => {
+            const visibleChildren = item.children.filter((child) => child.visible)
+            if (visibleChildren.length === 0) {
               const isActive = item.href === activeHref
 
               return (
@@ -112,7 +117,7 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
               )
             }
 
-            const isGroupActive = item.children.some((child) => child.href === activeHref)
+            const isGroupActive = visibleChildren.some((child) => child.href === activeHref)
             const isOpen = openGroup === item.label
 
             return (
@@ -140,7 +145,7 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
                   </svg>
                 </button>
                 <div className="nav-submenu">
-                  {item.children.map((child) => (
+                  {visibleChildren.map((child) => (
                     <Link
                       href={child.href}
                       className={child.href === activeHref ? 'active' : undefined}
@@ -155,8 +160,8 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
             )
           })}
         </nav>
-        <Link href="/kontak" className="hdr-cta">
-          Hubungi{' '}
+        <Link href={settings.headerCtaHref} className="hdr-cta">
+          {settings.headerCtaLabel}{' '}
           <svg
             width="12"
             height="12"

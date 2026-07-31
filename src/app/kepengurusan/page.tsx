@@ -1,16 +1,29 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { LeadershipIndex } from '@/components/site/LeadershipIndex'
 import { PublicPageFrame } from '@/components/site/PublicPage'
 import { leadershipDivisionOrder } from '@/data/divisions'
+import { getDivisionMediaSlotKey } from '@/data/media-slots'
 import { divisionVisuals } from '@/data/organization-presentation'
+import { getPublicMediaSlots } from '@/lib/media-slot-data'
 import { getOrganizationData } from '@/lib/organization-data'
 import { getDivisionHref } from '@/lib/organization-slugs'
 import { formatCabinetTitle } from '@/lib/site-settings'
 import { getSiteSettings } from '@/lib/site-settings-data'
-import type { DivisionCode } from '@/types/content'
+
+/*
+ * Jaring pengaman, bukan jalur utama.
+ *
+ * Jalur normalnya panel memanggil /api/revalidate begitu data berubah, jadi
+ * halaman ini segar dalam hitungan detik. Tanpa `revalidate`, halaman ini
+ * statis penuh dan panggilan itu jadi SATU-SATUNYA cara menyegarkannya: sekali
+ * gagal (token kedaluwarsa, 401, jaringan pengurus putus), halamannya basi
+ * sampai deploy berikutnya, bukan sampai lima menit berikutnya.
+ */
+export const revalidate = 300
 
 /*
  * Satu halaman organisasi, bukan dua.
@@ -31,13 +44,9 @@ export const metadata: Metadata = {
     'Delapan unsur organisasi dan seluruh anggota kepengurusan HMTE TRE SV UGM dalam satu direktori.',
 }
 
-type LeadershipPageProps = {
-  searchParams: Promise<{ divisi?: string }>
-}
-
-export default async function LeadershipPage({ searchParams }: LeadershipPageProps) {
-  const [{ divisi }, { divisionsByCode, leadersByDivision, programsByDivision }, settings] =
-    await Promise.all([searchParams, getOrganizationData(), getSiteSettings()])
+export default async function LeadershipPage() {
+  const [{ divisionsByCode, leadersByDivision, programsByDivision }, settings, mediaSlots] =
+    await Promise.all([getOrganizationData(), getSiteSettings(), getPublicMediaSlots()])
 
   const divisions = leadershipDivisionOrder.flatMap((code) => {
     const division = divisionsByCode[code]
@@ -52,11 +61,7 @@ export default async function LeadershipPage({ searchParams }: LeadershipPagePro
     0,
   )
   const cabinetTitle = formatCabinetTitle(settings)
-  const normalizedDivision = divisi?.toUpperCase()
-  // Tanpa ?divisi=, bawaannya menampilkan SEMUA bidang.
-  const initialDivision = leadershipDivisionOrder.includes(normalizedDivision as DivisionCode)
-    ? (normalizedDivision as DivisionCode)
-    : null
+  const cabinetLogo = mediaSlots['cabinet.logo']
 
   return (
     <PublicPageFrame activeHref="/kepengurusan">
@@ -92,8 +97,8 @@ export default async function LeadershipPage({ searchParams }: LeadershipPagePro
             </div>
             <div className="ppl-hero-mark">
               <Image
-                src="/assets/abya-vistara/logo-kabinet.webp"
-                alt={`Logo ${cabinetTitle}`}
+                src={cabinetLogo.url}
+                alt={cabinetLogo.alt || `Logo ${cabinetTitle}`}
                 width={160}
                 height={160}
                 priority
@@ -124,10 +129,13 @@ export default async function LeadershipPage({ searchParams }: LeadershipPagePro
                 >
                   <Image
                     className="division-plate-texture"
-                    src={divisionVisuals[division.code]}
+                    src={mediaSlots[getDivisionMediaSlotKey(division.code)].url || divisionVisuals[division.code]}
                     alt=""
                     fill
                     sizes="(max-width: 820px) 100vw, (max-width: 1100px) 50vw, 25vw"
+                    style={{
+                      objectPosition: `${mediaSlots[getDivisionMediaSlotKey(division.code)].focalPointX}% ${mediaSlots[getDivisionMediaSlotKey(division.code)].focalPointY}%`,
+                    }}
                   />
                   <span className="division-plate-spine" aria-hidden="true">
                     {division.shortName}
@@ -149,11 +157,14 @@ export default async function LeadershipPage({ searchParams }: LeadershipPagePro
             </div>
           </section>
 
-          <LeadershipIndex
-            divisions={divisions}
-            leadersByDivision={leadersByDivision}
-            initialDivision={initialDivision}
-          />
+          {/*
+            useSearchParams() menuntut batas Suspense. Tanpa ini seluruh
+            halaman jatuh kembali ke render per permintaan, yang justru
+            persoalan yang mau dihindari.
+          */}
+          <Suspense fallback={null}>
+            <LeadershipIndex divisions={divisions} leadersByDivision={leadersByDivision} />
+          </Suspense>
         </div>
       </section>
     </PublicPageFrame>

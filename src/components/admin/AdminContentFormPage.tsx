@@ -21,7 +21,6 @@ import {
 import {
   validateAnnouncementInput,
   validateArticleInput,
-  validateEventInput,
 } from '@/lib/admin/content-form-validation'
 import { validateGalleryImageUrl } from '@/lib/admin/media-validation'
 import {
@@ -31,6 +30,7 @@ import {
   updateContentDocument,
 } from '@/lib/firebase/content-services'
 import { requestRevalidation } from '@/lib/admin/revalidate'
+import { useUnsavedChangesGuard } from '@/lib/admin/use-unsaved-changes-guard'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import { slugify } from '@/lib/slug'
 import type { ContentStatus } from '@/types/content'
@@ -42,7 +42,6 @@ type AdminContentFormPageProps = {
 
 function validateContentForm(kind: ContentKind, values: ContentFormValues) {
   if (kind === 'announcements') return validateAnnouncementInput(values)
-  if (kind === 'events') return validateEventInput(values)
   return validateArticleInput(values)
 }
 
@@ -103,16 +102,7 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
     return () => { isMounted = false }
   }, [config.collectionName, documentId, kind])
 
-  useEffect(() => {
-    if (!isDirty) return
-
-    function preventAccidentalClose(event: BeforeUnloadEvent) {
-      event.preventDefault()
-    }
-
-    window.addEventListener('beforeunload', preventAccidentalClose)
-    return () => window.removeEventListener('beforeunload', preventAccidentalClose)
-  }, [isDirty])
+  useUnsavedChangesGuard(isDirty)
 
   function updateField<Field extends keyof ContentFormValues>(field: Field, value: ContentFormValues[Field]) {
     setIsDirty(true)
@@ -159,9 +149,7 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
         await createContentDocument(config.collectionName, payload)
         setIsDirty(false)
 
-        if (kind === 'articles') {
-          await requestRevalidation('articles')
-        }
+        await requestRevalidation(kind)
 
         router.push(config.basePath)
         return
@@ -172,9 +160,7 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
         setValues(nextValues)
         setIsDirty(false)
 
-        if (kind === 'articles') {
-          await requestRevalidation('articles')
-        }
+        await requestRevalidation(kind)
         setFeedback(nextValues.status === 'published' ? 'Konten tersimpan dan sudah tampil publik.' : 'Konten berhasil disimpan.')
       }
     } catch (error) {
@@ -230,8 +216,8 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
                 <section className="admin-form-section"><div className="admin-form-section-heading"><span>02</span><div><h2>Isi pengumuman</h2><p>Tulis informasi utama secara singkat dan jelas.</p></div></div><div className="admin-field"><label htmlFor="content-body">Isi pengumuman</label><textarea id="content-body" value={values.body} onChange={(event) => updateField('body', event.target.value)} rows={10} /></div></section>
               ) : null}
 
-              {kind === 'events' || kind === 'announcements' ? (
-                <section className="admin-form-section"><div className="admin-form-section-heading"><span>02</span><div><h2>Detail pelaksanaan</h2><p>Lengkapi waktu dan lokasi yang dibutuhkan audiens.</p></div></div><div className="admin-form-grid"><div className="admin-field"><label htmlFor="content-date">Tanggal</label><input id="content-date" type="date" value={values.date} onChange={(event) => updateField('date', event.target.value)} /></div>{kind === 'events' ? <div className="admin-field"><label htmlFor="content-location">Lokasi</label><input id="content-location" value={values.location} onChange={(event) => updateField('location', event.target.value)} /></div> : null}</div></section>
+              {kind === 'announcements' ? (
+                <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Tanggal berlaku</h2><p>Dipakai untuk mengurutkan pengumuman di halaman publik, bukan waktu kamu menekan terbit.</p></div></div><div className="admin-form-grid"><div className="admin-field"><label htmlFor="content-date">Tanggal</label><input id="content-date" type="date" value={values.date} onChange={(event) => updateField('date', event.target.value)} /></div></div></section>
               ) : null}
 
               {kind === 'articles' ? (
@@ -241,7 +227,7 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
                 </section>
               ) : null}
 
-              {kind === 'events' || kind === 'articles' ? (
+              {kind === 'articles' ? (
                 <section className="admin-form-section">
                   <div className="admin-form-section-heading"><span>03</span><div><h2>Media utama</h2><p>Gunakan gambar landscape dari ImageKit untuk menjaga performa website.</p></div></div>
                   <AdminImageField

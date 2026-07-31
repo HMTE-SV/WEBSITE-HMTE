@@ -1,39 +1,12 @@
-import { partnersIntro, partnerTiles } from '@/data/site-content'
-
-function PartnerTileList() {
-  return (
-    <div className="logo-set">
-      {partnerTiles.map((tile, index) => (
-        <div className="logo-tile" key={tile.label}>
-          <strong>{String(index + 1).padStart(2, '0')}</strong>
-          <span>{tile.label}</span>
-          <em>{tile.role}</em>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export function Partners() {
-  return (
-    <section className="tre-partners" id="mitra">
-      <div className="partners-shell">
-        <div className="partners-head fade-up">
-          <h2 className="partners-h2">
-            {partnersIntro.titleLineOne}
-            <br />
-            <span className="muted">{partnersIntro.titleMuted}</span>
-            <br />
-            {partnersIntro.titleLineThree}
-            <span className="acc">.</span>
-          </h2>
-          <p className="partners-lead">{partnersIntro.lead}</p>
-        </div>
-
-        <div className="partner-logo-wall fade-up" aria-label="Jejaring HMTE">
-          <PartnerTileList />
-        </div>
-      </div>
-    </section>
-  )
-}
+// Komponen mati: seksi "Koordinasi, relasi, dan ruang kolaborasi" tidak lagi
+// dirender di beranda dan file ini tidak di-import dari mana pun.
+//
+// Datanya SENGAJA tidak ikut dibuang. `partnersIntro` dan `partnerTiles` di
+// src/data/site-content.ts memuat delapan relasi yang benar-benar ada di
+// struktur organisasi, dan itu isi, bukan perancah. Kalau seksinya mau
+// dihidupkan lagi, bahannya masih utuh di sana.
+//
+// File fisiknya belum bisa dihapus karena watcher `next dev` mengunci file di
+// Windows. Hapus dengan `del src\components\site\Partners.tsx` setelah dev
+// server dimatikan.
+export {}

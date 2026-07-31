@@ -3,6 +3,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { useMediaSlots } from '@/components/site/MediaSlotProvider'
+import { usePageSection } from '@/components/site/PageContentProvider'
+import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
+import { interpolatePageText } from '@/lib/page-content'
+import { formatCabinetTitle } from '@/lib/site-settings'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 
 type HMTEMomentumProps = {
@@ -21,51 +26,62 @@ type MomentTile = {
   position?: string
 }
 
+/*
+ * Enam bidang dokumentasi kabinet.
+ *
+ * Sebelumnya isinya lima gambar generatif, satu di antaranya dipakai dua kali,
+ * dengan label kategori yang menjanjikan hal-hal yang tidak ada di gambarnya:
+ * "Riset / laboratorium", "Kompetisi / karya". Alt textnya bahkan mengaku
+ * sendiri sebagai "Visual sementara".
+ *
+ * Sekarang enam foto asli Kabinet Abya Vistara, dan labelnya menyebut apa yang
+ * benar-benar terlihat, bukan kategori kegiatan yang belum terdokumentasi.
+ */
 const moments: MomentTile[] = [
   {
-    src: '/assets/ugm_socialization.png',
-    alt: 'Visual sementara untuk dokumentasi seminar atau sosialisasi HMTE',
-    label: 'Seminar / sosialisasi',
+    src: '/assets/abya-vistara/kegiatan-01.webp',
+    alt: 'Anggota HMTE berinteraksi dalam kegiatan kebersamaan',
+    label: 'Kebersamaan anggota',
     size: 'tall',
     drift: -46,
     rotate: -1.3,
   },
   {
-    src: '/assets/robotics_prestige.png',
-    alt: 'Visual sementara untuk dokumentasi kompetisi atau pengerjaan karya',
-    label: 'Kompetisi / karya',
+    src: '/assets/abya-vistara/kabinet-01.webp',
+    alt: 'Foto Kabinet Abya Vistara di halaman kampus UGM',
+    label: 'Kabinet di kampus',
     size: 'base',
     drift: 34,
     rotate: 1.1,
   },
   {
-    src: '/assets/smart_grid_dashboard.png',
-    alt: 'Visual sementara untuk dokumentasi riset atau laboratorium',
-    label: 'Riset / laboratorium',
+    src: '/assets/abya-vistara/kegiatan-02.webp',
+    alt: 'Barisan anggota HMTE mengikuti permainan kelompok',
+    label: 'Permainan kelompok',
     size: 'base',
     drift: -18,
     rotate: -0.7,
   },
   {
-    src: '/assets/solar_village.png',
-    alt: 'Visual sementara untuk dokumentasi pengabdian atau HMTE Mengajar',
-    label: 'Pengabdian / HMTE Mengajar',
+    src: '/assets/abya-vistara/kegiatan-03.webp',
+    alt: 'Anggota HMTE tertawa bersama dalam kegiatan luar ruang',
+    label: 'Kegiatan luar ruang',
     size: 'tall',
     drift: 42,
     rotate: 1.4,
   },
   {
-    src: '/assets/semiconductor_career.png',
-    alt: 'Visual sementara untuk dokumentasi jejaring atau kunjungan',
-    label: 'Jejaring / kunjungan',
+    src: '/assets/abya-vistara/kabinet-02.webp',
+    alt: 'Jajaran Kabinet Abya Vistara mengenakan jaket himpunan',
+    label: 'Jaket himpunan',
     size: 'base',
     drift: -30,
     rotate: -1,
   },
   {
-    src: '/assets/ugm_socialization.png',
-    alt: 'Visual sementara untuk dokumentasi kebersamaan Kabinet Abya Vistara',
-    label: 'Kebersamaan kabinet',
+    src: '/assets/abya-vistara/kabinet-03.webp',
+    alt: 'Foto bersama pengurus HMTE periode 2026/2027',
+    label: 'Pengurus 2026/2027',
     size: 'grand',
     drift: 22,
     rotate: 0.6,
@@ -73,7 +89,22 @@ const moments: MomentTile[] = [
   },
 ]
 
+const MOMENT_MEDIA_SLOT_KEYS = moments.map((_, index) => `home.moment.${index + 1}`)
+
 export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision }: HMTEMomentumProps) {
+  const { fields } = usePageSection('momentum')
+  const settings = useSiteSettings()
+  const textVariables = { cabinet: formatCabinetTitle(settings), period: settings.periodLabel }
+  const momentMediaSlots = useMediaSlots(MOMENT_MEDIA_SLOT_KEYS)
+  const resolvedMoments = moments.map((moment, index) => ({
+    ...moment,
+    src: momentMediaSlots[index].url || moment.src,
+    alt: momentMediaSlots[index].alt || moment.alt,
+    position: momentMediaSlots[index].isAssigned
+      ? `${momentMediaSlots[index].focalPointX}% ${momentMediaSlots[index].focalPointY}%`
+      : moment.position,
+    label: fields[`photoLabel${index + 1}`] || moment.label,
+  }))
   const [isInView, setIsInView] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
 
@@ -133,16 +164,13 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
     >
       <div className="moment-wall-shell">
         <header className="moment-wall-head">
-          <span className="moment-wall-kicker">Ruang dokumentasi</span>
-          <h2 id="moment-wall-title">Foto resmi akan menempati ruang ini.</h2>
-          <p>
-            Visual yang tampil saat ini masih sementara. Dokumentasi aktual Kabinet Abya Vistara
-            periode 2026/2027 akan dipasang setelah aset dan izin publikasinya tersedia.
-          </p>
+          <span className="moment-wall-kicker">{fields.kicker}</span>
+          <h2 id="moment-wall-title">{fields.title}</h2>
+          <p>{interpolatePageText(fields.lead, textVariables)}</p>
         </header>
 
         <div className="moment-wall-grid">
-          {moments.slice(0, 3).map((moment, index) => (
+          {resolvedMoments.slice(0, 3).map((moment, index) => (
             <figure
               className={`moment-tile moment-tile--${moment.size}`}
               style={
@@ -174,11 +202,11 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
             className="moment-tile moment-tile--quote"
             style={{ '--drift': '-24px', '--tile-delay': '330ms' } as React.CSSProperties}
           >
-            <p>Dokumentasi resmi akan ditempatkan di ruang ini.</p>
-            <span>Kabinet Abya Vistara · Periode 2026/2027</span>
+            <p>{fields.quote}</p>
+            <span>{interpolatePageText(fields.quoteCaption, textVariables)}</span>
           </div>
 
-          {moments.slice(3).map((moment, index) => (
+          {resolvedMoments.slice(3).map((moment, index) => (
             <figure
               className={`moment-tile moment-tile--${moment.size}`}
               style={
@@ -209,14 +237,14 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
 
         <footer className="moment-wall-foot">
           <p>
-            Kabinet ini bergerak melalui <strong>{divisions.length} unsur organisasi</strong> dan{' '}
-            <strong>{programs.length} program kerja</strong>.{' '}
+            {fields.statsIntro} <strong>{divisions.length} {fields.divisionLabel}</strong> dan{' '}
+            <strong>{programs.length} {fields.programLabel}</strong>.{' '}
             {members.length > 0
-              ? `${members.length} nama pengurus telah tercatat.`
-              : 'Daftar nama pengurus menunggu data resmi berikutnya.'}
+              ? `${members.length} ${fields.memberLabel}`
+              : fields.memberEmpty}
           </p>
           <Link href="/galeri">
-            Buka galeri lengkap <span aria-hidden="true">→</span>
+            {fields.galleryAction} <span aria-hidden="true">→</span>
           </Link>
         </footer>
       </div>

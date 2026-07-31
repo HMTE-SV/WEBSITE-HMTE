@@ -14,6 +14,9 @@ export type AdminNavIcon =
   | 'calendar'
   | 'article'
   | 'gallery'
+  | 'history'
+  | 'media'
+  | 'page'
   | 'people'
   | 'program'
   | 'division'
@@ -30,19 +33,16 @@ export const adminNavItems = [
   },
   {
     group: 'publikasi',
-    href: '/admin/announcements',
-    icon: 'announcement',
-    label: 'Pengumuman',
+    href: '/admin/pages',
+    icon: 'page',
+    label: 'Halaman Situs',
     roles: ['superadmin', 'editor', 'viewer'],
   },
   {
     group: 'publikasi',
-    href: '/admin/events',
-    icon: 'calendar',
-    // Bukan "Agenda". Halaman publik /agenda sekarang digambar dari program
-    // kerja, bukan dari collection ini, jadi label lama menunjuk ke tempat yang
-    // salah setiap kali pengurus mencari jadwal proker.
-    label: 'Kegiatan Bertanggal',
+    href: '/admin/announcements',
+    icon: 'announcement',
+    label: 'Pengumuman',
     roles: ['superadmin', 'editor', 'viewer'],
   },
   {
@@ -57,6 +57,13 @@ export const adminNavItems = [
     href: '/admin/gallery',
     icon: 'gallery',
     label: 'Galeri',
+    roles: ['superadmin', 'editor', 'viewer'],
+  },
+  {
+    group: 'publikasi',
+    href: '/admin/media',
+    icon: 'media',
+    label: 'Pustaka Media',
     roles: ['superadmin', 'editor', 'viewer'],
   },
   {
@@ -85,6 +92,13 @@ export const adminNavItems = [
     href: '/admin/aspirations',
     icon: 'inbox',
     label: 'Aspirasi',
+    roles: ['superadmin', 'editor', 'viewer'],
+  },
+  {
+    group: 'sistem',
+    href: '/admin/history',
+    icon: 'history',
+    label: 'Riwayat Perubahan',
     roles: ['superadmin', 'editor', 'viewer'],
   },
   {
@@ -124,5 +138,5 @@ export function canAccessAdminPath(role: AdminRole, pathname: string) {
     return true
   }
 
-  return !/^\/admin\/(announcements|events|articles)\/[^/]+$/.test(pathname)
+  return !/^\/admin\/(announcements|articles)\/[^/]+$/.test(pathname)
 }

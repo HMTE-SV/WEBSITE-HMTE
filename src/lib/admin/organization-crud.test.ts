@@ -6,6 +6,7 @@ import {
   organizationCrudConfigs,
   organizationDocumentToFormValues,
   parseProgramMonths,
+  toggleCoordinator,
   toggleProgramMonth,
   validateOrganizationValues,
   type OrganizationFormValues,
@@ -220,5 +221,102 @@ describe('program payload derived from the schedule', () => {
 
     expect(payload.startDate).toBe('')
     expect(payload.endDate).toBe('')
+  })
+
+  /*
+   * Alasannya sama persis dengan tanggal di atas: pada `update` Firestore,
+   * kunci yang hilang berarti "jangan diubah". Kalau daftar kosong dibiarkan
+   * hilang dari payload, tahapan lama akan bertahan di dokumen selamanya dan
+   * pengurus tidak punya cara apa pun menghapus baris terakhirnya.
+   */
+  it('always writes the detail lists, even when empty', () => {
+    const payload = buildOrganizationPayload('programs', {
+      ...getEmptyOrganizationFormValues('programs'),
+      name: 'Program tanpa rincian',
+    })
+
+    expect(payload.objectives).toEqual([])
+    expect(payload.timeline).toEqual([])
+    expect(payload.resources).toEqual([])
+    expect(payload.coordinators).toEqual([])
+    expect(payload.summary).toBe('')
+    expect(payload.featured).toBe(false)
+  })
+
+  it('drops half-filled detail rows before they reach Firestore', () => {
+    const payload = buildOrganizationPayload('programs', {
+      ...getEmptyOrganizationFormValues('programs'),
+      name: 'Program uji',
+      objectives: 'Sportivitas\n\n  \nSolidaritas',
+      timeline: [
+        { label: 'Pelaksanaan', when: 'September', detail: '' },
+        // Baris yang ditambahkan lalu batal diisi tidak boleh ikut tersimpan.
+        { label: '', when: '', detail: '' },
+      ],
+      resources: [{ label: 'Proposal', url: 'https://contoh.test/proposal', note: '' }],
+    })
+
+    expect(payload.objectives).toEqual(['Sportivitas', 'Solidaritas'])
+    expect(payload.timeline).toHaveLength(1)
+    expect(payload.resources).toHaveLength(1)
+  })
+
+  it('rejects a resource address that cannot be rendered as a link', () => {
+    const result = validateOrganizationValues('programs', {
+      ...getEmptyOrganizationFormValues('programs'),
+      name: 'Program uji',
+      resources: [{ label: 'Berkas', url: 'javascript:alert(1)', note: '' }],
+    })
+
+    expect(result.errors.some((error) => error.includes('baris 1'))).toBe(true)
+  })
+
+  /*
+   * Normalizer memang membuang baris tanpa judul. Panel harus mengatakannya,
+   * bukan menerima simpan lalu diam-diam menerbitkan tahapan yang lebih sedikit
+   * daripada yang diketik pengurus.
+   */
+  it('warns before a titled-less timeline row is silently dropped', () => {
+    const result = validateOrganizationValues('programs', {
+      ...getEmptyOrganizationFormValues('programs'),
+      name: 'Program uji',
+      timeline: [{ label: '', when: 'April', detail: 'Ada isinya tapi tanpa judul.' }],
+    })
+
+    expect(result.errors.some((error) => error.includes('belum punya judul'))).toBe(true)
+  })
+
+  it('toggles a coordinator without caring about letter case', () => {
+    expect(toggleCoordinator([], 'Rifqi Ananda')).toEqual(['Rifqi Ananda'])
+    expect(toggleCoordinator(['Rifqi Ananda'], 'rifqi ananda')).toEqual([])
+    expect(toggleCoordinator(['Rifqi Ananda'], '   ')).toEqual(['Rifqi Ananda'])
+  })
+
+  it('reads program detail back into the form without losing anything', () => {
+    const values = organizationDocumentToFormValues('programs', {
+      id: 'torsi',
+      name: 'TORSI',
+      desc: 'Pembekalan pengurus.',
+      divisionCode: 'PSDM',
+      status: 'Terjadwal',
+      date: 'April',
+      months: [4],
+      active: true,
+      order: 1,
+      featured: true,
+      summary: 'Ringkasan panjang.',
+      objectives: ['Kesiapan pengurus', 'Kebersamaan'],
+      timeline: [{ label: 'Pelatihan', when: 'April', detail: 'Pembekalan dasar.' }],
+      resources: [{ label: 'Proposal', url: 'https://contoh.test/proposal', note: 'PDF' }],
+      coordinators: ['Nadia'],
+    } satisfies ProgramDocument)
+
+    expect(values.featured).toBe(true)
+    expect(values.summary).toBe('Ringkasan panjang.')
+    // Textarea "satu poin per baris", jadi arraynya digabung dengan newline.
+    expect(values.objectives).toBe('Kesiapan pengurus\nKebersamaan')
+    expect(values.timeline).toHaveLength(1)
+    expect(values.resources).toHaveLength(1)
+    expect(values.coordinators).toEqual(['Nadia'])
   })
 })

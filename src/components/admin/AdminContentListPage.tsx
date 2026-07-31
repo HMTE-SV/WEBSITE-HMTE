@@ -116,9 +116,7 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
       await setContentStatus(config.collectionName, document.id, nextStatus)
       setFeedback(nextStatus === 'published' ? 'Konten berhasil diterbitkan.' : 'Konten dikembalikan ke draft.')
 
-      if (kind === 'articles') {
-        await requestRevalidation('articles')
-      }
+      await requestRevalidation(kind)
 
     } catch (statusError) {
       setError(statusError instanceof Error ? statusError.message : 'Gagal memperbarui status.')
@@ -140,9 +138,7 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
       await deleteContentDocument(config.collectionName, document.id)
       setFeedback('Konten berhasil dihapus.')
 
-      if (kind === 'articles') {
-        await requestRevalidation('articles')
-      }
+      await requestRevalidation(kind)
 
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus konten.')

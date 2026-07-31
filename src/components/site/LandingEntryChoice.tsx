@@ -5,7 +5,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { AnimationEvent, KeyboardEvent, MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { LogoMark } from '@/components/site/Brand'
-import { debugEntry } from '@/lib/debug-entry'
+import { useMediaSlot } from '@/components/site/MediaSlotProvider'
+import { usePageSection } from '@/components/site/PageContentProvider'
+import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
+import { formatCabinetTitle } from '@/lib/site-settings'
 import styles from './LandingEntryChoice.module.css'
 
 export type LandingEntryMode = 'choice' | 'experience' | 'skip'
@@ -67,6 +70,10 @@ export function LandingEntryChoice({
   onSkipStart,
   totalSlides,
 }: LandingEntryChoiceProps) {
+  const cabinetLogo = useMediaSlot('cabinet.logo')
+  const settings = useSiteSettings()
+  const { fields } = usePageSection('hero')
+  const cabinetTitle = formatCabinetTitle(settings)
   const [transitionPhase, setTransitionPhase] = useState<TransitionPhase>('idle')
   const phaseRef = useRef<TransitionPhase>('idle')
   const timersRef = useRef<number[]>([])
@@ -87,27 +94,14 @@ export function LandingEntryChoice({
     timersRef.current.push(timer)
   }
 
+  /*
+   * Timer transisi hidup di luar React. Kalau komponen dilepas di tengah fase
+   * covering atau revealing, callback yang tersisa akan memanggil setState pada
+   * komponen yang sudah mati.
+   */
   useEffect(() => {
-    debugEntry('Entry mounted', { mode, transitionPhase }, 'H1,H2')
-    return () => {
-      debugEntry('Entry unmounted', { mode, transitionPhase }, 'H1,H2')
-      clearTimers()
-    }
-    // Mount lifecycle evidence only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => clearTimers()
   }, [])
-
-  useEffect(() => {
-    debugEntry(
-      'Entry state committed',
-      {
-        mode,
-        portal: transitionPhase !== 'idle',
-        transitionPhase,
-      },
-      'H1,H2,H3,H4',
-    )
-  }, [mode, transitionPhase])
 
   useEffect(() => {
     if (mode !== 'choice' || transitionPhase !== 'idle') return
@@ -119,10 +113,9 @@ export function LandingEntryChoice({
     return () => window.clearTimeout(focusTimer)
   }, [mode, transitionPhase])
 
-  function finishTransition(source: 'animation' | 'fallback') {
+  function finishTransition() {
     if (phaseRef.current !== 'revealing') return
 
-    debugEntry('Transition finished', { source }, 'H2,H4')
     clearTimers()
     commitPhase('idle')
     jumpToNews({ focus: true })
@@ -132,13 +125,12 @@ export function LandingEntryChoice({
     if (phaseRef.current !== 'confirming') return
 
     commitPhase('revealing')
-    schedule(() => finishTransition('fallback'), 900)
+    schedule(() => finishTransition(), 900)
   }
 
-  function completeCover(source: 'animation' | 'fallback') {
+  function completeCover() {
     if (phaseRef.current !== 'covering') return
 
-    debugEntry('Wave cover completed', { source }, 'H2,H4')
     clearTimers()
     jumpToNews()
     commitPhase('confirming')
@@ -148,15 +140,12 @@ export function LandingEntryChoice({
 
   function handleExperience() {
     if (phaseRef.current !== 'idle') return
-    debugEntry('Experience selected', { mode, transitionPhase }, 'H3')
     onChooseExperience()
   }
 
   function handleSkip(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
     if (phaseRef.current !== 'idle') return
-
-    debugEntry('Skip selected', { mode, transitionPhase }, 'H2,H3,H4')
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       onSkipStart()
@@ -168,7 +157,7 @@ export function LandingEntryChoice({
     clearTimers()
     commitPhase('covering')
     onSkipStart()
-    schedule(() => completeCover('fallback'), 960)
+    schedule(() => completeCover(), 960)
   }
 
   function handleWaveAnimationEnd(event: AnimationEvent<SVGSVGElement>) {
@@ -176,16 +165,10 @@ export function LandingEntryChoice({
     // only the sweep on the <svg> itself marks the end of a phase.
     if (event.target !== event.currentTarget) return
 
-    debugEntry(
-      'Wave animation ended',
-      { animationName: event.animationName, mode, transitionPhase },
-      'H2,H3,H4',
-    )
-
     if (phaseRef.current === 'covering') {
-      completeCover('animation')
+      completeCover()
     } else if (phaseRef.current === 'revealing') {
-      finishTransition('animation')
+      finishTransition()
     }
   }
 
@@ -270,14 +253,14 @@ export function LandingEntryChoice({
         <div className={styles.brandLockup}>
           <LogoMark width={116} height={34} className={styles.entryLogo} priority />
           <span>
-            Situs resmi HMTE
-            <small>Periode 2026/2027</small>
+            {fields.brandLabel}
+            <small>Periode {settings.periodLabel}</small>
           </span>
         </div>
 
         <div className={styles.systemStatus}>
           <i aria-hidden="true" />
-          <span>Siap dibuka</span>
+          <span>{fields.systemStatus}</span>
         </div>
       </header>
 
@@ -286,8 +269,8 @@ export function LandingEntryChoice({
           <span aria-hidden="true" />
           <Image
             className={styles.cabinetLogo}
-            src="/assets/abya-vistara/logo-kabinet.webp"
-            alt="Logo Kabinet Abya Vistara"
+            src={cabinetLogo.url}
+            alt={cabinetLogo.alt}
             width={180}
             height={180}
             priority
@@ -295,12 +278,9 @@ export function LandingEntryChoice({
         </div>
 
         <div className={styles.arrivalCopy}>
-          <p className={styles.eyebrow}>Abya Vistara · 2026/2027</p>
-          <h2>Masuk sesuai kebutuhanmu.</h2>
-          <p>
-            Buka kabar terbaru sekarang, atau ikuti cerita kabinet melalui pengalaman scroll.
-            Keduanya menuju situs HMTE yang sama.
-          </p>
+          <p className={styles.eyebrow}>{cabinetTitle} · {settings.periodLabel}</p>
+          <h2>{fields.arrivalTitle}</h2>
+          <p>{fields.arrivalBody}</p>
         </div>
 
         <div className={styles.actions} aria-label="Pilihan masuk situs">
@@ -312,9 +292,9 @@ export function LandingEntryChoice({
           >
             <span className={styles.routeNumber}>01</span>
             <strong>
-              <small>Butuh cepat?</small>
-              Langsung ke berita
-              <span>Lewati pembuka dan lihat kabar terbaru.</span>
+              <small>{fields.quickKicker}</small>
+              {fields.quickTitle}
+              <span>{fields.quickBody}</span>
             </strong>
             <ArrowIcon />
           </a>
@@ -327,9 +307,9 @@ export function LandingEntryChoice({
           >
             <span className={styles.routeNumber}>02</span>
             <strong>
-              <small>Punya waktu?</small>
-              Ikuti cerita HMTE
-              <span>Gulir pelan untuk membuka pembuka interaktif.</span>
+              <small>{fields.storyKicker}</small>
+              {fields.storyTitle}
+              <span>{fields.storyBody}</span>
             </strong>
             <ArrowIcon down />
           </button>
@@ -337,14 +317,14 @@ export function LandingEntryChoice({
       </main>
 
       <footer className={styles.entryFoot}>
-        <span>Tidak ada pilihan yang salah.</span>
-        <small>Gunakan tombol Tab dan Enter jika kamu memakai keyboard.</small>
+        <span>{fields.footerLine}</span>
+        <small>{fields.footerHint}</small>
       </footer>
 
       <div className={styles.newsConfirmation} role="status" aria-live="polite">
         <div className={styles.confirmMark}>
           <Image
-            src="/assets/abya-vistara/logo-kabinet.webp"
+            src={cabinetLogo.url}
             alt=""
             width={76}
             height={76}
@@ -354,9 +334,9 @@ export function LandingEntryChoice({
             <path className={styles.confirmCheck} d="m14 24 7 7 14-16" />
           </svg>
         </div>
-        <span>Jalur cepat aktif</span>
-        <strong>Membuka kabar HMTE</strong>
-        <small>Informasi terbaru sudah di depan.</small>
+        <span>{fields.confirmKicker}</span>
+        <strong>{fields.confirmTitle}</strong>
+        <small>{fields.confirmBody}</small>
       </div>
     </section>
   )
@@ -371,7 +351,7 @@ export function LandingEntryChoice({
         <div className={styles.storyOverlay}>
           <div className={styles.frameCorners} key={`frame-${activeIndex}`} aria-hidden="true" />
           <div className={styles.storyMeta} aria-hidden="true">
-            <span>Cerita HMTE</span>
+            <span>{fields.storyLabel}</span>
             <strong key={`count-${activeIndex}`}>
               {String(activeIndex + 1).padStart(2, '0')}
               <i>/</i>
@@ -379,7 +359,7 @@ export function LandingEntryChoice({
             </strong>
           </div>
           <div className={styles.scrollGuide} aria-hidden="true">
-            <span>Gulir untuk membuka cerita</span>
+            <span>{fields.scrollGuide}</span>
             <i />
           </div>
         </div>

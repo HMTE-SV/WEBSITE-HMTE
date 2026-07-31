@@ -1,5 +1,6 @@
 import type { FooterColumn, NavItem, PartnerTile } from '@/types/content'
 
+/** Nilai fallback lama; navigasi terbit sekarang dibaca dari settings/site. */
 export const siteNav = [
   {
     label: 'Beranda',
@@ -22,6 +23,20 @@ export const siteNav = [
       { label: 'Berita', href: '/berita' },
       { label: 'Agenda', href: '/agenda' },
       { label: 'Pengumuman', href: '/pengumuman' },
+      { label: 'Galeri', href: '/galeri' },
+    ],
+  },
+  /*
+   * /aspirasi dan /kontak sebelumnya hanya bisa dicapai dari kaki halaman,
+   * padahal ajakan di beranda justru mengirim orang ke keduanya. Menaruh
+   * tujuannya di kaki dan ajakannya di tengah halaman membuat pengunjung yang
+   * melewatkan tombol itu tidak punya jalan lain.
+   */
+  {
+    label: 'Terhubung',
+    children: [
+      { label: 'Aspirasi', href: '/aspirasi' },
+      { label: 'Kontak', href: '/kontak' },
     ],
   },
 ] satisfies NavItem[]
@@ -44,10 +59,20 @@ export const heroIdentity = {
   ctaHref: '#tentang',
 }
 
+/*
+ * Dua lead, bukan satu.
+ *
+ * `lead` bertutur dalam bentuk masa depan ("akan hadir setelah diverifikasi"),
+ * jadi ia hanya masuk akal saat arsip masih kosong. Dipakai juga di atas berita
+ * yang sudah terbit, kalimat itu terbaca seperti teks sementara yang lupa
+ * diganti — dan itulah kesan yang justru harus dihindari di beranda.
+ */
 export const newsAgendaIntro = {
   title: 'Ruang kabar HMTE',
   lead:
     'Publikasi resmi kegiatan, prestasi, peluang, dan gagasan mahasiswa akan hadir setelah informasinya diverifikasi oleh pengurus.',
+  leadPublished:
+    'Catatan resmi kegiatan, prestasi, dan peluang mahasiswa Teknologi Rekayasa Elektro — diverifikasi pengurus sebelum diterbitkan.',
 }
 
 export const getToKnowContent = {
@@ -178,6 +203,7 @@ export const footerContent = {
   organizationName: 'Himpunan Mahasiswa Teknik Elektro',
 }
 
+/** Nilai fallback historis; footer terbit sekarang dibaca dari settings/site. */
 export const footerColumns = [
   {
     "title": "Organisasi",

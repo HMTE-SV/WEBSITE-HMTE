@@ -43,6 +43,40 @@ export const programsByDivision = {
       status: 'Terjadwal',
       date: 'April',
       months: [4],
+      featured: true,
+      summary:
+        'TORSI (Training Organization and Study for Engineering) mempersiapkan seluruh pengurus dengan pemahaman dasar mengenai organisasi, administrasi, kepemimpinan, dan tata kelola kegiatan selama satu periode.',
+      objectives: [
+        'Kesiapan pengurus menjalankan tanggung jawab organisasi',
+        'Pengembangan hard skill dan soft skill',
+        'Kebersamaan dan kekeluargaan antarpengurus',
+      ],
+      timeline: [
+        {
+          label: 'Pelatihan Dasar Organisasi',
+          when: 'April',
+          detail:
+            'Pembekalan dasar manajemen organisasi, kepemimpinan, koordinasi, dan tanggung jawab pengurus.',
+        },
+        {
+          label: 'Diskusi Terbuka',
+          when: 'April',
+          detail:
+            'Berbagi pengalaman dan transfer pengetahuan antara pengurus periode sebelumnya dengan pengurus baru.',
+        },
+        {
+          label: 'Pengenalan Dokumen Organisasi',
+          when: 'April',
+          detail:
+            'Pengenalan administrasi, proposal, laporan pertanggungjawaban, pengarsipan, dan dokumen resmi HMTE.',
+        },
+        {
+          label: 'Fun & Games',
+          when: 'April',
+          detail:
+            'Kegiatan kebersamaan untuk mempererat hubungan dan membangun komunikasi internal pengurus.',
+        },
+      ],
     },
     {
       name: 'IGNITE (Initial Gathering of New Electro)',
@@ -117,6 +151,22 @@ export const programsByDivision = {
       status: 'Terjadwal',
       date: 'September',
       months: [9],
+      featured: true,
+      summary:
+        'Elektro Cup mempertemukan seluruh angkatan aktif TRE melalui kegiatan olahraga, seni, dan kompetisi lain yang tetap menjunjung kebersamaan.',
+      objectives: [
+        'Penyaluran minat dan bakat mahasiswa',
+        'Sportivitas dan solidaritas',
+        'Kekeluargaan lintas angkatan',
+      ],
+      timeline: [
+        {
+          label: 'Pelaksanaan Program',
+          when: 'September',
+          detail:
+            'Kegiatan olahraga, seni, atau kompetisi lain sebagai ruang penyaluran potensi nonakademik mahasiswa TRE.',
+        },
+      ],
     },
     {
       name: 'Kontingen TGES',
@@ -184,6 +234,22 @@ export const programsByDivision = {
       status: 'Terjadwal',
       date: 'Oktober',
       months: [10],
+      featured: true,
+      summary:
+        'HMTE Mengajar mengenalkan ilmu dasar keelektroan dan teknologi kepada masyarakat, khususnya pelajar, sekaligus menjadi ruang pengembangan komunikasi, kepemimpinan, dan kepedulian sosial mahasiswa HMTE.',
+      objectives: [
+        'Transfer wawasan teknologi',
+        'Pengenalan citra positif Program Studi TRE',
+        'Pendidikan dan pengabdian masyarakat',
+      ],
+      timeline: [
+        {
+          label: 'Pelaksanaan Program',
+          when: 'Oktober',
+          detail:
+            'Kegiatan edukatif berupa penyampaian materi, demonstrasi sederhana, diskusi, atau pelatihan dasar ilmu pengetahuan dan teknologi.',
+        },
+      ],
     },
     {
       name: 'Mading IPTEK',

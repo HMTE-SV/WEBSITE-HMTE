@@ -1,7 +1,7 @@
 import Image from 'next/image'
-import { footerColumns, footerContent } from '@/data/site-content'
 import { getSiteSettings } from '@/lib/site-settings-data'
-import { formatCabinetTitle, formatPeriodTitle } from '@/lib/site-settings'
+import { formatCabinetTitle, formatPeriodTitle, instagramLabel, resolveFooterHref } from '@/lib/site-settings'
+import { getPublicMediaSlots } from '@/lib/media-slot-data'
 
 /*
  * Kaki halaman membaca pengaturan situs, bukan konstanta.
@@ -12,12 +12,15 @@ import { formatCabinetTitle, formatPeriodTitle } from '@/lib/site-settings'
  * diubah superadmin dari /admin/settings. Pembacaannya tidak pernah gagal:
  * getSiteSettings() jatuh ke nilai bawaan yang sama dengan teks lama.
  *
- * Daftar tautan sengaja TIDAK ikut pindah. Isinya rute situs, bukan identitas
- * kepengurusan, dan rute berubah bersama kode, bukan bersama kabinet.
+ * Masthead dan daftar tautan juga mengikuti versi terbit. Tautan kanal dapat
+ * mengacu ke satu sumber (Instagram, email, website, LinkedIn, atau X), supaya
+ * pergantian akun tidak perlu diedit lagi di setiap kolom.
  */
 export async function Footer() {
-  const settings = await getSiteSettings()
+  const [settings, slots] = await Promise.all([getSiteSettings(), getPublicMediaSlots()])
   const cabinetTitle = formatCabinetTitle(settings)
+  const logo = slots['brand.logo.primary']
+  const cabinetLogo = slots['cabinet.logo']
 
   return (
     <footer className="tre-footer" id="site-footer">
@@ -25,16 +28,16 @@ export async function Footer() {
         <div className="ftr-masthead">
           <div className="ftr-lockup">
             <Image
-              src="/assets/logo-hmte.svg"
-              alt="HMTE TRE SV UGM"
+              src={logo.url}
+              alt={logo.alt}
               width={132}
               height={39}
               className="ftr-logo"
             />
             <span className="ftr-lockup-rule" aria-hidden="true" />
             <Image
-              src="/assets/abya-vistara/logo-kabinet.webp"
-              alt={`Logo ${cabinetTitle}`}
+              src={cabinetLogo.url}
+              alt={cabinetLogo.alt || `Logo ${cabinetTitle}`}
               width={128}
               height={128}
               className="ftr-cabinet-logo"
@@ -45,8 +48,8 @@ export async function Footer() {
             </span>
           </div>
           <p className="ftr-masthead-note">
-            Situs resmi Himpunan Mahasiswa Teknik Elektro
-            <span>Sekolah Vokasi, Universitas Gadjah Mada</span>
+            {settings.footerMastheadNote}
+            <span>{settings.footerMastheadSubnote}</span>
           </p>
         </div>
 
@@ -54,7 +57,7 @@ export async function Footer() {
           <div className="col">
             <p className="addr">
               <span>
-                {footerContent.organizationName}
+                {settings.organizationName}
                 <br />
               </span>
               <span>{settings.address}</span>
@@ -68,13 +71,14 @@ export async function Footer() {
             </p>
           </div>
 
-          {footerColumns.map((column) => (
+          {settings.footerColumns.filter((column) => column.visible).map((column) => (
             <div className="col" key={column.title}>
               <h4>{column.title}</h4>
-              {column.links.map((link) => {
+              {column.links.filter((link) => link.visible).map((link) => {
+                const href = resolveFooterHref(settings, link)
                 // Items still awaiting official data render as muted, non-clickable
                 // text rather than dead "#" links.
-                if (link.href === '#') {
+                if (!href || href === '#') {
                   return (
                     <span className="ftr-pending" key={link.label}>
                       {link.label}
@@ -82,16 +86,19 @@ export async function Footer() {
                   )
                 }
 
-                const isExternal = link.href.startsWith('http')
+                const isExternal = link.newTab || href.startsWith('http')
+                const label = link.channel === 'instagram'
+                  ? instagramLabel(settings)
+                  : link.label
 
                 return (
                   <a
-                    href={link.href}
+                    href={href}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener' : undefined}
                     key={link.label}
                   >
-                    {link.label}
+                    {label}
                   </a>
                 )
               })}

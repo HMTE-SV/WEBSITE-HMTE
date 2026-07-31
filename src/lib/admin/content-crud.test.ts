@@ -4,7 +4,7 @@ import { buildContentPayload, contentCrudConfigs, getNextPublishStatus } from '.
 describe('admin content CRUD helpers', () => {
   it('maps collection config to admin routes', () => {
     expect(contentCrudConfigs.announcements.basePath).toBe('/admin/announcements')
-    expect(contentCrudConfigs.events.collectionName).toBe('events')
+    expect(contentCrudConfigs.announcements.collectionName).toBe('announcements')
     expect(contentCrudConfigs.articles.newPath).toBe('/admin/articles/new')
   })
 
@@ -15,7 +15,6 @@ describe('admin content CRUD helpers', () => {
       date: '',
       status: 'draft',
       body: '',
-      location: '',
       slug: '',
       category: 'pendidikan',
       content: 'Isi artikel lengkap.',

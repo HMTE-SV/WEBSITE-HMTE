@@ -8,6 +8,7 @@ import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { uploadImageToImageKit } from '@/lib/admin/imagekit-upload'
+import { registerUploadedMedia } from '@/lib/admin/media-library'
 import { validateArticleCoverImage, validateGalleryImageUrl } from '@/lib/admin/media-validation'
 
 /*
@@ -299,7 +300,7 @@ export function AdminRichTextEditor({ onChange, value }: AdminRichTextEditorProp
     setIsUploading(true)
 
     try {
-      const url = await uploadImageToImageKit(file, 'berita', async () => {
+      const upload = await uploadImageToImageKit(file, 'berita', async () => {
         const currentUser = getFirebaseAuth().currentUser
 
         if (!currentUser) {
@@ -309,7 +310,9 @@ export function AdminRichTextEditor({ onChange, value }: AdminRichTextEditorProp
         return currentUser.getIdToken()
       })
 
-      if (insertImageFromUrl(url, imageAltDraft)) {
+      await registerUploadedMedia(upload, file, 'berita', { alt: imageAltDraft })
+
+      if (insertImageFromUrl(upload.url, imageAltDraft)) {
         setPanel('none')
         setImageAltDraft('')
         setImageUrlDraft('')

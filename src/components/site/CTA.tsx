@@ -1,29 +1,35 @@
+'use client'
+
 import Link from 'next/link'
-import { ctaContent } from '@/data/site-content'
+import { usePageSection } from '@/components/site/PageContentProvider'
+import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
+import { instagramLabel } from '@/lib/site-settings'
 
 export function CTA() {
+  const settings = useSiteSettings()
+  const { fields } = usePageSection('cta')
   return (
     <section className="tre-cta" id="hubungi">
       <div className="cta-shell">
         <div className="cta-left fade-up">
           <h2 className="cta-h2">
-            {ctaContent.titleLineOne}
+            {fields.titleLine1}
             <br />
-            <span className="muted">{ctaContent.titleMuted}</span>
+            <span className="muted">{fields.titleMuted}</span>
             <br />
-            {ctaContent.titleLineThree}
+            {fields.titleLine3}
             <span className="acc">.</span>
           </h2>
         </div>
         <div className="cta-right fade-up">
-          <p className="cta-p">{ctaContent.body}</p>
+          <p className="cta-p">{fields.body}</p>
           <div className="cta-deadline">
-            <div className="dl-label">{ctaContent.deadlineLabel}</div>
-            <div className="dl-date">{ctaContent.deadlineValue}</div>
+            <div className="dl-label">{fields.channelLabel}</div>
+            <div className="dl-date">Instagram {instagramLabel(settings)}</div>
           </div>
           <div className="cta-actions">
-            <Link href="/aspirasi" className="btn btn-primary-gold">
-              {ctaContent.primaryAction}{' '}
+            <Link href={fields.primaryHref} className="btn btn-primary-gold">
+              {fields.primaryAction}{' '}
               <svg
                 width="14"
                 height="14"
@@ -38,8 +44,8 @@ export function CTA() {
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </Link>
-            <Link href="/kontak" className="btn btn-secondary-dark">
-              {ctaContent.secondaryAction}
+            <Link href={fields.secondaryHref} className="btn btn-secondary-dark">
+              {fields.secondaryAction}
             </Link>
           </div>
         </div>

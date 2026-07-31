@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { getLeaderHref } from '@/lib/organization-slugs'
 import type { Division, DivisionCode, Leader } from '@/types/content'
@@ -24,8 +25,6 @@ import type { Division, DivisionCode, Leader } from '@/types/content'
 type LeadershipIndexProps = {
   divisions: Division[]
   leadersByDivision: Record<DivisionCode, Leader[]>
-  /** Dari ?divisi=. Filter awal, bukan tab awal. */
-  initialDivision?: DivisionCode | null
 }
 
 const CORE_ROLE = /^(ketua umum|sekretaris jendral|bendahara|kepala divisi)/i
@@ -38,11 +37,25 @@ function getInitials(name: string) {
   return `${first}${second}`.toUpperCase()
 }
 
-export function LeadershipIndex({
-  divisions,
-  leadersByDivision,
-  initialDivision = null,
-}: LeadershipIndexProps) {
+/*
+ * ?divisi= dibaca di sini, di klien, bukan lewat `searchParams` di halamannya.
+ *
+ * Satu pemakaian `searchParams` membuat seluruh halaman dirender per permintaan.
+ * Untuk /kepengurusan itu berarti tiap kunjungan menembak Firestore untuk 8
+ * divisi, 71 pengurus, dan 37 program: sekitar 116 pembacaan per orang. Kuota
+ * harian paket Spark habis di ratusan pengunjung, dan halaman yang isinya sama
+ * persis untuk semua orang dibangun ulang terus-menerus.
+ *
+ * Parameternya cuma menyetel filter awal, jadi membacanya setelah halaman
+ * terkirim tidak mengubah apa yang dilihat pengunjung.
+ */
+export function LeadershipIndex({ divisions, leadersByDivision }: LeadershipIndexProps) {
+  const searchParams = useSearchParams()
+  const requestedDivision = searchParams.get('divisi')?.toUpperCase()
+  const initialDivision = divisions.some((division) => division.code === requestedDivision)
+    ? (requestedDivision as DivisionCode)
+    : null
+
   const [activeDivision, setActiveDivision] = useState<DivisionCode | null>(initialDivision)
   const [query, setQuery] = useState('')
 

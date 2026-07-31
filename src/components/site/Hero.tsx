@@ -4,40 +4,43 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { LogoMark } from '@/components/site/Brand'
+import { useMediaSlots } from '@/components/site/MediaSlotProvider'
+import { usePageField } from '@/components/site/PageContentProvider'
 import {
   LandingEntryChoice,
   type LandingEntryMode,
 } from '@/components/site/LandingEntryChoice'
-import { heroActivityImages, heroIdentity } from '@/data/site-content'
-import { debugEntry } from '@/lib/debug-entry'
+import { heroActivityImages } from '@/data/site-content'
 
 const PHOTO_PHASE_END = 0.72
-const WALLPAPER_TILE_COUNT = heroActivityImages.length
-
-const wallpaperTiles = Array.from({ length: WALLPAPER_TILE_COUNT }, (_, index) => ({
-  ...heroActivityImages[index % heroActivityImages.length],
-  key: `wallpaper-${index}`,
-}))
+const HERO_MEDIA_SLOT_KEYS = heroActivityImages.map((_, index) => `home.hero.${index + 1}`)
 
 export function Hero() {
+  const heroTitle = usePageField('hero', 'heroTitle')
+  const heroMediaSlots = useMediaSlots(HERO_MEDIA_SLOT_KEYS)
+  const resolvedHeroImages = heroActivityImages.map((image, index) => ({
+    ...image,
+    src: heroMediaSlots[index].url,
+    alt: heroMediaSlots[index].alt || image.alt,
+    focalPointX: heroMediaSlots[index].focalPointX,
+    focalPointY: heroMediaSlots[index].focalPointY,
+  }))
+  const wallpaperTiles = resolvedHeroImages.map((image, index) => ({
+    ...image,
+    key: `wallpaper-${index}`,
+  }))
   const sectionRef = useRef<HTMLElement>(null)
   const activeIndexRef = useRef(0)
   const entryModeRef = useRef<LandingEntryMode>('choice')
   const [activeIndex, setActiveIndex] = useState(0)
   const [entryMode, setEntryMode] = useState<LandingEntryMode>('choice')
 
-  function chooseEntryMode(mode: LandingEntryMode, source = 'unknown') {
-    debugEntry(
-      'Hero mode intent',
-      { current: entryModeRef.current, next: mode, source, scrollY: window.scrollY },
-      'H3',
-    )
+  function chooseEntryMode(mode: LandingEntryMode) {
     entryModeRef.current = mode
     setEntryMode(mode)
   }
 
   useEffect(() => {
-    debugEntry('Hero effect mounted', { scrollY: window.scrollY }, 'H1')
     const section = sectionRef.current
     if (!section) return
 
@@ -72,8 +75,8 @@ export function Hero() {
       const progress = Math.min(Math.max(-rect.top / scrollDistance, 0), 1)
       const photoProgress = Math.min(progress / PHOTO_PHASE_END, 0.9999)
       const nextIndex = Math.min(
-        Math.floor(photoProgress * heroActivityImages.length),
-        heroActivityImages.length - 1,
+        Math.floor(photoProgress * HERO_MEDIA_SLOT_KEYS.length),
+        HERO_MEDIA_SLOT_KEYS.length - 1,
       )
       const rawLogoProgress = Math.min(
         Math.max((progress - PHOTO_PHASE_END) / (1 - PHOTO_PHASE_END), 0),
@@ -109,7 +112,7 @@ export function Hero() {
       // A deliberate nudge, not a stray pixel — the curtain lift is an 820ms
       // move and should not fire on scroll noise.
       if (progress > 0.006 && entryModeRef.current === 'choice') {
-        chooseEntryMode('experience', 'scroll-listener')
+        chooseEntryMode('experience')
       }
 
       if (nextIndex !== activeIndexRef.current) {
@@ -129,7 +132,6 @@ export function Hero() {
     window.addEventListener('resize', scheduleUpdate)
 
     return () => {
-      debugEntry('Hero effect cleanup', { scrollY: window.scrollY }, 'H1')
       window.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)
       if (animationFrame) window.cancelAnimationFrame(animationFrame)
@@ -143,7 +145,7 @@ export function Hero() {
       ref={sectionRef}
       aria-labelledby="hero-title"
     >
-      <h1 className="sr-only" id="hero-title">{heroIdentity.name}</h1>
+      <h1 className="sr-only" id="hero-title">{heroTitle}</h1>
 
       <div className="hero-scroll-stage">
         <div className="hero-scroll-wall" aria-hidden="true">
@@ -159,13 +161,14 @@ export function Hero() {
                 fill
                 sizes="(max-width: 760px) 50vw, 24vw"
                 className="hero-scroll-wall-image"
+                style={{ objectPosition: `${tile.focalPointX}% ${tile.focalPointY}%` }}
               />
             </figure>
           ))}
         </div>
 
         <div className="hero-scroll-slides" aria-hidden="true">
-          {heroActivityImages.map((image, index) => (
+          {resolvedHeroImages.map((image, index) => (
             <figure
               className={`hero-scroll-slide${index === activeIndex ? ' is-active' : ''}`}
               key={image.src}
@@ -174,9 +177,10 @@ export function Hero() {
                 src={image.src}
                 alt=""
                 fill
-                preload={index === 0}
+                priority={index === 0}
                 sizes="100vw"
                 className="hero-scroll-slide-image"
+                style={{ objectPosition: `${image.focalPointX}% ${image.focalPointY}%` }}
               />
             </figure>
           ))}
@@ -188,9 +192,9 @@ export function Hero() {
         <LandingEntryChoice
           activeIndex={activeIndex}
           mode={entryMode}
-          onChooseExperience={() => chooseEntryMode('experience', 'experience-control')}
-          onSkipStart={() => chooseEntryMode('skip', 'skip-control')}
-          totalSlides={heroActivityImages.length}
+          onChooseExperience={() => chooseEntryMode('experience')}
+          onSkipStart={() => chooseEntryMode('skip')}
+          totalSlides={resolvedHeroImages.length}
         />
 
         <div className="hero-scroll-logo-wrap">
@@ -204,14 +208,14 @@ export function Hero() {
         </div>
 
         <div className="hero-scroll-markers" aria-hidden="true">
-          {heroActivityImages.map((image, index) => (
+          {resolvedHeroImages.map((image, index) => (
             <span className={index === activeIndex ? 'is-active' : undefined} key={image.src} />
           ))}
           <span className="hero-scroll-marker-final" />
         </div>
 
         <p className="sr-only" aria-live="polite">
-          {heroActivityImages[activeIndex].alt}
+          {resolvedHeroImages[activeIndex].alt}
         </p>
       </div>
     </section>

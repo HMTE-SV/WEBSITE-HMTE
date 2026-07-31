@@ -208,443 +208,705 @@
 }
 
 /* ------------------------------------------------------------
-   NEWS DECK
+   NEWSROOM
+
+   Menggantikan "news deck". Yang lama gagal bukan pada satu elemen,
+   melainkan pada proporsi:
+
+   - Kanvasnya 1440px, jadi kartu berita hampir selebar layar dan bidang
+     fotonya ~800px. Foto dokumentasi 3:2 dipaksa masuk ke bidang setinggi
+     680px yang paten, jadi kepala dan kaki gambar selalu terpotong.
+   - Judul seksi setinggi 96px memakan satu layar sendiri; berita utamanya
+     baru muncul setelah pengunjung menggulir, padahal tombol "lewati" di
+     hero justru melompat ke sini.
+   - Panel daftar cerita sama besar dan sama gelapnya dengan berita utama,
+     jadi tidak ada yang terbaca sebagai fokus.
+
+   Yang berlaku sekarang:
+   1. Kanvas 1120px. Lebar teks yang nyaman dibaca, bukan lebar layar.
+   2. Foto berita memakai RASIO tetap (16:10), bukan TINGGI tetap. Pemotongan
+      jadi hasil komposisi, bukan hasil kebetulan lebar viewport.
+   3. Satu berita utama di atas permukaan terangkat; sisanya daftar datar.
+      Hirarki dibawa oleh permukaan dan ukuran, bukan oleh dua kotak sejajar.
+   4. Perpindahan dari panggung gelap ke lembar kertas dibuat sengaja: lembar
+      bersudut membulat naik menutupi panggung, dengan cekungan bayangan dan
+      satu garis emas di bibirnya.
+
+   Emas hanya jadi aksen non-teks. #DFA11E di atas kertas hangat cuma 2:1,
+   jadi ia tidak pernah dipakai sebagai warna teks di sini.
    ------------------------------------------------------------ */
-.news-deck {
+.newsroom {
+  position: relative;
   overflow: clip;
-  padding: clamp(96px, 12vw, 170px) 0;
-  color: var(--hmte-navy);
+  padding: clamp(60px, 7vw, 100px) 0 clamp(84px, 10vw, 136px);
+  color: var(--sr-ink);
   background: var(--tre-off-white);
 }
 
-.news-deck-shell {
-  width: min(1440px, calc(100% - clamp(40px, 8vw, 128px)));
+/* Cekungan: bibir lembar terbaca sebagai kertas yang naik menutupi panggung
+   navy, bukan sebagai pergantian warna yang mendadak. */
+.newsroom::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 240px;
+  background: linear-gradient(180deg, rgba(var(--hmte-navy-rgb), 0.09), rgba(var(--hmte-navy-rgb), 0));
+  pointer-events: none;
+}
+
+/* Satu-satunya garis emas yang struktural di seksi ini. */
+.newsroom::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--hmte-gold-rgb), 0),
+    rgba(var(--hmte-gold-rgb), 0.9) 22%,
+    rgba(var(--hmte-gold-rgb), 0.9) 78%,
+    rgba(var(--hmte-gold-rgb), 0)
+  );
+  pointer-events: none;
+}
+
+.newsroom-shell {
+  position: relative;
+  z-index: 2;
+  width: min(1120px, calc(100% - clamp(32px, 6vw, 96px)));
   margin-inline: auto;
 }
 
-.news-deck-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.52fr);
-  align-items: end;
-  gap: clamp(40px, 8vw, 130px);
+.newsroom :is(a, button):focus-visible {
+  outline: 2px solid var(--hmte-navy);
+  outline-offset: 3px;
+  border-radius: var(--sr-xs);
 }
 
-.news-deck-head h2 {
-  max-width: 900px;
+/* ---------- Kepala seksi ---------- */
+.newsroom-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px clamp(24px, 4vw, 60px);
+}
+
+.newsroom-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sr-ink-soft);
+}
+
+.newsroom-kicker::before {
+  content: '';
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--hmte-gold-deep);
+}
+
+.newsroom-masthead h2 {
+  max-width: 17ch;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(50px, 7vw, 96px);
+  font-size: clamp(30px, 3.3vw, 46px);
   font-weight: 600;
-  line-height: 0.94;
-  letter-spacing: -0.04em;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--hmte-navy);
   text-wrap: balance;
 }
 
-.news-deck-head p {
-  max-width: 520px;
-  margin: 0 0 26px;
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--text-muted);
+/* Judul ini menerima focus() dari tombol "lewati" di hero, jadi ia butuh
+   penanda fokus yang terlihat meski bukan elemen interaktif. */
+.newsroom-masthead h2:focus-visible {
+  outline: 2px solid var(--hmte-gold-deep);
+  outline-offset: 8px;
+  border-radius: var(--sr-xs);
 }
 
-.news-deck-head a {
+.newsroom-standfirst {
+  max-width: 54ch;
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.68;
+  color: var(--sr-ink-soft);
+  text-wrap: pretty;
+}
+
+.newsroom-index-link {
   display: inline-flex;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--hmte-gold-deep);
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: var(--sr-pill);
   font-size: 12px;
-  font-weight: 750;
-  color: var(--hmte-navy);
-}
-
-.news-deck-empty {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, .42fr) minmax(0, 1.1fr);
-  gap: 18px clamp(36px, 7vw, 110px);
-  min-height: 360px;
-  margin-top: clamp(46px, 6vw, 78px);
-  padding: clamp(34px, 5vw, 72px);
-  overflow: hidden;
-  border-radius: var(--sr-lg, 24px);
+  font-weight: 700;
+  white-space: nowrap;
   color: #fff;
   background: var(--hmte-navy);
-  box-shadow: var(--sr-shadow-2);
+  box-shadow: var(--sr-shadow-1);
+  transition: background 200ms var(--sr-ease), transform 200ms var(--sr-ease);
 }
 
-.news-deck-empty > span {
-  align-self: start;
-  color: var(--hmte-gold);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .13em;
-  text-transform: uppercase;
+.newsroom-index-link::after {
+  content: '';
+  width: 14px;
+  height: 8px;
+  background: currentColor;
+  transition: transform 220ms var(--sr-ease);
+  clip-path: polygon(0 40%, 62% 40%, 62% 0, 100% 50%, 62% 100%, 62% 60%, 0 60%);
 }
 
-.news-deck-empty h3 {
-  max-width: 14ch;
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(38px, 4.5vw, 66px);
-  font-weight: 500;
-  line-height: .96;
-  letter-spacing: -.045em;
+.newsroom-index-link:hover {
+  background: var(--hmte-navy-light);
 }
 
-.news-deck-empty > p {
-  grid-column: 2;
-  max-width: 62ch;
-  margin: 10px 0 0;
-  color: rgba(255, 255, 255, .72);
-  font-size: 15px;
-  line-height: 1.75;
+.newsroom-index-link:hover::after {
+  transform: translateX(3px);
 }
 
-.news-deck-empty > div {
-  grid-column: 2;
+/* ---------- Tab kategori ---------- */
+.newsroom-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-  align-items: end;
-  margin-top: 18px;
-}
-
-.news-deck-empty a {
-  padding-bottom: 5px;
-  color: #fff;
-  border-bottom: 1px solid var(--hmte-gold);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-
-.news-deck-tabs {
-  display: flex;
-  gap: 8px;
-  margin-top: clamp(52px, 7vw, 92px);
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  margin-top: clamp(28px, 3.6vw, 46px);
+  padding: 4px;
   overflow-x: auto;
   scrollbar-width: none;
+  border-radius: var(--sr-pill);
+  background: var(--sr-sunken);
 }
 
-.news-deck-tabs::-webkit-scrollbar {
+.newsroom-tabs::-webkit-scrollbar {
   display: none;
 }
 
-.news-deck-tabs button {
+.newsroom-tabs button {
   flex: 0 0 auto;
-  min-height: 42px;
+  min-height: 34px;
   padding: 0 16px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--sr-pill);
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 700;
-  color: var(--hmte-navy);
-  background: rgba(var(--hmte-navy-rgb), 0.07);
+  color: var(--sr-ink-soft);
+  background: transparent;
   cursor: pointer;
+  transition: color 180ms var(--sr-ease), background 180ms var(--sr-ease);
 }
 
-.news-deck-tabs button:hover,
-.news-deck-tabs button.is-active {
+.newsroom-tabs button:hover {
+  color: var(--hmte-navy);
+}
+
+.newsroom-tabs button.is-active {
   color: #fff;
   background: var(--hmte-navy);
+  box-shadow: var(--sr-shadow-1);
 }
 
-.news-deck-stage {
-  position: relative;
+/* ---------- Badan ---------- */
+.newsroom-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.31fr);
-  margin-top: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(248px, 0.38fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+  margin-top: clamp(20px, 2.6vw, 32px);
+}
+
+/* Satu cerita berarti tidak ada daftar pendamping; kolom kosong akan
+   membuat kartunya melar tanpa alasan. */
+.newsroom-body[data-solo] {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 840px;
+}
+
+.newsroom-story {
   overflow: hidden;
-  isolation: isolate;
-  border-radius: var(--sr-lg, 24px);
-  color: #fff;
-  background: #001533;
+  border-radius: var(--sr-lg);
+  background: var(--sr-card);
   box-shadow: var(--sr-shadow-2);
+  animation: newsroom-arrive 420ms var(--sr-ease) both;
 }
 
-.news-deck-ambient {
-  z-index: -2;
-  object-fit: cover;
-  opacity: 0.13;
-  filter: blur(46px) saturate(1.15);
-  transform: scale(1.14);
-  animation: news-ambient-breathe 14s ease-in-out infinite alternate;
+@keyframes newsroom-arrive {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 
-.news-deck-stage::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(120deg, rgba(0, 14, 38, 0.64), rgba(0, 22, 55, 0.92));
-}
-
-@keyframes news-ambient-breathe {
-  to { transform: scale(1.22) translate3d(2%, -1.5%, 0); }
-}
-
-.news-deck-feature {
-  display: grid;
-  grid-template-columns: minmax(0, 1.24fr) minmax(310px, 0.76fr);
-  min-width: 0;
-  animation: news-deck-cut 620ms var(--ease-out) both;
-}
-
-@keyframes news-deck-cut {
-  from { opacity: 0.3; clip-path: inset(0 18% 0 0); }
-  to { opacity: 1; clip-path: inset(0); }
-}
-
-.news-deck-media {
+.newsroom-story-media {
   position: relative;
-  min-height: 680px;
+  display: block;
   overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: var(--sr-sunken);
 }
 
-.news-deck-media img {
+.newsroom-story-media img {
   object-fit: cover;
-  animation: news-image-arrive 900ms var(--ease-out) both;
+  transition: transform 700ms var(--sr-ease);
 }
 
-@keyframes news-image-arrive {
-  from { transform: scale(1.06); }
-  to { transform: scale(1); }
+.newsroom-story:hover .newsroom-story-media img {
+  transform: scale(1.025);
 }
 
-.news-deck-media::after {
-  content: '';
+/* Sampul cadangan diredam sampai jadi bidang bernada, bukan lukisan. Yang
+   dilihat pengunjung pertama kali harus judul beritanya, bukan bola navy
+   selebar 780px yang kebetulan digambar mesin. */
+.newsroom-story-media[data-placeholder] {
+  background: var(--sr-card-quiet);
+}
+
+/* Diredam lewat opacity saja. `saturate()` menariknya ke abu-abu, dan abu-abu
+   di atas kertas hangat terbaca seperti gambar yang gagal dimuat. */
+.newsroom-story-media[data-placeholder] .article-cover-art {
+  opacity: 0.14;
+}
+
+/* Bidangnya dibesarkan sampai tepinya keluar bingkai. Selama bentuknya masih
+   punya tepi, mata membacanya sebagai OBJEK — dan objek terbesar di seksi ini
+   tidak boleh berupa gambar yang belum ada. Diperbesar, ia tinggal gradasi. */
+.newsroom-story-media[data-placeholder] .article-cover-art .hero-backdrop-figure {
+  transform: scale(1.75);
+}
+
+.newsroom-story-media[data-placeholder]::after {
+  content: 'Dokumentasi menyusul';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 60%, rgba(0, 18, 46, 0.62));
+  inset: auto 0 0;
+  z-index: 1;
+  padding: 0 18px 22px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sr-ink-soft);
 }
 
-.news-deck-media > span {
+.newsroom-story-tag {
   position: absolute;
   z-index: 2;
-  top: 24px;
-  left: 24px;
-  padding: 8px 11px;
-  border-radius: 999px;
+  bottom: 16px;
+  left: 16px;
+  padding: 7px 13px;
+  border-radius: var(--sr-pill);
   font-size: 11px;
   font-weight: 750;
   color: var(--hmte-navy-deep);
   background: var(--hmte-gold);
+  box-shadow: 0 3px 12px rgba(0, 10, 28, 0.26);
 }
 
-.news-deck-copy {
-  display: flex;
-  flex-direction: column;
-  padding: clamp(30px, 4vw, 58px);
-  background: rgba(0, 19, 48, 0.82);
+.newsroom-story-copy {
+  padding: clamp(20px, 2.4vw, 30px) clamp(20px, 2.6vw, 34px) clamp(22px, 2.8vw, 32px);
 }
 
-.news-deck-meta,
-.news-deck-byline {
+.newsroom-story-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.news-deck-meta {
-  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 12px;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.52);
+  color: var(--sr-ink-soft);
 }
 
-.news-deck-copy h3 {
-  margin: auto 0 24px;
+.newsroom-story-meta span::before {
+  content: '·';
+  margin-right: 10px;
+}
+
+.newsroom-story-copy h3 {
+  margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(31px, 3.2vw, 50px);
+  font-size: clamp(23px, 2.3vw, 33px);
   font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 
-.news-deck-copy > p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.68;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.news-deck-byline {
-  margin-top: 28px;
-  font-size: 11px;
-}
-
-.news-deck-byline > span {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+.newsroom-story-copy h3 a {
   color: var(--hmte-navy);
-  background: var(--hmte-gold);
+  background-image: linear-gradient(var(--hmte-gold), var(--hmte-gold));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 2px;
+  transition: background-size 260ms var(--sr-ease);
 }
 
-.news-deck-byline small {
+.newsroom-story-copy h3 a:hover {
+  background-size: 100% 2px;
+}
+
+.newsroom-story-excerpt {
+  display: -webkit-box;
+  max-width: 60ch;
+  margin: 14px 0 0;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.68;
+  color: var(--sr-ink-soft);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.newsroom-story-byline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0 0;
+  font-size: 12px;
+}
+
+.newsroom-story-byline > span {
+  font-weight: 700;
+  color: var(--hmte-navy);
+}
+
+.newsroom-story-read {
   margin-left: auto;
-  color: rgba(255, 255, 255, 0.52);
-}
-
-.news-deck-read {
-  align-self: flex-start;
-  margin-top: 32px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--hmte-gold);
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--hmte-gold);
   font-size: 12px;
   font-weight: 750;
-  color: var(--hmte-gold);
+  color: var(--hmte-navy);
 }
 
-.news-deck-queue {
-  background: rgba(0, 13, 34, 0.68);
+.newsroom-story-read:hover {
+  border-bottom-color: var(--hmte-navy);
 }
 
-.news-deck-queue-head {
+/* ---------- Daftar cerita pendamping ---------- */
+.newsroom-more {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.newsroom-more-head {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
-  padding: 24px 22px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  gap: 12px;
+  margin: 0 0 2px;
+  padding: 6px 14px 0;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.58);
+  color: var(--sr-ink-soft);
 }
 
-.news-deck-queue button {
+.newsroom-more-head span:last-child {
+  font-weight: 600;
+  color: var(--hmte-navy);
+}
+
+.newsroom-more-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.newsroom-more-list button {
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 3px 10px;
   width: 100%;
-  padding: 22px;
+  padding: 13px 14px;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--sr-md);
   text-align: left;
-  color: rgba(255, 255, 255, 0.68);
   background: transparent;
   cursor: pointer;
+  transition: background 180ms var(--sr-ease), box-shadow 180ms var(--sr-ease);
 }
 
-.news-deck-queue button:hover,
-.news-deck-queue button.is-active {
-  color: #fff;
-  background: rgba(245, 184, 46, 0.1);
+.newsroom-more-list button:hover {
+  background: rgba(var(--hmte-navy-rgb), 0.05);
 }
 
-.news-deck-queue button > span {
+/* Baris terpilih ditandai oleh PERMUKAAN, bukan garis: ia terangkat jadi kartu
+   putih, sama seperti berita utama di sebelahnya. */
+.newsroom-more-list button.is-active {
+  background: var(--sr-card);
+  box-shadow: var(--sr-shadow-1);
+}
+
+.newsroom-more-list i {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--hmte-gold);
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--sr-ink-faint);
 }
 
-.news-deck-queue strong {
+.newsroom-more-list button.is-active i {
+  color: var(--hmte-gold-deep);
+}
+
+.newsroom-more-list strong {
   display: -webkit-box;
   overflow: hidden;
   font-family: var(--font-display);
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.36;
+  letter-spacing: -0.01em;
+  color: var(--sr-ink);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
-.news-deck-queue small {
-  grid-column: 2;
-  margin-top: 7px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.news-deck-next {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr) auto;
-  gap: 24px;
-  align-items: center;
-  width: 100%;
-  min-height: 94px;
-  padding: 20px 28px;
-  border: 0;
-  border-top: 1px solid rgba(var(--hmte-navy-rgb), 0.18);
-  border-bottom: 1px solid rgba(var(--hmte-navy-rgb), 0.18);
-  text-align: left;
+.newsroom-more-list button.is-active strong {
   color: var(--hmte-navy);
-  background: transparent;
-  cursor: pointer;
 }
 
-.news-deck-next:hover {
+.newsroom-more-list small {
+  grid-column: 2;
+  font-size: 11px;
+  color: var(--sr-ink-soft);
+}
+
+/* ---------- Keadaan kosong ---------- */
+.newsroom-empty {
+  max-width: 720px;
+  margin-top: clamp(28px, 4vw, 44px);
+  padding: clamp(24px, 3.4vw, 38px);
+  border-radius: var(--sr-lg);
+  background: var(--sr-card);
+  box-shadow: var(--sr-shadow-1);
+}
+
+.newsroom-empty p {
+  max-width: 58ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--sr-ink-soft);
+}
+
+.newsroom-empty div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-top: 22px;
+}
+
+.newsroom-empty a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: var(--sr-pill);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hmte-navy);
+  background: var(--sr-sunken);
+  transition: background 180ms var(--sr-ease);
+}
+
+.newsroom-empty a:first-child {
   color: #fff;
   background: var(--hmte-navy);
 }
 
-.news-deck-next > span,
-.news-deck-next small {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.newsroom-empty a:hover {
+  background: rgba(var(--hmte-navy-rgb), 0.14);
 }
 
-.news-deck-next strong {
-  overflow: hidden;
-  font-family: var(--font-display);
-  font-size: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.newsroom-empty a:first-child:hover {
+  background: var(--hmte-navy-light);
+}
+
+/* ---------- Responsif ---------- */
+@media (max-width: 980px) {
+  .newsroom-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .newsroom-more {
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 700px) {
+  .newsroom-masthead {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .newsroom-masthead h2 {
+    max-width: none;
+  }
+
+  .newsroom-index-link {
+    justify-self: start;
+  }
+
+  .newsroom-story-media {
+    aspect-ratio: 4 / 3;
+  }
+
+  .newsroom-story-byline {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newsroom-story {
+    animation: none;
+  }
+
+  .newsroom-story:hover .newsroom-story-media img {
+    transform: none;
+  }
 }
 
 /* ------------------------------------------------------------
    ORGANIZATION SWITCHBOARD
+
+   Kanvasnya disamakan dengan .newsroom: 1120px, bukan 1440px. Dua seksi
+   berurutan dengan kanvas berbeda membuat beranda terbaca seperti dua
+   halaman yang ditempel, dan yang 1440px selalu jadi yang salah — panelnya
+   berhenti beberapa puluh piksel dari tepi layar, jadi ia tidak terbaca
+   sebagai full-bleed maupun sebagai kartu.
+
+   Judulnya juga diturunkan dari 96px. Di seksi ini kata "Pengurus Harian"
+   muncul DUA KALI dalam satu layar: sekali sebagai judul seksi, sekali lagi
+   sebagai judul unsur terpilih di dalam panel. Dua-duanya di atas 80px
+   membuat layar itu tidak punya satu pun titik masuk yang jelas.
    ------------------------------------------------------------ */
 .org-switchboard {
-  padding: clamp(96px, 12vw, 170px) 0;
+  padding: clamp(72px, 8vw, 120px) 0 clamp(84px, 10vw, 140px);
   color: var(--hmte-navy);
   background: #f4f4f1;
 }
 
 .org-switchboard-shell {
-  width: min(1440px, calc(100% - clamp(40px, 8vw, 128px)));
+  width: min(1120px, calc(100% - clamp(32px, 6vw, 96px)));
   margin-inline: auto;
 }
 
 .org-switchboard-head {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.55fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: clamp(40px, 8vw, 120px);
+  gap: 18px clamp(24px, 4vw, 60px);
+}
+
+.org-switchboard-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sr-ink-soft);
+}
+
+.org-switchboard-kicker::before {
+  content: '';
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--hmte-gold-deep);
 }
 
 .org-switchboard-head h2 {
+  max-width: 17ch;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(52px, 7vw, 96px);
+  font-size: clamp(30px, 3.3vw, 46px);
   font-weight: 600;
-  line-height: 0.94;
-  letter-spacing: -0.04em;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
 .org-switchboard-head h2 span {
   color: #68758a;
 }
 
-.org-switchboard-head p {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--text-muted);
+.org-switchboard-standfirst {
+  max-width: 58ch;
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.68;
+  color: var(--sr-ink-soft);
+  text-wrap: pretty;
+}
+
+.org-switchboard-index-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: var(--sr-pill);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--hmte-navy);
+  box-shadow: var(--sr-shadow-1);
+  transition: background 200ms var(--sr-ease);
+}
+
+.org-switchboard-index-link::after {
+  content: '';
+  width: 14px;
+  height: 8px;
+  background: currentColor;
+  transition: transform 220ms var(--sr-ease);
+  clip-path: polygon(0 40%, 62% 40%, 62% 0, 100% 50%, 62% 100%, 62% 60%, 0 60%);
+}
+
+.org-switchboard-index-link:hover {
+  background: var(--hmte-navy-light);
+}
+
+.org-switchboard-index-link:hover::after {
+  transform: translateX(3px);
+}
+
+/* Emas di dalam panel navy, navy di atas kertas. Satu warna fokus untuk dua
+   latar yang berlawanan selalu gagal di salah satunya. */
+.org-switchboard-body :is(a, button):focus-visible {
+  outline: 2px solid var(--hmte-gold);
+  outline-offset: 3px;
+}
+
+.org-switchboard-head a:focus-visible {
+  outline: 2px solid var(--hmte-navy);
+  outline-offset: 3px;
 }
 
 .org-switchboard-body {
-  margin-top: clamp(52px, 7vw, 94px);
+  margin-top: clamp(28px, 3.6vw, 46px);
   overflow: hidden;
   border-radius: var(--sr-lg, 24px);
   color: #fff;
@@ -652,17 +914,21 @@
   box-shadow: var(--sr-shadow-2);
 }
 
+/* `grid-auto-rows: 1fr` bukan hiasan. Delapan unsur ini setara, jadi kotaknya
+   harus sama besar; tanpa ini, baris yang memuat nama dua baris tumbuh sendiri
+   dan baris satunya menyusut — ukuran jadi terbaca sebagai peringkat. */
 .org-switches {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   gap: 10px;
   padding: clamp(18px, 2.4vw, 26px);
 }
 
 .org-switches button {
   min-width: 0;
-  min-height: 98px;
-  padding: 18px 14px;
+  min-height: 86px;
+  padding: 16px 14px;
   border: 0;
   border-radius: var(--sr-md, 18px);
   text-align: left;
@@ -696,14 +962,19 @@
   font-size: 15px;
 }
 
+/* Dua baris, bukan satu baris terpotong. Di kanvas 1120px tombolnya 260px dan
+   "Pengembangan Hubungan Antar Lembaga" berhenti di "LEM…" — nama bidang yang
+   terpenggal justru lebih membingungkan daripada nama yang mengambil dua
+   baris. */
 .org-switches small {
-  display: block;
+  display: -webkit-box;
   overflow: hidden;
   margin-top: 5px;
+  line-height: 1.45;
   color: currentColor;
   opacity: 0.64;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .org-signal {
@@ -717,10 +988,10 @@
 
 .org-signal-head {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.55fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.55fr);
   align-items: end;
-  gap: clamp(36px, 7vw, 110px);
-  padding: clamp(42px, 6vw, 84px);
+  gap: clamp(20px, 3vw, 48px);
+  padding: clamp(28px, 3.6vw, 46px) clamp(28px, 3.6vw, 46px) clamp(24px, 3vw, 38px);
 }
 
 .org-signal-head span {
@@ -731,14 +1002,17 @@
   color: var(--hmte-gold);
 }
 
+/* Judul unsur terpilih sengaja lebih kecil daripada judul seksi. Ia berubah
+   tiap kali tombol ditekan, jadi ia keterangan panel — bukan judul kedua yang
+   bersaing dengan judul seksi di atasnya. */
 .org-signal-head h3 {
-  max-width: 780px;
-  margin: 12px 0 0;
+  max-width: 20ch;
+  margin: 10px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(42px, 5.6vw, 80px);
+  font-size: clamp(26px, 2.7vw, 38px);
   font-weight: 600;
-  line-height: 0.96;
-  letter-spacing: -0.04em;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
@@ -749,16 +1023,20 @@
   color: rgba(255, 255, 255, 0.68);
 }
 
+/* `align-items: start` supaya kartu program berhenti setelah isinya habis.
+   Dengan stretch, tiga program di sebelah lima pengurus meninggalkan setengah
+   bidang biru kosong yang terbaca seperti konten yang gagal dimuat. */
 .org-signal-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.5fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.5fr);
+  align-items: start;
   gap: clamp(14px, 1.6vw, 20px);
   padding: 0 clamp(18px, 2.4vw, 26px) clamp(18px, 2.4vw, 26px);
 }
 
 .org-signal-people,
 .org-signal-programs {
-  padding: clamp(28px, 4vw, 54px);
+  padding: clamp(22px, 2.6vw, 32px);
 }
 
 .org-signal-programs {
@@ -887,7 +1165,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 28px;
-  padding: 24px clamp(28px, 4vw, 54px);
+  padding: 20px clamp(28px, 3.6vw, 46px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -974,50 +1252,11 @@
 }
 
 @media (max-width: 1100px) {
-  .news-deck-stage {
-    grid-template-columns: 1fr;
-  }
-
-  .news-deck-queue {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    border-left: 0;
-  }
-
-  .news-deck-queue-head {
-    display: none;
-  }
-
-  .news-deck-queue button {
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
-    border-bottom: 0;
-  }
-
-  .news-deck-queue strong {
-    display: none;
-  }
-
-  .news-deck-queue small {
-    grid-column: auto;
-    margin: 0;
-  }
-
-  .org-switches {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .org-switches button:nth-child(-n + 4) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
-
+  /* Tombol unsur dan panel program sudah jadi kartu membulat berjarak, jadi
+     garis pemisah peninggalan versi lama tinggal garis nyasar. Dihapus, bukan
+     ditimpa. */
   .org-signal-layout {
     grid-template-columns: 1fr;
-  }
-
-  .org-signal-programs {
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
-    border-left: 0;
   }
 }
 
@@ -1051,32 +1290,18 @@
     min-height: 72svh;
   }
 
-  .news-deck-head,
   .org-switchboard-head,
   .org-signal-head {
     grid-template-columns: 1fr;
     align-items: start;
   }
 
-  .news-deck-head > div,
-  .org-switchboard-head > p {
-    max-width: 620px;
+  .org-switchboard-head h2 {
+    max-width: none;
   }
 
-  .news-deck-head > div {
-    margin-top: 10px;
-  }
-
-  .news-deck-feature {
-    grid-template-columns: 1fr;
-  }
-
-  .news-deck-media {
-    min-height: 54svh;
-  }
-
-  .news-deck-copy h3 {
-    margin-top: 70px;
+  .org-switchboard-index-link {
+    justify-self: start;
   }
 }
 
@@ -1095,75 +1320,24 @@
     font-size: clamp(40px, 12vw, 58px);
   }
 
-  .news-deck-shell,
+  .newsroom-shell,
   .org-switchboard-shell {
     width: calc(100% - 32px);
   }
 
-  .news-deck-head h2,
-  .org-switchboard-head h2 {
-    font-size: clamp(48px, 14vw, 66px);
-  }
-
-  .news-deck-empty {
-    grid-template-columns: 1fr;
-    min-height: 0;
-    margin-inline: -16px;
-    padding: 34px 24px 40px;
-  }
-
-  .news-deck-empty > p,
-  .news-deck-empty > div {
-    grid-column: 1;
-  }
-
-  .news-deck-tabs {
+  .newsroom-tabs {
     margin-inline: -16px;
     padding-inline: 16px;
+    border-radius: 0;
+    background: transparent;
   }
 
-  .news-deck-stage {
-    margin-inline: -16px;
+  .newsroom-tabs button {
+    background: var(--sr-sunken);
   }
 
-  .news-deck-media {
-    min-height: 420px;
-  }
-
-  .news-deck-copy {
-    padding: 28px 22px 34px;
-  }
-
-  .news-deck-copy h3 {
-    margin-top: 52px;
-    font-size: 34px;
-  }
-
-  .news-deck-queue {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .news-deck-queue::-webkit-scrollbar {
-    display: none;
-  }
-
-  .news-deck-queue button {
-    flex: 0 0 100px;
-  }
-
-  .news-deck-next {
-    grid-template-columns: 1fr auto;
-    padding-inline: 8px;
-  }
-
-  .news-deck-next > span {
-    grid-column: 1 / -1;
-  }
-
-  .news-deck-next strong {
-    font-size: 15px;
+  .newsroom-tabs button.is-active {
+    background: var(--hmte-navy);
   }
 
   .org-switchboard-body {
@@ -1179,21 +1353,18 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .org-switches button:nth-child(n) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
-
   .org-signal-head {
-    padding: 34px 20px 42px;
+    padding: 26px 20px 24px;
   }
 
   .org-signal-head h3 {
-    font-size: clamp(38px, 11vw, 54px);
+    max-width: none;
+    font-size: clamp(26px, 7vw, 34px);
   }
 
   .org-signal-people,
   .org-signal-programs {
-    padding: 26px 20px 34px;
+    padding: 22px 20px 26px;
   }
 
   .org-people-runway {
@@ -1221,9 +1392,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .news-deck-ambient,
-  .news-deck-feature,
-  .news-deck-media img,
   .org-signal {
     animation: none;
   }

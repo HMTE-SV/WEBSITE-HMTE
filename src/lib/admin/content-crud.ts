@@ -3,11 +3,10 @@ import type { ArticleCategoryKey, ContentStatus } from '@/types/content'
 import type {
   AnnouncementDocument,
   ArticleDocument,
-  EventDocument,
   FirestoreCollectionName,
 } from '@/types/firestore'
 
-export type ContentKind = 'announcements' | 'events' | 'articles'
+export type ContentKind = 'announcements' | 'articles'
 
 export type ContentFormValues = {
   body: string
@@ -16,16 +15,14 @@ export type ContentFormValues = {
   coverImage: string
   date: string
   excerpt: string
-  location: string
   slug: string
   status: ContentStatus
   title: string
 }
 
-export type ManagedContentDocument = AnnouncementDocument | EventDocument | ArticleDocument
+export type ManagedContentDocument = AnnouncementDocument | ArticleDocument
 
 type AnnouncementPayload = Omit<AnnouncementDocument, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'>
-type EventPayload = Omit<EventDocument, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'>
 type ArticlePayload = Omit<ArticleDocument, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'>
 
 type ContentCrudConfig = {
@@ -54,18 +51,6 @@ export const contentCrudConfigs = {
     newPath: '/admin/announcements/new',
     title: 'Kelola pengumuman',
   },
-  events: {
-    basePath: '/admin/events',
-    collectionName: 'events',
-    description: 'Kelola agenda kegiatan HMTE yang akan tampil di halaman publik.',
-    emptyBody: 'Buat agenda pertama agar mahasiswa dapat melihat kegiatan terbaru HMTE.',
-    emptyTitle: 'Belum ada agenda.',
-    kind: 'events',
-    kicker: 'Agenda',
-    label: 'Agenda',
-    newPath: '/admin/events/new',
-    title: 'Kelola agenda',
-  },
   articles: {
     basePath: '/admin/articles',
     collectionName: 'articles',
@@ -88,7 +73,6 @@ export function getEmptyContentFormValues(kind: ContentKind): ContentFormValues 
     coverImage: '',
     date: '',
     excerpt: '',
-    location: '',
     slug: '',
     status: 'draft',
     title: '',
@@ -113,15 +97,6 @@ export function buildContentPayload(kind: ContentKind, values: ContentFormValues
       body: values.body.trim(),
       date: values.date.trim(),
     } satisfies AnnouncementPayload
-  }
-
-  if (kind === 'events') {
-    return {
-      ...basePayload,
-      date: values.date.trim(),
-      location: values.location.trim(),
-      coverImage: values.coverImage.trim(),
-    } satisfies EventPayload
   }
 
   return {
@@ -149,19 +124,6 @@ export function documentToContentFormValues(kind: ContentKind, document: Managed
       excerpt: announcement.excerpt,
       status: announcement.status,
       title: announcement.title,
-    }
-  }
-
-  if (kind === 'events') {
-    const event = document as EventDocument
-    return {
-      ...values,
-      coverImage: event.coverImage || '',
-      date: event.date,
-      excerpt: event.excerpt,
-      location: event.location || '',
-      status: event.status,
-      title: event.title,
     }
   }
 

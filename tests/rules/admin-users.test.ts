@@ -201,3 +201,27 @@ describe('settings', () => {
     )
   })
 })
+
+describe('siteSettingsDrafts', () => {
+  const draftPayload = { ...siteSettingsPayload, publicationState: 'draft', updatedBy: 'boss@hmte.test' }
+
+  it('publik tidak boleh membaca draft pengaturan', async () => {
+    const anon = testEnv.unauthenticatedContext()
+    await assertFails(getDoc(doc(db(anon), 'siteSettingsDrafts', 'site')))
+  })
+
+  it('editor boleh membaca tetapi tidak boleh menulis draft pengaturan', async () => {
+    const editor = signedInAs(testEnv, 'redaksi')
+    await assertSucceeds(getDoc(doc(db(editor), 'siteSettingsDrafts', 'site')))
+    await assertFails(
+      setDoc(doc(db(editor), 'siteSettingsDrafts', 'site'), withTimestamps(draftPayload)),
+    )
+  })
+
+  it('superadmin boleh membuat dan memperbarui draft pengaturan', async () => {
+    const boss = signedInAs(testEnv, 'boss')
+    const draftRef = doc(db(boss), 'siteSettingsDrafts', 'site')
+    await assertSucceeds(setDoc(draftRef, withTimestamps(draftPayload)))
+    await assertSucceeds(updateDoc(draftRef, { publicationState: 'published', updatedAt: now() }))
+  })
+})

@@ -1,9 +1,23 @@
 'use client'
 
-import { kabinetIntro } from '@/data/site-content'
+import Link from 'next/link'
+import { usePageSection } from '@/components/site/PageContentProvider'
+import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
+import { interpolatePageText } from '@/lib/page-content'
+import { formatCabinetTitle } from '@/lib/site-settings'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 import { DirectoryProvider, useDirectory } from './directory/DirectoryProvider'
 import { LeadershipDirectory } from './LeadershipDirectory'
+
+/*
+ * Seksi Pengurus Harian & departemen.
+ *
+ * Kepalanya memakai irama yang sama dengan seksi kabar di atasnya: kicker mono,
+ * judul sedang, satu paragraf konteks, satu tautan. Sebelumnya judulnya 96px
+ * dengan paragraf terlempar ke kolom kanan berjarak 120px, jadi dua bagian yang
+ * saling menjelaskan itu terbaca sebagai dua benda yang tidak berhubungan —
+ * dan panel navy di bawahnya baru mulai setelah 340px pertama terpakai habis.
+ */
 
 type OrganizationDirectoryProps = {
   divisions: Division[]
@@ -42,15 +56,23 @@ function DivisionSwitches({ divisions }: { divisions: Division[] }) {
 }
 
 export function OrganizationDirectory(props: OrganizationDirectoryProps) {
+  const { fields } = usePageSection('organization')
+  const settings = useSiteSettings()
   return (
     <DirectoryProvider>
       <section className="org-switchboard" id="pillars" aria-labelledby="org-switchboard-title">
         <div className="org-switchboard-shell">
           <header className="org-switchboard-head">
-            <h2 id="org-switchboard-title">
-              {kabinetIntro.title}<span>{kabinetIntro.mutedTitle}</span>.
-            </h2>
-            <p>{kabinetIntro.lead}</p>
+            <div>
+              <p className="org-switchboard-kicker">{fields.kicker} · {props.divisions.length} unsur</p>
+              <h2 id="org-switchboard-title">
+                {fields.title}<span>{fields.mutedTitle}</span>.
+              </h2>
+              <p className="org-switchboard-standfirst">{interpolatePageText(fields.lead, { cabinet: formatCabinetTitle(settings) })}</p>
+            </div>
+            <Link className="org-switchboard-index-link" href="/kepengurusan">
+              {fields.action}
+            </Link>
           </header>
 
           <div className="org-switchboard-body" id="division-showcase">

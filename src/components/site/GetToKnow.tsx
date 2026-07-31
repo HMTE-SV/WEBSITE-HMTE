@@ -3,7 +3,11 @@
 import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { LogoMark } from '@/components/site/Brand'
-import { getToKnowContent } from '@/data/site-content'
+import { useMediaSlots } from '@/components/site/MediaSlotProvider'
+import { usePageSection } from '@/components/site/PageContentProvider'
+import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
+import { formatCabinetTitle } from '@/lib/site-settings'
+import { interpolatePageText } from '@/lib/page-content'
 
 type Keyframe = { at: number; x: number; y: number; r: number; s: number; o: number; b: number }
 
@@ -23,12 +27,19 @@ const TEXT_WINDOWS = [
   { in0: 0.64, in1: 0.715, out0: 0.765, out1: 0.805 },
 ]
 
+/*
+ * Foto yang melayang di sepanjang bab GetToKnow.
+ *
+ * Sebelumnya lima gambar generatif dari /assets/*.png, alt textnya sendiri
+ * mengaku "Visual sementara untuk ...". Yang dipakai sekarang dokumentasi asli
+ * Kabinet Abya Vistara, aset yang sama dengan dinding foto di hero.
+ */
 type Photo = { src: string; alt: string; variant: string; wide: Keyframe[]; compact: Keyframe[] }
 
 const PHOTOS: Photo[] = [
   {
-    src: '/assets/robotics_prestige.png',
-    alt: 'Visual sementara untuk foto kolaborasi anggota HMTE',
+    src: '/assets/abya-vistara/kegiatan-01.webp',
+    alt: 'Anggota HMTE berinteraksi dalam kegiatan kebersamaan',
     variant: 'a',
     wide: [
       { at: 0.0, x: 27, y: 15, r: 7, s: 0.55, o: 0.22, b: 9 },
@@ -45,8 +56,8 @@ const PHOTOS: Photo[] = [
     ],
   },
   {
-    src: '/assets/ugm_socialization.png',
-    alt: 'Visual sementara untuk foto ruang musyawarah HMTE',
+    src: '/assets/abya-vistara/kabinet-01.webp',
+    alt: 'Foto Kabinet Abya Vistara di halaman kampus UGM',
     variant: 'b',
     wide: [
       { at: 0.0, x: -28, y: 31, r: -6, s: 0.52, o: 0.16, b: 9 },
@@ -63,8 +74,8 @@ const PHOTOS: Photo[] = [
     ],
   },
   {
-    src: '/assets/solar_village.png',
-    alt: 'Visual sementara untuk foto gerakan HMTE di lapangan',
+    src: '/assets/abya-vistara/kegiatan-02.webp',
+    alt: 'Barisan anggota HMTE mengikuti permainan kelompok',
     variant: 'c',
     wide: [
       { at: 0.3, x: -50, y: 6, r: -4, s: 0.8, o: 0, b: 7 },
@@ -84,8 +95,8 @@ const PHOTOS: Photo[] = [
     ],
   },
   {
-    src: '/assets/smart_grid_dashboard.png',
-    alt: 'Visual sementara untuk foto budaya belajar dan teknologi',
+    src: '/assets/abya-vistara/kabinet-02.webp',
+    alt: 'Jajaran Kabinet Abya Vistara mengenakan jaket himpunan',
     variant: 'd',
     wide: [
       { at: 0.58, x: -30, y: 44, r: -7, s: 0.44, o: 0, b: 7 },
@@ -101,8 +112,8 @@ const PHOTOS: Photo[] = [
     ],
   },
   {
-    src: '/assets/semiconductor_career.png',
-    alt: 'Visual sementara untuk foto pertumbuhan anggota HMTE',
+    src: '/assets/abya-vistara/kegiatan-03.webp',
+    alt: 'Anggota HMTE tertawa bersama dalam kegiatan luar ruang',
     variant: 'e',
     wide: [
       { at: 0.58, x: 30, y: 44, r: 7, s: 0.44, o: 0, b: 7 },
@@ -118,6 +129,8 @@ const PHOTOS: Photo[] = [
     ],
   },
 ]
+
+const ABOUT_MEDIA_SLOT_KEYS = PHOTOS.map((_, index) => `home.about.${index + 1}`)
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 const seg = (p: number, from: number, to: number) => clamp01((p - from) / (to - from))
@@ -144,6 +157,9 @@ function splitSentences(title: string) {
 }
 
 export function GetToKnow() {
+  const settings = useSiteSettings()
+  const { fields } = usePageSection('about')
+  const aboutMediaSlots = useMediaSlots(ABOUT_MEDIA_SLOT_KEYS)
   const [activeChapter, setActiveChapter] = useState(0)
   const sectionRef = useRef<HTMLElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
@@ -465,7 +481,16 @@ export function GetToKnow() {
     window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' })
   }, [])
 
-  const { identity, context: orgContext, prologue, steps, finale } = getToKnowContent
+  const identity = formatCabinetTitle(settings)
+  const orgContext = `${settings.programName} · ${settings.facultyName}`
+  const prologue = { kicker: fields.kicker, titleLines: [fields.titleLine1, fields.titleLine2], body: fields.body }
+  const steps = [1, 2, 3].map((number) => ({
+    label: fields[`step${number}Label`],
+    title: fields[`step${number}Title`],
+    body: fields[`step${number}Body`],
+  }))
+  const finale = { line: fields.finaleLine, caption: interpolatePageText(fields.finaleCaption, { period: settings.periodLabel }) }
+  const chapterLabels = [fields.introLabel, ...steps.map((step) => step.label), settings.cabinetName]
   const missionWords = splitSentences(steps[2].title)
 
   return (
@@ -481,17 +506,26 @@ export function GetToKnow() {
         <div className="about-story-tone" aria-hidden="true" />
 
         <div className="about-story-cast">
-          {PHOTOS.map((photo, index) => (
-            <figure
-              key={photo.variant}
-              ref={(el) => {
-                photoRefs.current[index] = el
-              }}
-              className={`about-story-photo about-story-photo--${photo.variant}`}
-            >
-              <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 880px) 74vw, 34vw" />
-            </figure>
-          ))}
+          {PHOTOS.map((photo, index) => {
+            const media = aboutMediaSlots[index]
+            return (
+              <figure
+                key={photo.variant}
+                ref={(el) => {
+                  photoRefs.current[index] = el
+                }}
+                className={`about-story-photo about-story-photo--${photo.variant}`}
+              >
+                <Image
+                  src={media.url || photo.src}
+                  alt={media.alt || photo.alt}
+                  fill
+                  sizes="(max-width: 880px) 74vw, 34vw"
+                  style={{ objectPosition: `${media.focalPointX}% ${media.focalPointY}%` }}
+                />
+              </figure>
+            )
+          })}
         </div>
 
         <header className="about-story-meta">
@@ -575,16 +609,16 @@ export function GetToKnow() {
               className={index === activeChapter ? 'is-active' : undefined}
               style={{ '--rail-at': chapter.at } as React.CSSProperties}
               onClick={() => goToChapter(index)}
-              aria-label={`Buka bab ${chapter.label}`}
+              aria-label={`Buka bab ${chapterLabels[index]}`}
               aria-current={index === activeChapter ? 'step' : undefined}
             >
               <i aria-hidden="true" />
-              <span>{chapter.label}</span>
+              <span>{chapterLabels[index]}</span>
             </button>
           ))}
         </nav>
 
-        <p ref={hintRef} className="about-story-hint">Scroll · cerita berlanjut</p>
+        <p ref={hintRef} className="about-story-hint">{fields.scrollHint}</p>
       </div>
     </section>
   )
