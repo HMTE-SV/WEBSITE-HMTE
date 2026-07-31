@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PublicPageFrame } from '@/components/site/PublicPage'
+import { getPublicMediaSlots } from '@/lib/media-slot-data'
 import { getLocalOrganizationData, getOrganizationData } from '@/lib/organization-data'
 import {
   getDivisionHref,
@@ -43,6 +44,12 @@ function getInitials(name: string) {
   return `${parts[0]?.[0] ?? ''}${parts.at(-1)?.[0] ?? ''}`.toUpperCase()
 }
 
+/*
+ * Jaring pengaman, sama alasannya dengan halaman daftarnya. Lihat komentar
+ * `revalidate` di src/app/page.tsx.
+ */
+export const revalidate = 300
+
 export function generateStaticParams() {
   const { divisions, leadersByDivision } = getLocalOrganizationData()
 
@@ -69,7 +76,11 @@ export async function generateMetadata({ params }: LeaderProfilePageProps): Prom
 }
 
 export default async function LeaderProfilePage({ params }: LeaderProfilePageProps) {
-  const [{ slug }, organization] = await Promise.all([params, getOrganizationData()])
+  const [{ slug }, organization, mediaSlots] = await Promise.all([
+    params,
+    getOrganizationData(),
+    getPublicMediaSlots(),
+  ])
   const result = findLeader(slug, organization.divisions, organization.leadersByDivision)
 
   if (!result) {
@@ -82,6 +93,7 @@ export default async function LeaderProfilePage({ params }: LeaderProfilePagePro
   )
   const teammates = divisionPeers.slice(0, 4)
   const programs = organization.programsByDivision[divisionCode]
+  const cabinetLogo = mediaSlots['cabinet.logo']
 
   return (
     <PublicPageFrame activeHref="/kepengurusan">
@@ -100,7 +112,7 @@ export default async function LeaderProfilePage({ params }: LeaderProfilePagePro
               ) : (
                 <>
                   <Image
-                    src="/assets/abya-vistara/logo-kabinet.webp"
+                    src={cabinetLogo.url}
                     alt=""
                     width={280}
                     height={280}

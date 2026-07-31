@@ -26,8 +26,14 @@ import { divisions } from '../src/data/divisions'
 import { leadersByDivision } from '../src/data/leaders'
 import { programsByDivision } from '../src/data/programs'
 import { slugify } from '../src/lib/slug'
+import {
+  normalizeProgramCoordinators,
+  normalizeProgramObjectives,
+  normalizeProgramResources,
+  normalizeProgramTimeline,
+} from '../src/lib/program-detail'
 import { normalizeProgramMonths } from '../src/lib/program-schedule'
-import type { DivisionCode } from '../src/types/content'
+import type { DivisionCode, Program } from '../src/types/content'
 
 const SERVICE_ACCOUNT_PATH = 'service-account.json'
 const isDryRun = process.argv.includes('--dry-run')
@@ -127,8 +133,34 @@ type SeedCounts = { dibuat: number; diperbarui: number; dilewati: number }
  * nilai. Pada dokumen baru justru sebaliknya: kerangka kosongnya dipertahankan
  * supaya bentuk dokumen tetap utuh sejak awal.
  */
+/**
+ * Membuang nilai penampung sebelum menimpa dokumen yang SUDAH ADA.
+ *
+ * Di jalur pembuatan dokumen baru, seluruh isi `row.data` ditulis apa adanya:
+ * kunci yang lengkap sejak awal itulah yang membuat panel bisa mengosongkan
+ * kembali isian yang sudah terisi. Di jalur `merge` ceritanya terbalik. Data
+ * lokal di src/data hanya punya jadwal untuk sebagian besar program, dan
+ * sisanya diisi pengurus lewat panel. Kalau penampung kosong ikut dikirim,
+ * menjalankan ulang seed akan MENGHAPUS seluruh ringkasan, tahapan, berkas, dan
+ * penanggung jawab yang mereka ketik, tanpa satu pun peringatan.
+ *
+ * Karena itu di sini seed bersifat menambah, bukan mengganti: string kosong,
+ * daftar kosong, dan `false` diperlakukan sebagai "tidak punya pendapat".
+ *
+ * Konsekuensinya, sebuah boolean yang `false`-nya BERARTI tidak bisa dikirim
+ * lewat jalur ini. Saat ini hanya ada dua boolean di seluruh baris seed:
+ * `active`, yang selalu true, dan `featured`, yang memang cuma perlu menyalakan
+ * sorotan dan tidak pernah perlu mematikannya dari sisi script. Mematikan
+ * sorotan adalah keputusan pengurus, dan tempatnya di panel.
+ */
 function withoutEmptyValues(data: Record<string, unknown>) {
-  return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== ''))
+  return Object.fromEntries(
+    Object.entries(data).filter(([, value]) => {
+      if (value === '' || value === false) return false
+      if (Array.isArray(value) && value.length === 0) return false
+      return true
+    }),
+  )
 }
 
 async function seedCollection(
@@ -235,7 +267,13 @@ function buildProgramRows() {
   const rows: Array<{ id: string; data: Record<string, unknown> }> = []
   const usedIds = new Map<string, number>()
 
-  for (const [code, programs] of Object.entries(programsByDivision) as Array<[DivisionCode, typeof programsByDivision[DivisionCode]]>) {
+  /*
+   * Dilebarkan ke `Program[]`, bukan `typeof programsByDivision[DivisionCode]`.
+   * Bentuk kedua mempertahankan tipe literal tiap entri, jadi field opsional
+   * yang hanya dimiliki sebagian program (summary, timeline, featured) tidak ada
+   * di sebagian anggota union dan tidak bisa dibaca sama sekali.
+   */
+  for (const [code, programs] of Object.entries(programsByDivision) as Array<[DivisionCode, Program[]]>) {
     programs.forEach((program, index) => {
       const base = documentId(program.name)
       const seen = usedIds.get(base) || 0
@@ -256,6 +294,19 @@ function buildProgramRows() {
           // berbeda dan kolom tanggal di panel jadi tidak bisa dikosongkan.
           startDate: '',
           endDate: '',
+          /*
+           * Isi halaman rincian. Wajib ikut ditulis meski kosong, dengan alasan
+           * yang sama seperti startDate di atas: pada `update` Firestore, kunci
+           * yang tidak ada berarti "jangan diubah". Dokumen yang lahir tanpa
+           * kunci ini akan membuat pengurus mustahil mengosongkan kembali daftar
+           * yang sudah terisi, karena payload kosong tidak menghapus apa pun.
+           */
+          summary: program.summary || '',
+          objectives: normalizeProgramObjectives(program.objectives),
+          timeline: normalizeProgramTimeline(program.timeline),
+          resources: normalizeProgramResources(program.resources),
+          coordinators: normalizeProgramCoordinators(program.coordinators),
+          featured: program.featured === true,
           active: true,
           order: index + 1,
         },

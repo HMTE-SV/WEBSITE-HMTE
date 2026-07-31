@@ -5,17 +5,16 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAdminSession } from './AdminSessionContext'
 import { canAdminWrite } from '@/data/admin-nav'
 import { listContentDocuments } from '@/lib/firebase/content-services'
-import type { AnnouncementDocument, ArticleDocument, EventDocument } from '@/types/firestore'
+import type { AnnouncementDocument, ArticleDocument } from '@/types/firestore'
 
 type DashboardCounts = {
   announcements: number
   articles: number
   drafts: number
-  events: number
   published: number
 }
 
-const emptyCounts: DashboardCounts = { announcements: 0, articles: 0, drafts: 0, events: 0, published: 0 }
+const emptyCounts: DashboardCounts = { announcements: 0, articles: 0, drafts: 0, published: 0 }
 
 export function AdminDashboard() {
   const session = useAdminSession()
@@ -29,17 +28,15 @@ export function AdminDashboard() {
     setError('')
 
     try {
-      const [articles, announcements, events] = await Promise.all([
+      const [articles, announcements] = await Promise.all([
         listContentDocuments<ArticleDocument>('articles'),
         listContentDocuments<AnnouncementDocument>('announcements'),
-        listContentDocuments<EventDocument>('events'),
       ])
 
       setCounts({
         announcements: announcements.length,
         articles: articles.length,
         drafts: articles.filter((article) => article.status === 'draft').length,
-        events: events.length,
         published: articles.filter((article) => article.status === 'published').length,
       })
     } catch (loadError) {
@@ -58,7 +55,7 @@ export function AdminDashboard() {
     { label: 'Total berita', value: counts.articles, note: 'Semua status' },
     { label: 'Sudah terbit', value: counts.published, note: 'Terlihat publik' },
     { label: 'Masih draft', value: counts.drafts, note: 'Perlu ditinjau' },
-    { label: 'Agenda & info', value: counts.events + counts.announcements, note: 'Kanal aktif' },
+    { label: 'Pengumuman', value: counts.announcements, note: 'Semua status' },
   ]
   const connectionLabel = isLoading
     ? 'Menghubungkan Firestore'

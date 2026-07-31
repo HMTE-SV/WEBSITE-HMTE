@@ -4,8 +4,10 @@ import {
   formatCabinetTitle,
   instagramLabel,
   instagramUrl,
+  channelHref,
   normalizeInstagramHandle,
   normalizeSiteSettings,
+  resolveFooterHref,
 } from './site-settings'
 
 describe('normalizeSiteSettings', () => {
@@ -44,6 +46,31 @@ describe('normalizeSiteSettings', () => {
 
   it('tahun berupa teks tetap terbaca', () => {
     expect(normalizeSiteSettings({ agendaYear: '2029' }).agendaYear).toBe(2029)
+  })
+
+  it('menormalkan menu bertingkat dan menolak protokol URL berbahaya', () => {
+    const settings = normalizeSiteSettings({
+      navigation: [{
+        id: 'menu utama',
+        label: 'Menu uji',
+        href: 'javascript:alert(1)',
+        visible: false,
+        children: [{ id: 'anak', label: 'Anak', href: '/aman', visible: true }],
+      }],
+    })
+
+    expect(settings.navigation[0]).toMatchObject({
+      id: 'menu-utama', label: 'Menu uji', href: '/', visible: false,
+    })
+    expect(settings.navigation[0].children[0].href).toBe('/aman')
+  })
+
+  it('tautan footer dapat mengikuti satu sumber kanal resmi', () => {
+    const settings = normalizeSiteSettings({ instagram: '@kabinetbaru' })
+    const link = { ...settings.footerColumns[2].links[0], channel: 'instagram' as const }
+
+    expect(channelHref(settings, 'instagram')).toBe('https://www.instagram.com/kabinetbaru')
+    expect(resolveFooterHref(settings, link)).toBe('https://www.instagram.com/kabinetbaru')
   })
 })
 

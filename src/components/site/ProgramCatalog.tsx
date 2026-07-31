@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { DateBadge } from './DateBadge'
-import { isFeaturedProgram } from '@/data/featured-programs'
 import { getProgramHref } from '@/lib/organization-slugs'
 import {
   buildProgramSchedule,
@@ -15,10 +14,19 @@ import type { Division, DivisionCode, Program, ProgramStatus } from '@/types/con
 /*
  * Katalog program kerja untuk /program-kerja.
  *
- * Dua versi sebelumnya gagal karena alasan yang sama dari dua arah: ledger 37
- * baris seragam tidak punya pembeda, lalu grid kartu bergaris menambah 37 rail
- * mini dan justru bikin halaman penuh gambar kecil. Sekarang kartunya lega,
- * tanpa garis, dan waktu dijawab oleh satu badge tanggal yang terbaca.
+ * Tiga versi sebelumnya gagal dengan cara yang sama: 37 program digambar sebagai
+ * 37 objek seragam, entah baris ledger, kartu bergaris, atau kartu putih lega.
+ * Yang bikin lelah bukan bentuk kartunya, melainkan tidak adanya satu pun
+ * pembeda di antara tiga puluh tujuh benda yang identik.
+ *
+ * Sekarang katalog ini adalah REGISTER berkelompok. Program masuk ke bidangnya,
+ * dan tiap bidang dibuka satu palang berwarna miliknya sendiri. Menggulir
+ * katalog berarti melewati delapan pita warna, bukan satu tembok putih. Barisnya
+ * dibuat padat, bukan dilegakan: tiga puluh tujuh benda yang harus dibandingkan
+ * memang lebih baik dibaca sebagai daftar daripada sebagai kartu.
+ *
+ * Pilihan "Abjad" dibuang. Tidak ada satu pun pertanyaan nyata yang dijawab
+ * dengan mengurutkan program kerja menurut huruf pertamanya.
  */
 
 type ProgramCatalogProps = {
@@ -37,12 +45,11 @@ type CatalogProgram = Program & {
   divisionCode: DivisionCode
   divisionName: string
   divisionShortName: string
-  featured: boolean
   schedule: ProgramSchedule
 }
 
 type StatusFilter = ProgramStatus | 'ALL'
-type SortKey = 'bidang' | 'abjad' | 'waktu'
+type ViewMode = 'bidang' | 'waktu'
 
 const statusOptions: Array<{ label: string; value: StatusFilter }> = [
   { label: 'Semua pola', value: 'ALL' },
@@ -50,17 +57,24 @@ const statusOptions: Array<{ label: string; value: StatusFilter }> = [
   { label: 'Berkala', value: 'Berkala' },
 ]
 
-const sortOptions: Array<{ label: string; value: SortKey }> = [
-  { label: 'Bidang', value: 'bidang' },
-  { label: 'Abjad', value: 'abjad' },
-  { label: 'Waktu', value: 'waktu' },
+const viewOptions: Array<{ label: string; value: ViewMode }> = [
+  { label: 'Per bidang', value: 'bidang' },
+  { label: 'Urut waktu', value: 'waktu' },
 ]
+
+/** Program tanpa jadwal turun ke bawah, bukan naik karena bandnya kosong. */
+function byScheduleThenName(first: CatalogProgram, second: CatalogProgram) {
+  return (
+    (first.schedule.bands[0]?.from ?? 2) - (second.schedule.bands[0]?.from ?? 2) ||
+    first.name.localeCompare(second.name, 'id')
+  )
+}
 
 export function ProgramCatalog({ divisions, programsByDivision, year }: ProgramCatalogProps) {
   const [activeDivision, setActiveDivision] = useState<DivisionCode | 'ALL'>('ALL')
   const [activeStatus, setActiveStatus] = useState<StatusFilter>('ALL')
   const [datedOnly, setDatedOnly] = useState(false)
-  const [sortKey, setSortKey] = useState<SortKey>('bidang')
+  const [viewMode, setViewMode] = useState<ViewMode>('bidang')
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query.trim().toLowerCase())
 
@@ -72,7 +86,6 @@ export function ProgramCatalog({ divisions, programsByDivision, year }: ProgramC
           divisionCode: division.code,
           divisionName: division.name,
           divisionShortName: division.shortName,
-          featured: isFeaturedProgram(division.code, program.name),
           schedule: buildProgramSchedule(program, year),
         })),
       ),
@@ -84,41 +97,74 @@ export function ProgramCatalog({ divisions, programsByDivision, year }: ProgramC
     [programs],
   )
 
-  const visiblePrograms = useMemo(() => {
-    const filtered = programs.filter((program) => {
-      const matchesDivision = activeDivision === 'ALL' || program.divisionCode === activeDivision
-      const matchesStatus = activeStatus === 'ALL' || program.status === activeStatus
-      const matchesDated = !datedOnly || program.schedule.precision === 'exact'
-      const matchesQuery =
-        deferredQuery.length === 0 ||
-        `${program.name} ${program.desc} ${program.divisionName}`
-          .toLowerCase()
-          .includes(deferredQuery)
+  const visiblePrograms = useMemo(
+    () =>
+      programs.filter((program) => {
+        const matchesDivision = activeDivision === 'ALL' || program.divisionCode === activeDivision
+        const matchesStatus = activeStatus === 'ALL' || program.status === activeStatus
+        const matchesDated = !datedOnly || program.schedule.precision === 'exact'
+        const matchesQuery =
+          deferredQuery.length === 0 ||
+          `${program.name} ${program.desc} ${program.divisionName}`
+            .toLowerCase()
+            .includes(deferredQuery)
 
-      return matchesDivision && matchesStatus && matchesDated && matchesQuery
+        return matchesDivision && matchesStatus && matchesDated && matchesQuery
+      }),
+    [activeDivision, activeStatus, datedOnly, deferredQuery, programs],
+  )
+
+  /*
+   * Bidang yang seluruh programnya tersaring habis tidak dibangkitkan sama
+   * sekali, jadi katalog tidak pernah menampilkan palang bidang di atas ruang
+   * kosong. Urutannya mengikuti `divisions`, yang sudah datang terurut dari
+   * halaman, bukan urutan kemunculan program.
+   */
+  const groups = useMemo(() => {
+    if (viewMode !== 'bidang') return []
+
+    return divisions.flatMap((division) => {
+      const members = visiblePrograms.filter((program) => program.divisionCode === division.code)
+      return members.length > 0 ? [{ division, programs: members }] : []
     })
+  }, [divisions, viewMode, visiblePrograms])
 
-    if (sortKey === 'abjad') {
-      return [...filtered].sort((first, second) => first.name.localeCompare(second.name, 'id'))
-    }
-
-    if (sortKey === 'waktu') {
-      // Program tanpa jadwal turun ke bawah, bukan naik ke atas karena bandnya kosong.
-      return [...filtered].sort(
-        (first, second) =>
-          (first.schedule.bands[0]?.from ?? 2) - (second.schedule.bands[0]?.from ?? 2) ||
-          first.name.localeCompare(second.name, 'id'),
-      )
-    }
-
-    return filtered
-  }, [activeDivision, activeStatus, datedOnly, deferredQuery, programs, sortKey])
+  const timeline = useMemo(
+    () => (viewMode === 'waktu' ? [...visiblePrograms].sort(byScheduleThenName) : []),
+    [viewMode, visiblePrograms],
+  )
 
   function resetFilters() {
     setActiveDivision('ALL')
     setActiveStatus('ALL')
     setDatedOnly(false)
     setQuery('')
+  }
+
+  function renderRow(program: CatalogProgram, withDivisionTag: boolean) {
+    return (
+      <li key={`${program.divisionCode}-${program.name}`}>
+        <Link className="pk-row" href={getProgramHref(program)} data-div={program.divisionCode}>
+          <DateBadge schedule={program.schedule} />
+          <span className="pk-row-copy">
+            <strong>{program.name}</strong>
+            <small>{program.desc}</small>
+          </span>
+          <span className="pk-row-meta">
+            {withDivisionTag ? (
+              <span className="soft-tag">{program.divisionShortName}</span>
+            ) : null}
+            <span className="soft-tag soft-tag-quiet">{program.status}</span>
+            <time dateTime={program.startDate || undefined}>
+              {formatScheduleShort(program.schedule)}
+            </time>
+          </span>
+          <span className="pk-row-chev" aria-hidden="true">
+            ›
+          </span>
+        </Link>
+      </li>
+    )
   }
 
   return (
@@ -128,7 +174,7 @@ export function ProgramCatalog({ divisions, programsByDivision, year }: ProgramC
           <h2 id="catalog-title">Semua program kerja.</h2>
           <p className="pk-subhead">
             {programs.length} program dari delapan bidang. {datedCount} di antaranya sudah
-            punya tanggal pasti.
+            punya tanggal pasti; sisanya baru punya bulan rencana.
           </p>
         </div>
         <label className="soft-search">
@@ -193,14 +239,14 @@ export function ProgramCatalog({ divisions, programsByDivision, year }: ProgramC
             </button>
           </div>
 
-          <div className="soft-pills" role="group" aria-label="Urutkan">
-            {sortOptions.map((option) => (
+          <div className="soft-pills" role="group" aria-label="Cara menyusun">
+            {viewOptions.map((option) => (
               <button
                 type="button"
                 key={option.value}
-                className={sortKey === option.value ? 'is-active' : undefined}
-                aria-pressed={sortKey === option.value}
-                onClick={() => setSortKey(option.value)}
+                className={viewMode === option.value ? 'is-active' : undefined}
+                aria-pressed={viewMode === option.value}
+                onClick={() => setViewMode(option.value)}
               >
                 {option.label}
               </button>
@@ -209,40 +255,41 @@ export function ProgramCatalog({ divisions, programsByDivision, year }: ProgramC
         </div>
       </div>
 
-      {visiblePrograms.length > 0 ? (
-        <div className="pk-grid">
-          {visiblePrograms.map((program) => (
-            <Link
-              className="pk-card sfc"
-              href={getProgramHref(program)}
-              key={`${program.divisionCode}-${program.name}`}
-              data-div={program.divisionCode}
-            >
-              <span className="pk-card-top">
-                <DateBadge schedule={program.schedule} />
-                <span className="pk-card-meta">
-                  <span className="soft-tag">{program.divisionShortName}</span>
-                  {program.featured && <span className="pk-star" aria-label="Program unggulan">★</span>}
-                </span>
-              </span>
-
-              <h3>{program.name}</h3>
-              <p>{program.desc}</p>
-
-              <span className="pk-card-foot">
-                <span className="soft-tag soft-tag-quiet">{program.status}</span>
-                <time dateTime={program.startDate}>{formatScheduleShort(program.schedule)}</time>
-              </span>
-            </Link>
-          ))}
-        </div>
-      ) : (
+      {visiblePrograms.length === 0 ? (
         <div className="soft-empty">
           <strong>Program tidak ditemukan</strong>
           <p>Coba kata kunci atau kombinasi filter yang berbeda.</p>
           <button type="button" onClick={resetFilters}>
             Reset filter
           </button>
+        </div>
+      ) : viewMode === 'bidang' ? (
+        <div className="pk-register">
+          {groups.map(({ division, programs: members }) => (
+            <section className="pk-group" key={division.code} data-div={division.code}>
+              <header className="pk-group-head">
+                <span className="pk-group-mark">{division.shortName}</span>
+                <div>
+                  <h3>{division.name}</h3>
+                  <p>
+                    {members.length} program
+                    {members.length !== programsByDivision[division.code].length
+                      ? ` dari ${programsByDivision[division.code].length}`
+                      : ''}
+                  </p>
+                </div>
+              </header>
+              <ul className="pk-rows">
+                {members.map((program) => renderRow(program, false))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="pk-register">
+          <section className="pk-group pk-group-flat">
+            <ul className="pk-rows">{timeline.map((program) => renderRow(program, true))}</ul>
+          </section>
         </div>
       )}
     </div>

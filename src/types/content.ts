@@ -1,3 +1,5 @@
+import type { ProgramResource, ProgramTimelineEntry } from '@/lib/program-detail'
+
 export type ContentStatus = 'draft' | 'published' | 'archived'
 
 export type ArticleCategoryKey =
@@ -84,6 +86,28 @@ export type Program = {
   desc: string
   /** Pola pelaksanaan, bukan tingkat kepastian tanggal. */
   status: ProgramStatus
+  /**
+   * Uraian panjang untuk halaman rincian. `desc` tetap versi satu kalimat yang
+   * muat di kartu katalog; keduanya tidak saling menggantikan.
+   */
+  summary?: string
+  /** Poin fokus atau sasaran, satu kalimat pendek per butir. */
+  objectives?: string[]
+  /** Tahapan pelaksanaan. Lihat src/lib/program-detail.ts. */
+  timeline?: ProgramTimelineEntry[]
+  /** Berkas dan tautan resmi program. */
+  resources?: ProgramResource[]
+  /**
+   * Nama penanggung jawab, bukan id dokumen pengurus.
+   *
+   * Disimpan sebagai nama supaya menghapus seorang pengurus tidak meninggalkan
+   * acuan menggantung yang harus dibersihkan di tempat lain. Halaman rincian
+   * mencocokkannya dengan daftar pengurus bidang untuk membuat tautan; yang
+   * tidak cocok tetap tampil sebagai nama, dan itu keadaan yang sah.
+   */
+  coordinators?: string[]
+  /** Ditandai sorotan oleh pengurus lewat panel. */
+  featured?: boolean
   /** Label bulan yang bisa dibaca manusia, mis. "Maret, Juni, September". */
   date: string
   /** Bulan rencana 1-12 dari Buku Panduan. */

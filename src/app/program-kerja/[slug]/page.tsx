@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ProgramDetailWorkspace } from '@/components/site/ProgramDetailWorkspace'
 import { PublicPageFrame } from '@/components/site/PublicPage'
-import { featuredProgramPresentations } from '@/data/program-presentations'
 import { programsByDivision } from '@/data/programs'
 import { getOrganizationData } from '@/lib/organization-data'
 import { toOrganizationSlug } from '@/lib/organization-slugs'
+import { getSiteSettings } from '@/lib/site-settings-data'
 import type { Division, DivisionCode, Program } from '@/types/content'
 
 type ProgramDetailPageProps = {
@@ -34,6 +34,12 @@ function findProgram(
   }
 }
 
+/*
+ * Jaring pengaman, sama alasannya dengan halaman daftarnya. Lihat komentar
+ * `revalidate` di src/app/page.tsx.
+ */
+export const revalidate = 300
+
 export function generateStaticParams() {
   return Object.values(programsByDivision)
     .flat()
@@ -48,36 +54,35 @@ export async function generateMetadata({ params }: ProgramDetailPageProps): Prom
     return { title: 'Program kerja tidak ditemukan' }
   }
 
-  const presentation = featuredProgramPresentations.find(
-    (item) => item.divisionCode === match.divisionCode && item.programName === match.program.name,
-  )
-
   return {
     title: `${match.program.name} — Program Kerja HMTE`,
-    description: presentation?.summary ?? match.program.desc,
+    // Ringkasan panjang dulu dipakai lebih dulu, padahal isinya bisa beberapa
+    // paragraf. Deskripsi meta yang terpotong di tengah kalimat lebih buruk
+    // daripada satu kalimat utuh yang memang ditulis sebagai ringkasan singkat.
+    description: match.program.desc,
   }
 }
 
 export default async function ProgramDetailPage({ params }: ProgramDetailPageProps) {
-  const [{ slug }, organization] = await Promise.all([params, getOrganizationData()])
+  const [{ slug }, organization, settings] = await Promise.all([
+    params,
+    getOrganizationData(),
+    getSiteSettings(),
+  ])
   const match = findProgram(slug, organization.divisions, organization.programsByDivision)
 
   if (!match) notFound()
-
-  const presentation = featuredProgramPresentations.find(
-    (item) => item.divisionCode === match.divisionCode && item.programName === match.program.name,
-  )
 
   return (
     <PublicPageFrame activeHref="/program-kerja">
       <ProgramDetailWorkspace
         division={match.division}
         leaders={organization.leadersByDivision[match.divisionCode]}
-        presentation={presentation}
         program={match.program}
         relatedPrograms={organization.programsByDivision[match.divisionCode].filter(
           (item) => item.name !== match.program.name,
         )}
+        year={settings.agendaYear}
       />
     </PublicPageFrame>
   )

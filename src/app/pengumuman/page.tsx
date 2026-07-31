@@ -1,96 +1,254 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
-import { announcements } from '@/data/announcements'
+import { getPublishedAnnouncements, type PublicAnnouncement } from '@/lib/announcement-data'
+
+/*
+ * Jaring pengaman, bukan jalur utama. Lihat komentar `revalidate` di
+ * src/app/page.tsx.
+ */
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Pengumuman HMTE TRE SV UGM',
   description: 'Pengumuman resmi HMTE TRE SV UGM.',
 }
 
-export default function AnnouncementsPage() {
-  const publishedAnnouncements = announcements.filter((announcement) => announcement.status === 'published')
-  const [latestAnnouncement, ...archiveAnnouncements] = publishedAnnouncements.slice().reverse()
+/*
+ * Papan pengumuman.
+ *
+ * Versi sebelumnya menampilkan pengumuman terbaru sebagai satu baris besar lalu
+ * sisanya sebagai baris arsip bernomor. Dua masalah, dan keduanya soal isi,
+ * bukan soal tampilan.
+ *
+ * Pertama, tidak ada satu pun tanda apakah sebuah pengumuman masih berlaku.
+ * Panel meminta pengurus mengisi "tanggal berlaku", lalu halaman publiknya
+ * memakai tanggal itu semata-mata untuk mengurutkan. Pendaftaran yang tutup
+ * bulan lalu tampil persis sama dengan yang tutup pekan depan.
+ *
+ * Kedua, field `body` tidak pernah dirender di mana pun. Pengurus mengetik isi
+ * pengumuman lengkap di panel, menekan terbit, dan yang sampai ke pembaca cuma
+ * ringkasannya. Tidak ada halaman rincian pengumuman, jadi teks itu tidak punya
+ * tempat lain untuk muncul.
+ *
+ * Sekarang tanggal memisahkan papan jadi dua, dan isi lengkapnya bisa dibuka di
+ * tempat lewat <details>. Yang masih berlaku tampil lega, yang sudah lewat
+ * tampil padat. Bedanya ukuran adalah keterangannya, bukan hiasan.
+ */
+
+type BoardState = 'active' | 'archive'
+
+/**
+ * Hari ini menurut jam Yogyakarta, bukan menurut jam server.
+ *
+ * Zona waktunya wajib disebut. Halaman ini dirender di Vercel, yang berjalan di
+ * UTC, dan pembacanya ada di WIB. Tanpa penyebutan zona, setiap hari antara
+ * pukul 00.00 dan 07.00 WIB server masih mengira hari kemarin, dan batas
+ * berlaku/arsip meleset tujuh jam.
+ *
+ * `en-CA` dipilih karena keluarannya persis 'YYYY-MM-DD', bentuk yang sama
+ * dengan yang disimpan pengurus, jadi perbandingannya bisa dilakukan sebagai
+ * teks tanpa mengurai apa pun.
+ */
+function todayIso() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+}
+
+/** Baris kosong memisahkan paragraf, seperti yang diketik pengurus di panel. */
+function toParagraphs(value: string) {
+  return value
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+}
+
+function Notice({
+  announcement,
+  state,
+}: {
+  announcement: PublicAnnouncement
+  state: BoardState
+}) {
+  const paragraphs = toParagraphs(announcement.body)
+
+  return (
+    <article className="pgm-notice" data-state={state}>
+      <div className="pgm-date" aria-hidden="true">
+        {announcement.dateParts ? (
+          <>
+            <b>{announcement.dateParts.day}</b>
+            <span>{announcement.dateParts.month}</span>
+            <small>{announcement.dateParts.year}</small>
+          </>
+        ) : (
+          <span>Tanpa tanggal</span>
+        )}
+      </div>
+
+      <div className="pgm-notice-body">
+        <h3>{announcement.title}</h3>
+        <p className="pgm-notice-excerpt">{announcement.excerpt}</p>
+        <p className="pgm-notice-date">
+          <time dateTime={announcement.dateIso || undefined}>{announcement.dateLabel}</time>
+          {state === 'archive' ? <span>Sudah lewat</span> : null}
+        </p>
+
+        {paragraphs.length > 0 ? (
+          <details className="pgm-detail">
+            <summary>
+              Isi lengkap
+              <b aria-hidden="true">+</b>
+            </summary>
+            <div>
+              {paragraphs.map((paragraph) => (
+                <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+              ))}
+            </div>
+          </details>
+        ) : null}
+      </div>
+    </article>
+  )
+}
+
+export default async function AnnouncementsPage() {
+  let announcements: PublicAnnouncement[] = []
+  let loadError = false
+
+  try {
+    announcements = await getPublishedAnnouncements()
+  } catch {
+    loadError = true
+  }
+
+  const today = todayIso()
+
+  /*
+   * Pengumuman tanpa tanggal ikut dianggap masih berlaku. Tidak adanya tanggal
+   * berarti tidak ada batas yang pernah dinyatakan, dan menurunkannya ke arsip
+   * berarti halaman ini memutuskan sesuatu yang tidak diputuskan pengurus.
+   */
+  const active = announcements
+    .filter((item) => !item.dateIso || item.dateIso >= today)
+    // Yang paling dekat lebih dulu. Di daftar hal yang masih berlaku, urutan
+    // yang berguna adalah tenggat terdekat, bukan yang terjauh.
+    .sort((first, second) => (first.dateIso || '9999-12-31').localeCompare(second.dateIso || '9999-12-31'))
+
+  const archive = announcements
+    .filter((item) => item.dateIso && item.dateIso < today)
+    .sort((first, second) => second.dateIso.localeCompare(first.dateIso))
 
   return (
     <PublicPageFrame activeHref="/pengumuman">
-      <section
-        className="public-atmosphere-hero has-hero-backdrop"
-        aria-labelledby="dispatch-title"
-      >
-        <HeroBackdrop variant="dome" />
-        <div className="atmosphere-shell atmosphere-grid">
-          <div className="atmosphere-copy">
-            <span className="atmosphere-kicker">Pengumuman resmi</span>
-            <h1 id="dispatch-title">Info yang perlu <em>dibaca.</em> Sekarang.</h1>
-          </div>
-          <aside className="atmosphere-aside">
-            <p>Ruang singkat untuk kabar administrasi, kegiatan, dan hal yang perlu ditindaklanjuti oleh mahasiswa TRE.</p>
-            <dl className="atmosphere-stats" aria-label="Ringkasan pengumuman">
-              <div><dt>Terbit</dt><dd>{String(publishedAnnouncements.length).padStart(2, '0')}</dd></div>
-              <div><dt>Status</dt><dd>{publishedAnnouncements.length > 0 ? 'Aktif' : 'Menunggu'}</dd></div>
-              <div><dt>Periode</dt><dd>26/27</dd></div>
-            </dl>
-          </aside>
-          <a className="atmosphere-cue" href="#daftar-pengumuman"><span>Gulir untuk membaca</span><b aria-hidden="true">↓</b></a>
-        </div>
-      </section>
+      <section className="pgm-hero has-hero-backdrop" aria-labelledby="pgm-title">
+        <HeroBackdrop variant="orbit" />
+        <div className="soft-shell pgm-hero-inner">
+          <p className="pgm-hero-kicker">Pengumuman resmi · Abya Vistara</p>
+          <h1 id="pgm-title">
+            Yang perlu kamu <span>tahu sekarang.</span>
+          </h1>
+          <p className="pgm-hero-lead">
+            Kabar administrasi, pendaftaran, dan hal yang perlu ditindaklanjuti mahasiswa TRE.
+            Papan ini memisahkan yang masih berlaku dari yang sudah lewat, jadi kamu tidak perlu
+            menebak sendiri dari tanggalnya.
+          </p>
 
-      <section className="dispatch-register" id="daftar-pengumuman" aria-labelledby="register-title">
-        <div className="dispatch-shell">
-          <div className="dispatch-register-intro">
+          <dl className="pgm-hero-facts" aria-label="Ringkasan papan pengumuman">
             <div>
-              <p className="dispatch-eyebrow">DAFTAR PEMBARUAN</p>
-              <h2 id="register-title">Pembaruan yang <em>diterbitkan.</em></h2>
+              <dt>Masih berlaku</dt>
+              <dd>{String(active.length).padStart(2, '0')}</dd>
             </div>
-            <p>Disusun dari yang paling baru agar informasi penting tidak tenggelam di antara kabar lain.</p>
-          </div>
-
-          {latestAnnouncement ? (
-            <article className="dispatch-featured">
-              <div className="dispatch-featured-index" aria-hidden="true"><span>01</span><i /></div>
-              <div className="dispatch-featured-body">
-                <div className="dispatch-item-meta"><span>{latestAnnouncement.date}</span><span>UPDATE UTAMA</span></div>
-                <h3>{latestAnnouncement.title}</h3>
-                <p>{latestAnnouncement.excerpt}</p>
-              </div>
-              <div className="dispatch-featured-status"><span><i />TERBIT</span><b aria-hidden="true">↗</b></div>
-            </article>
-          ) : null}
-
-          {archiveAnnouncements.length > 0 ? (
-            <div className="dispatch-archive" aria-label="Arsip pengumuman">
-              {archiveAnnouncements.map((announcement, index) => (
-                <article className="dispatch-archive-row" key={announcement.id}>
-                  <span className="dispatch-archive-index">{String(index + 2).padStart(2, '0')}</span>
-                  <div className="dispatch-archive-title"><span>{announcement.date}</span><h3>{announcement.title}</h3></div>
-                  <p>{announcement.excerpt}</p>
-                  <span className="dispatch-archive-mark" aria-hidden="true">+</span>
-                </article>
-              ))}
+            <div>
+              <dt>Sudah lewat</dt>
+              <dd>{String(archive.length).padStart(2, '0')}</dd>
             </div>
-          ) : null}
-
-          {!latestAnnouncement ? (
-            <EmptyState
-              title="Belum ada pengumuman resmi"
-              body="Buku Panduan HMTE 2026/2027 tidak memuat pengumuman operasional. Informasi akan tampil setelah tanggal, isi, dan tindak lanjutnya dikonfirmasi pengurus."
-            />
-          ) : null}
+            <div>
+              <dt>Periode</dt>
+              <dd>26/27</dd>
+            </div>
+          </dl>
         </div>
       </section>
 
-      <section className="dispatch-afterword" aria-label="Kanal aspirasi mahasiswa">
-        <div className="dispatch-shell dispatch-afterword-grid">
-          <div className="dispatch-afterword-photo"><Image src="/assets/ugm_socialization.png" alt="Visual sementara untuk ajakan menyampaikan aspirasi" fill sizes="(max-width: 760px) 100vw, 38vw" /></div>
-          <div className="dispatch-afterword-copy">
-            <p className="dispatch-eyebrow">RUANG LAIN UNTUK DIDENGAR</p>
-            <h2>Ada hal yang tidak bisa menunggu pengumuman berikutnya?</h2>
-            <p>Untuk masukan akademik, fasilitas, organisasi, atau kesejahteraan, gunakan kanal aspirasi mahasiswa.</p>
-            <Link href="/aspirasi">Sampaikan aspirasi <span aria-hidden="true">→</span></Link>
-          </div>
+      <section className="soft-surface" id="daftar-pengumuman">
+        <div className="soft-shell">
+          {announcements.length === 0 ? (
+            <EmptyState
+              title={loadError ? 'Pengumuman belum dapat dimuat' : 'Belum ada pengumuman resmi'}
+              body={
+                loadError
+                  ? 'Koneksi ke arsip Firestore sedang bermasalah. Silakan coba kembali beberapa saat lagi.'
+                  : 'Pengurus belum menerbitkan pengumuman. Draft yang masih disusun tidak ditampilkan di halaman publik.'
+              }
+            />
+          ) : (
+            <>
+              <section className="pgm-section" aria-labelledby="active-title">
+                <div className="soft-head">
+                  <div>
+                    <h2 id="active-title">Masih berlaku.</h2>
+                    <p className="pgm-subhead">
+                      Disusun dari tanggal terdekat, bukan dari yang paling baru diterbitkan.
+                    </p>
+                  </div>
+                </div>
+
+                {active.length > 0 ? (
+                  <div className="pgm-board">
+                    {active.map((announcement) => (
+                      <Notice announcement={announcement} key={announcement.id} state="active" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="soft-empty">
+                    <strong>Tidak ada yang sedang berlaku</strong>
+                    <p>
+                      Semua pengumuman yang pernah terbit sudah lewat tanggalnya. Arsipnya ada di
+                      bawah.
+                    </p>
+                  </div>
+                )}
+              </section>
+
+              {archive.length > 0 ? (
+                <section className="pgm-section" aria-labelledby="archive-title">
+                  <div className="soft-head">
+                    <div>
+                      <h2 id="archive-title">Sudah lewat.</h2>
+                      <p className="pgm-subhead">
+                        Tetap ditampilkan sebagai catatan. Isi lengkapnya masih bisa dibuka.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pgm-board" data-dense="true">
+                    {archive.map((announcement) => (
+                      <Notice announcement={announcement} key={announcement.id} state="archive" />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </>
+          )}
+
+          <aside className="pgm-aspirasi">
+            <div>
+              <h2>Ada yang tidak bisa menunggu pengumuman berikutnya?</h2>
+              <p>
+                Untuk masukan akademik, fasilitas, organisasi, atau kesejahteraan, gunakan kanal
+                aspirasi mahasiswa. Bisa dengan nama, bisa anonim.
+              </p>
+            </div>
+            <Link href="/aspirasi">
+              Sampaikan aspirasi <span aria-hidden="true">→</span>
+            </Link>
+          </aside>
         </div>
       </section>
     </PublicPageFrame>

@@ -1,4 +1,7 @@
+'use client'
+
 import Image from 'next/image'
+import { useMediaSlot } from '@/components/site/MediaSlotProvider'
 
 type LogoMarkProps = {
   size?: number
@@ -9,10 +12,12 @@ type LogoMarkProps = {
 }
 
 export function LogoMark({ size = 40, width, height, className, priority = false }: LogoMarkProps) {
+  const logo = useMediaSlot('brand.logo.primary')
+
   return (
     <Image
-      src="/assets/logo-hmte.svg"
-      alt="Logo HMTE TRE SV UGM"
+      src={logo.url}
+      alt={logo.alt}
       width={width ?? size}
       height={height ?? size}
       className={className}

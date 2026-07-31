@@ -5,6 +5,12 @@ import { leadersByDivision as localLeadersByDivision } from '@/data/leaders'
 import { programsByDivision as localProgramsByDivision } from '@/data/programs'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
 import { listContentDocuments } from '@/lib/firebase/content-services'
+import {
+  normalizeProgramCoordinators,
+  normalizeProgramObjectives,
+  normalizeProgramResources,
+  normalizeProgramTimeline,
+} from '@/lib/program-detail'
 import { normalizeProgramMonths } from '@/lib/program-schedule'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 import type { DivisionDocument, LeaderDocument, ProgramDocument } from '@/types/firestore'
@@ -18,6 +24,34 @@ export type OrganizationData = {
 
 function buildDivisionsByCode(divisions: Division[]) {
   return Object.fromEntries(divisions.map((division) => [division.code, division])) as Record<DivisionCode, Division>
+}
+
+/*
+ * Kapan boleh diam-diam mundur ke data seed lokal, dan kapan harus berisik.
+ *
+ * Halaman organisasi sekarang statis dengan ISR. Artinya hasil satu kali
+ * pembacaan Firestore bisa terpanggang jadi HTML yang dilayani berhari-hari.
+ * Kalau pembacaan itu gagal lalu kita diam-diam memakai seed lokal, situs
+ * menerbitkan susunan pengurus lama tanpa satu pun tanda, dan tidak pernah
+ * pulih sendiri: orang yang sudah dihapus di panel muncul kembali di publik.
+ * Itu persis mode kegagalan yang membuat Ibnu bertahan di situs.
+ *
+ * Jadi di produksi kita melempar. Saat build, build-nya gagal dan tidak ada
+ * yang salah yang terbit. Saat revalidasi ISR, Next mempertahankan versi
+ * terakhir yang baik lalu mencoba lagi. Dua-duanya lebih jujur daripada
+ * menerbitkan data yang keliru.
+ *
+ * Di pengembangan kita tetap mundur, supaya jaringan yang putus tidak
+ * menghentikan pekerjaan tata letak. Peringatannya dinaikkan ke console.error
+ * biar tidak tenggelam.
+ */
+function handleOrganizationFetchFailure(reason: string, error?: unknown): OrganizationData {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`[organization-data] ${reason}`, error ? { cause: error } : undefined)
+  }
+
+  console.error(`[organization-data] ${reason} Memakai data seed lokal karena ini mode pengembangan.`, error)
+  return getLocalOrganizationData()
 }
 
 export function getLocalOrganizationData(): OrganizationData {
@@ -106,11 +140,16 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
         shortName: division.shortName,
       }))
 
+    /*
+     * Nol divisi bukan keadaan yang sah, dan bukan error yang dilempar
+     * Firestore. Rules yang menolak baca mengembalikan array kosong, bukan
+     * pengecualian, jadi tanpa penjagaan ini rules yang belum di-deploy tampil
+     * sebagai situs yang datanya hilang diam-diam.
+     */
     if (divisions.length === 0) {
-      console.warn(
-        '[organization-data] Firebase terkonfigurasi tetapi tidak ada divisi aktif di Firestore — memakai data lokal sebagai fallback.',
+      return handleOrganizationFetchFailure(
+        'Firebase terkonfigurasi tetapi tidak ada satu pun divisi aktif. Kemungkinan firestore.rules belum di-deploy, atau database belum di-seed.',
       )
-      return getLocalOrganizationData()
     }
 
     const leadersByDivision = emptyDivisionRecord<Leader>()
@@ -142,18 +181,25 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
       .sort((first, second) => first.order - second.order)
       .forEach((program) => {
         programsByDivision[program.divisionCode].push({
+          coordinators: normalizeProgramCoordinators(program.coordinators),
           date: program.date,
           desc: program.desc,
           // startDate/endDate wajib ikut disalin di sini. Field yang ada di
           // dokumen tapi tidak disalin akan hilang diam-diam begitu data pindah
           // ke Firestore, dan halaman publik jatuh ke keadaan "belum
           // dijadwalkan" tanpa error apa pun. Itu persis yang pernah terjadi
-          // pada `months` (temuan F1 di docs/RENCANA_ADMIN_PANEL.md).
+          // pada `months` (temuan F1 di docs/RENCANA_ADMIN_PANEL.md), dan
+          // alasan yang sama berlaku untuk seluruh isi rincian di bawah.
           endDate: program.endDate,
+          featured: program.featured === true,
           months: normalizeProgramMonths(program.months),
           name: program.name,
+          objectives: normalizeProgramObjectives(program.objectives),
+          resources: normalizeProgramResources(program.resources),
           startDate: program.startDate,
           status: program.status,
+          summary: typeof program.summary === 'string' ? program.summary.trim() : '',
+          timeline: normalizeProgramTimeline(program.timeline),
         })
       })
 
@@ -164,10 +210,6 @@ export const getOrganizationData = cache(async function getOrganizationData(): P
       programsByDivision,
     }
   } catch (error) {
-    console.warn(
-      '[organization-data] Gagal mengambil data dari Firestore — memakai data lokal sebagai fallback.',
-      error,
-    )
-    return getLocalOrganizationData()
+    return handleOrganizationFetchFailure('Gagal membaca Firestore.', error)
   }
 })

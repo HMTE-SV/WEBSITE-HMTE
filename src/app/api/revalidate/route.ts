@@ -13,16 +13,20 @@ import { verifyFirebaseIdToken } from '@/lib/firebase/verify-id-token'
  */
 
 /*
- * Hanya dua kelompok, karena hanya dua collection yang benar-benar dibaca
- * halaman publik: `articles` lewat src/lib/article-data.ts dan `leaders` /
- * `divisions` / `programs` lewat src/lib/organization-data.ts. Collection
- * `announcements`, `events`, dan `gallery` sudah bisa dikelola dari panel tapi
- * halaman publiknya masih memakai data statis di src/data, jadi menyegarkannya
- * tidak akan mengubah apa pun. Tambahkan di sini saat halamannya sudah pindah.
+ * Satu kelompok per collection yang punya pembaca publik.
+ *
+ * `articles` masuk ke '/' juga karena seksi kabar di beranda sekarang menerima
+ * feed yang sama dengan /berita. Sebelumnya seksi itu membaca file statis, jadi
+ * menyegarkan beranda memang tidak mengubah apa pun.
  */
 const revalidationTargets = {
+  announcements: ['/pengumuman'],
   articles: ['/berita', '/'],
+  gallery: ['/galeri'],
+  media: ['/'],
   organization: ['/kepengurusan', '/program-kerja', '/agenda', '/'],
+  pages: ['/', '/kontak'],
+  settings: ['/'],
 } as const
 
 export type RevalidationTarget = keyof typeof revalidationTargets
@@ -62,6 +66,10 @@ export async function POST(request: Request) {
     revalidatePath('/divisi/[slug]', 'page')
     revalidatePath('/pengurus/[slug]', 'page')
     revalidatePath('/program-kerja/[slug]', 'page')
+  }
+
+  if (target === 'media' || target === 'settings') {
+    revalidatePath('/', 'layout')
   }
 
   return NextResponse.json({ revalidated: paths })

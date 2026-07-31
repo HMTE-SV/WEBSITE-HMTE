@@ -1,0 +1,698 @@
+/* ============================================================
+   /program-kerja : PAPAN TAHUN
+   ============================================================
+
+   Berkas ini TIDAK mewarisi apa pun dari css/ui-soft.css.
+
+   Sistem permukaan lembut itu sengaja aman: kartu putih membulat, bayangan
+   tipis, latar beige, hero navy dengan satu kata emas. Apa pun yang dibangun di
+   dalamnya akan terlihat seperti semua hal lain yang dibangun di dalamnya, dan
+   /program-kerja tiga kali berturut-turut terbukti begitu. Yang bisa dimainkan
+   di sana tinggal susunan kotak.
+
+   Jadi halaman ini keluar. Preseden untuk itu sudah ada di situs ini sendiri:
+   /kontak punya berkasnya sendiri, konsepnya sendiri, dan ia satu-satunya
+   halaman yang punya watak.
+
+   Yang dipertahankan cuma dua, karena keduanya identitas: palet dan huruf.
+   Navy, emas, dan delapan rona bidang. Geist untuk display, Plus Jakarta untuk
+   teks, JetBrains Mono untuk aksen pendek.
+
+   Yang berubah: seluruh halaman jadi medan gelap, dan delapan rona bidang
+   berhenti jadi tint sembilan persen lalu jadi cahaya. Di atas beige mereka
+   harus tunduk; di atas navy pekat mereka bisa menyala.
+   ============================================================ */
+
+.stg {
+  --field: #00102C;
+  --field-2: #061B3D;
+  --ink: #F2F6FC;
+  --ink-soft: #A7BBD4;
+  --ink-faint: #63799A;
+  --rule: rgba(146, 178, 220, 0.14);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  position: relative;
+  padding: clamp(56px, 7vw, 104px) 0 clamp(40px, 5vw, 72px);
+  overflow: hidden;
+  color: var(--ink);
+  background:
+    radial-gradient(120% 80% at 78% -10%, rgba(var(--hmte-gold-rgb), 0.16), transparent 58%),
+    linear-gradient(168deg, var(--field-2), var(--field) 52%, #01081B);
+  isolation: isolate;
+}
+
+/*
+ * Delapan rona bidang untuk medan gelap.
+ *
+ * BUKAN warna yang sama dengan --div di ui-soft.css. Rona di sana diturunkan
+ * agar lolos ambang di atas KERTAS PUTIH, jadi semuanya gelap; dipakai di atas
+ * navy pekat mereka praktis tidak terlihat. Yang di bawah ini rona yang sama,
+ * lightness-nya dinaikkan sampai seluruhnya mendarat di pita 6,9 sampai 7,0
+ * banding 1 terhadap medan. Satu pita, bukan satu per satu, supaya kedelapannya
+ * terbaca sama terangnya dan papan tidak berubah jadi pelangi dengan satu warna
+ * yang berteriak lebih keras dari yang lain.
+ *
+ * Rasio 7:1 itu dua arah: tinta navy di ATAS balok juga lolos, jadi nama program
+ * bisa ditulis gelap di atas warnanya sendiri.
+ */
+.stg [data-div]              { --dv: #8FA9C8; }
+.stg [data-div='PH']         { --dv: #6AA2DB; }
+.stg [data-div='PSDM']       { --dv: #27B0A0; }
+.stg [data-div='PHAL']       { --dv: #8E99D9; }
+.stg [data-div='MINKAT']     { --dv: #D78C47; }
+.stg [data-div='KOMINFO']    { --dv: #D98694; }
+.stg [data-div='IPTEK']      { --dv: #2EA9D0; }
+.stg [data-div='KEWIRUS']    { --dv: #44B33C; }
+.stg [data-div='KASTRAD']    { --dv: #C785D6; }
+
+/* Kabut halus supaya medan tidak terbaca sebagai bidang warna datar. */
+.stg-veil {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 3px 3px;
+  mask-image: radial-gradient(120% 90% at 70% 0%, #000, transparent 72%);
+}
+
+.stg-inner {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 2 * var(--public-gutter), 1320px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: clamp(24px, 3vw, 48px) clamp(28px, 4vw, 64px);
+  align-items: end;
+}
+
+/* ---- Kepala ---- */
+
+.stg-eyebrow {
+  margin: 0 0 18px;
+  color: var(--hmte-gold);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stg-head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  /* Plafon 88px, di bawah batas 96. Tinggi baris di bawah 1 disengaja: tiga
+     baris pendek yang saling rapat terbaca sebagai satu blok, bukan tiga
+     kalimat. */
+  font-size: clamp(38px, 6.4vw, 88px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.042em;
+  text-wrap: balance;
+}
+
+.stg-head h1 span {
+  color: var(--hmte-gold);
+}
+
+.stg-lead {
+  max-width: 56ch;
+  margin: 22px 0 0;
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+/* ---- Bacaan ----
+   Diam di tempat, hanya isinya yang berganti. Tooltip yang mengikuti kursor
+   akan menutupi persis balok di sebelah yang sedang dibandingkan, dan di papan
+   sepadat ini itu berarti menutupi jawabannya. */
+
+.stg-readout {
+  align-self: end;
+  min-height: 208px;
+  padding: 20px 22px 22px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.stg-readout-body {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  animation: stg-readin 320ms var(--ease) both;
+}
+
+.stg-readout-div {
+  color: var(--dv, var(--hmte-gold));
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.stg-readout strong {
+  font-family: var(--font-display);
+  font-size: clamp(21px, 2.2vw, 27px);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.stg-readout-when {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stg-readout p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.stg-readout-note {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.stg-readout-idle .stg-readout-div {
+  color: var(--ink-faint);
+}
+
+@keyframes stg-readin {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---- Papan ----
+   Lebar penuh dua kolom. Papannya yang jadi tokoh utama halaman ini, bukan
+   judulnya. */
+
+.stg-scroll {
+  grid-column: 1 / -1;
+  margin-top: clamp(6px, 1vw, 14px);
+  /* Papan selebar dua belas bulan tidak bisa dipadatkan lagi tanpa jadi tidak
+     terbaca. Di layar sempit ia digulir di dalam wadahnya sendiri, dan halaman
+     tetap tidak pernah bergulir mendatar. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.stg-field {
+  position: relative;
+  min-width: 760px;
+  padding: 34px 0 0;
+}
+
+/* Kisi bulan. Sangat samar: ia kerangka bacaan, bukan gambar. */
+.stg-grid {
+  position: absolute;
+  z-index: 0;
+  inset: 34px 0 30px calc(var(--label-w));
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  transition: opacity 300ms var(--ease);
+}
+
+.stg-grid i {
+  box-shadow: inset 1px 0 0 var(--rule);
+}
+
+.stg-grid i:last-child {
+  box-shadow: inset 1px 0 0 var(--rule), inset -1px 0 0 var(--rule);
+}
+
+.stg[data-focus] .stg-grid {
+  opacity: 0.4;
+}
+
+.stg-field {
+  --label-w: 94px;
+}
+
+/* ---- Penunjuk kursor dan garis hari ini ---- */
+
+.stg-sweep,
+.stg-now {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 30px;
+  width: 0;
+  pointer-events: none;
+}
+
+.stg-sweep {
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.38);
+}
+
+.stg-sweep b,
+.stg-now b {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.stg-sweep b {
+  color: var(--field);
+  background: #fff;
+}
+
+/*
+ * Garis hari ini adalah satu-satunya hal di papan yang bergerak sendiri tanpa
+ * disentuh. Ia harus terbaca dari seberang ruangan, jadi dua lapis: garis emas
+ * pejal ditambah cahaya lebar yang lembut di sekitarnya.
+ */
+.stg-now {
+  box-shadow:
+    1px 0 0 var(--hmte-gold),
+    0 0 10px 0 rgba(var(--hmte-gold-rgb), 0.5);
+}
+
+.stg-now b {
+  color: var(--hmte-navy-deep);
+  background: var(--hmte-gold);
+}
+
+/* ---- Baris bidang ---- */
+
+.stg-rows {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stg-row {
+  display: grid;
+  grid-template-columns: var(--label-w) minmax(0, 1fr);
+  align-items: center;
+  gap: 0;
+  height: var(--row-h);
+  transition: opacity 260ms var(--ease), filter 260ms var(--ease);
+}
+
+/*
+ * Peredupan silang. Menyentuh satu balok memadamkan tujuh baris lainnya, jadi
+ * satu bidang bisa dibaca sendirian tanpa memfilter apa pun.
+ *
+ * Dikerjakan :has(), bukan status React, dengan alasan: hover adalah keadaan
+ * peramban, dan menyalinnya ke status React berarti tiap gerakan kursor
+ * merender ulang delapan baris berisi tiga puluh tujuh tautan. Di sini
+ * peramban yang mengurusnya sendiri, tanpa satu pun render.
+ */
+.stg-rows:has(.stg-block:hover) .stg-row:not(:has(.stg-block:hover)),
+.stg-rows:has(.stg-block:focus-visible) .stg-row:not(:has(.stg-block:focus-visible)) {
+  opacity: 0.2;
+  filter: saturate(0.35);
+}
+
+.stg-lanes:has(.stg-block:hover) .stg-block:not(:hover) {
+  opacity: 0.42;
+}
+
+.stg-row-label {
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  padding-right: 14px;
+  text-align: right;
+}
+
+.stg-row-label b {
+  color: var(--dv);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.stg-row-label small {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.stg-row-label em {
+  color: color-mix(in srgb, var(--dv) 72%, transparent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.stg-lanes {
+  position: relative;
+  height: 100%;
+}
+
+/* ---- Balok program ---- */
+
+.stg-block {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--lane) * 35px);
+  left: calc(var(--from) * 100%);
+  width: calc((var(--to) - var(--from)) * 100%);
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  overflow: hidden;
+  border-radius: 8px;
+  color: var(--field);
+  background: var(--dv);
+  text-decoration: none;
+  transform-origin: left center;
+  transition:
+    box-shadow 220ms var(--ease),
+    opacity 220ms var(--ease),
+    transform 220ms var(--ease);
+}
+
+.stg-block:hover,
+.stg-block:focus-visible {
+  z-index: 2;
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 2px var(--field),
+    0 0 0 4px var(--dv),
+    0 12px 30px color-mix(in srgb, var(--dv) 45%, transparent);
+}
+
+/*
+ * Kepastian jadwal dibawa TINGGI balok, bukan kepekatannya.
+ *
+ * Versi pertama menggambar yang baru direncanakan sebagai balok berongga dua
+ * puluh persen. Itu keliru bukan karena jelek, melainkan karena tiga puluh enam
+ * dari tiga puluh tujuh program di Buku Panduan memang baru punya bulan
+ * rencana. Yang seharusnya jadi pengecualian justru jadi seluruh papan, dan
+ * papannya praktis kosong.
+ *
+ * Sekarang semuanya pejal, dan yang berbeda adalah tebalnya: tanggal yang sudah
+ * pasti memenuhi jalurnya, bulan rencana duduk lebih tipis di tengah. Lebih
+ * berbobot berarti lebih pasti, dan itu terbaca tanpa legenda.
+ */
+.stg-block[data-precision='planned'] {
+  top: calc(var(--lane) * 35px + 5px);
+  height: 20px;
+  border-radius: 6px;
+  opacity: 0.9;
+}
+
+.stg-block[data-precision='exact'] {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.45);
+}
+
+.stg-block[data-precision='planned']:hover,
+.stg-block[data-precision='planned']:focus-visible {
+  opacity: 1;
+}
+
+/* Sorotan mendapat tanda, bukan ukuran. Membesarkannya akan merusak sumbu
+   waktu, dan sumbu waktu adalah seluruh gunanya papan ini. */
+.stg-block[data-featured]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hmte-gold);
+  box-shadow: 0 0 0 2px var(--field);
+  transform: translateY(-50%);
+}
+
+.stg-block-name {
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Nama yang tidak muat di dalam baloknya ditulis di sebelah kanannya, seperti
+ * bagan Gantt sungguhan. `overflow: visible` di sini disengaja: baloknya tetap
+ * berukuran waktunya, hanya namanya yang keluar. Ruangnya sudah dipastikan
+ * kosong oleh placeLabels() di src/lib/program-stage.ts, jadi nama ini tidak
+ * pernah jatuh di atas balok orang lain.
+ */
+.stg-block[data-label='outside'] {
+  overflow: visible;
+  padding: 0;
+}
+
+.stg-block[data-label='outside'] .stg-block-name {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 8px);
+  color: var(--dv);
+  font-size: 11px;
+  font-weight: 600;
+  transform: translateY(-50%);
+}
+
+/* Saat balok disentuh, namanya ikut naik ke depan supaya tidak tertimpa balok
+   tetangga yang z-index-nya lebih tinggi. */
+.stg-block[data-label='outside']:hover,
+.stg-block[data-label='outside']:focus-visible {
+  z-index: 4;
+}
+
+/* Kemunculan kedua dan seterusnya dari program yang sama cuma diberi nomor
+   urut kecil di tengah baloknya. */
+.stg-block[data-label='repeat'] {
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.stg-block[data-label='repeat'] .stg-block-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+/* ---- Sumbu bulan ---- */
+
+.stg-axis {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  margin: 14px 0 0 var(--label-w);
+  padding: 0;
+  list-style: none;
+}
+
+.stg-axis li {
+  padding-top: 9px;
+  box-shadow: inset 0 1px 0 var(--rule);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.stg-axis li[data-passed='true'] {
+  color: var(--ink-soft);
+  box-shadow: inset 0 1px 0 rgba(var(--hmte-gold-rgb), 0.4);
+}
+
+/* ---- Program yang tidak punya tempat di sumbu waktu ---- */
+
+.stg-chips {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 10px clamp(20px, 3vw, 40px);
+  margin-top: clamp(20px, 2.6vw, 28px);
+  padding-top: 20px;
+  box-shadow: inset 0 1px 0 var(--rule);
+}
+
+.stg-chips-head {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.stg-chips-head span {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.stg-chips-head small {
+  color: var(--ink-faint);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.stg-chips ul {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stg-chips a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 200ms var(--ease), color 200ms var(--ease);
+}
+
+.stg-chips a:hover {
+  background: color-mix(in srgb, var(--dv) 22%, transparent);
+  color: var(--ink);
+}
+
+.stg-chips a:focus-visible {
+  outline: 2px solid var(--dv);
+  outline-offset: 2px;
+}
+
+.stg-chips i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dv);
+}
+
+@media (max-width: 760px) {
+  .stg-chips {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---- Masuknya papan ----
+   Balok tumbuh dari kiri ke kanan, ditunda menurut posisinya di tahun, jadi
+   gerakannya membaca sebagai waktu yang mengalir maju.
+
+   Keadaan bawaan adalah TAMPIL PENUH. Animasi baru dipasang setelah komponen
+   hidup lewat data-animate. Kalau urutannya dibalik, halaman yang dirender di
+   tab tersembunyi atau oleh perayap tanpa layar akan terbit dengan papan kosong,
+   karena transisi di sana tidak pernah berjalan. */
+
+@keyframes stg-grow {
+  from { transform: scaleX(0.015); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+.stg[data-animate='on'] .stg-block {
+  animation: stg-grow 620ms var(--ease) both;
+  animation-delay: var(--block-delay, 0ms);
+}
+
+.stg[data-animate='on'] .stg-chips {
+  animation: stg-readin 520ms var(--ease) both;
+  animation-delay: 560ms;
+}
+
+@media (max-width: 1080px) {
+  .stg-inner {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .stg-readout {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .stg-field {
+    --label-w: 54px;
+    min-width: 700px;
+  }
+
+  /* Di kolom selebar 54px, "4 program" pecah jadi dua baris dan "+1 rutin"
+     terpotong. Angka itu sudah disebut di bacaan dan di pil bawah papan, jadi
+     yang tersisa di sini cukup kode bidangnya. */
+  .stg-row-label small,
+  .stg-row-label em {
+    display: none;
+  }
+
+  .stg-scroll {
+    /* Tepi berpudar memberi tahu bahwa papan masih berlanjut ke kanan, tanpa
+       menambah satu pun keterangan tertulis. */
+    mask-image: linear-gradient(to right, #000 0 92%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stg[data-animate='on'] .stg-block,
+  .stg[data-animate='on'] .stg-hum,
+  .stg-readout-body {
+    animation: none;
+  }
+
+  .stg-block,
+  .stg-row,
+  .stg-grid,
+  .stg-chips a {
+    transition: none;
+  }
+
+  .stg[data-animate='on'] .stg-chips {
+    animation: none;
+  }
+
+  .stg-block:hover,
+  .stg-block:focus-visible {
+    transform: none;
+  }
+}

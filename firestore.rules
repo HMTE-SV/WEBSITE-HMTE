@@ -160,6 +160,42 @@ service cloud.firestore {
         && keepsCreatedAt();
     }
 
+    function isValidAuditAction(action) {
+      return action in ['create', 'update', 'delete', 'restore'];
+    }
+
+    function isAuditedEntityType(entityType) {
+      return entityType in [
+        'announcements',
+        'articles',
+        'divisions',
+        'gallery',
+        'leaders',
+        'media',
+        'mediaSlots',
+        'pageContents',
+        'pageContentDrafts',
+        'partners',
+        'programs',
+        'settings',
+        'siteSettingsDrafts'
+      ];
+    }
+
+    function validAuditIdentity() {
+      return request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.actorRole == adminRole()
+        && request.resource.data.actorEmail is string
+        && request.resource.data.entityId is string
+        && request.resource.data.entityId.size() > 0
+        && request.resource.data.entityType is string
+        && isAuditedEntityType(request.resource.data.entityType)
+        && isValidAuditAction(request.resource.data.action)
+        && request.resource.data.changedFields is list
+        && request.resource.data.changedFields.size() <= 100
+        && hasValidWriteTimestamps();
+    }
+
     /*
      * Direktori akun, bukan lagi sumber wewenang. Isinya cuma untuk ditampilkan
      * di panel; yang menentukan izin adalah claims di token.
@@ -190,18 +226,67 @@ service cloud.firestore {
       allow delete: if isEditor();
     }
 
-    match /events/{documentId} {
+    match /gallery/{documentId} {
       allow read: if isPublished() || hasActiveAdminProfile();
       allow create: if isEditor() && validPublishableWrite();
       allow update: if isEditor() && validPublishableUpdate();
       allow delete: if isEditor();
     }
 
-    match /gallery/{documentId} {
-      allow read: if isPublished() || hasActiveAdminProfile();
-      allow create: if isEditor() && validPublishableWrite();
-      allow update: if isEditor() && validPublishableUpdate();
-      allow delete: if isEditor();
+    /*
+     * Metadata media tidak perlu dibuka ke publik. Halaman publik menerima URL
+     * dari dokumen kontennya; pustaka lengkap hanya berguna bagi admin.
+     */
+    match /media/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if isEditor() && hasValidWriteTimestamps();
+      allow update: if isEditor() && keepsCreatedAt();
+      allow delete: if isSuperadmin();
+    }
+
+    /*
+     * Slot hanya berisi penempatan aset publik, jadi aman dibaca tanpa login.
+     * Assignment berdampak ke banyak halaman sekaligus dan dikunci untuk
+     * superadmin. Editor hanya boleh menyinkronkan proyeksi aman dari media
+     * yang assignment-nya sudah ditentukan.
+     */
+    match /mediaSlots/{documentId} {
+      allow read: if true;
+      allow create: if isSuperadmin() && hasValidWriteTimestamps();
+      allow update: if keepsCreatedAt() && (
+        isSuperadmin()
+        || (isEditor()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'mediaUrl',
+            'mediaAlt',
+            'mediaWidth',
+            'mediaHeight',
+            'focalPointX',
+            'focalPointY',
+            'updatedAt'
+          ]))
+      );
+      allow delete: if isSuperadmin();
+    }
+
+    match /auditLogs/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if isEditor()
+        && validAuditIdentity()
+        && request.resource.data.revisionId is string
+        && request.resource.data.revisionId.size() > 0
+        && request.resource.data.summary is string
+        && request.resource.data.summary.size() <= 500;
+      allow update, delete: if false;
+    }
+
+    match /contentRevisions/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if isEditor()
+        && validAuditIdentity()
+        && (request.resource.data.before == null || request.resource.data.before is map)
+        && (request.resource.data.after == null || request.resource.data.after is map);
+      allow update, delete: if false;
     }
 
     match /leaders/{documentId} {
@@ -279,6 +364,34 @@ service cloud.firestore {
       allow read: if hasActiveAdminProfile();
       allow create: if isSuperadmin() && hasValidWriteTimestamps();
       allow update: if isSuperadmin() && keepsCreatedAt();
+      allow delete: if isSuperadmin();
+    }
+
+    // Draf global tidak pernah dibuka ke publik. Superadmin dapat menyimpan
+    // progres tanpa mengubah dokumen terbit `settings/site`.
+    match /siteSettingsDrafts/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if isSuperadmin() && hasValidWriteTimestamps();
+      allow update: if isSuperadmin() && keepsCreatedAt();
+      allow delete: if isSuperadmin();
+    }
+
+    // Konten halaman terbit dapat dibaca publik. Editor boleh mengelola copy,
+    // urutan, dan visibilitas; perubahan slot gambar tetap dibatasi rules
+    // `mediaSlots` serta divalidasi lagi oleh alur publish di panel.
+    match /pageContents/{documentId} {
+      allow read: if true;
+      allow create: if isEditor() && hasValidWriteTimestamps();
+      allow update: if isEditor() && keepsCreatedAt();
+      allow delete: if isSuperadmin();
+    }
+
+    // Draf halaman hanya tersedia bagi admin aktif dan tidak pernah dibaca
+    // renderer publik.
+    match /pageContentDrafts/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if isEditor() && hasValidWriteTimestamps();
+      allow update: if isEditor() && keepsCreatedAt();
       allow delete: if isSuperadmin();
     }
 

@@ -8,6 +8,17 @@ import { getProgramHref, toOrganizationSlug } from '@/lib/organization-slugs'
 import { MONTH_NAMES_LONG, buildProgramSchedule } from '@/lib/program-schedule'
 import { getSiteSettings } from '@/lib/site-settings-data'
 
+/*
+ * Jaring pengaman, bukan jalur utama.
+ *
+ * Jalur normalnya panel memanggil /api/revalidate begitu data berubah, jadi
+ * halaman ini segar dalam hitungan detik. Tanpa `revalidate`, halaman ini
+ * statis penuh dan panggilan itu jadi SATU-SATUNYA cara menyegarkannya: sekali
+ * gagal (token kedaluwarsa, 401, jaringan pengurus putus), halamannya basi
+ * sampai deploy berikutnya, bukan sampai lima menit berikutnya.
+ */
+export const revalidate = 300
+
 export const metadata: Metadata = {
   title: 'Agenda HMTE TRE SV UGM',
   description:

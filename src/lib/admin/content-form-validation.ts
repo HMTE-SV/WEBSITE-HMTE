@@ -14,20 +14,20 @@ type AnnouncementInput = {
   title: string
 }
 
-type EventInput = {
-  date: string
-  excerpt: string
-  location?: string
-  status: ContentStatus
-  title: string
-}
-
 type ArticleInput = {
   category: ArticleCategoryKey | ''
   content: string
   coverImage?: string
   excerpt: string
   slug: string
+  status: ContentStatus
+  title: string
+}
+
+type GalleryInput = {
+  alt: string
+  caption?: string
+  imageUrl: string
   status: ContentStatus
   title: string
 }
@@ -42,15 +42,6 @@ function validateRequiredFields(fields: Array<[value: string | undefined, messag
 }
 
 export function validateAnnouncementInput(input: AnnouncementInput): ValidationResult {
-  return validateRequiredFields([
-    [input.title, 'Judul wajib diisi.'],
-    [input.excerpt, 'Ringkasan wajib diisi.'],
-    [input.date, 'Tanggal wajib diisi.'],
-    [input.status, 'Status wajib dipilih.'],
-  ])
-}
-
-export function validateEventInput(input: EventInput): ValidationResult {
   return validateRequiredFields([
     [input.title, 'Judul wajib diisi.'],
     [input.excerpt, 'Ringkasan wajib diisi.'],
@@ -94,4 +85,21 @@ export function validateArticleInput(input: ArticleInput): ValidationResult {
     errors,
     success: errors.length === 0,
   }
+}
+
+export function validateGalleryInput(input: GalleryInput): ValidationResult {
+  const errors: string[] = []
+  if (!input.title.trim()) errors.push('Judul gambar wajib diisi.')
+  if (!input.status) errors.push('Status galeri wajib dipilih.')
+  if (input.title.trim().length > 180) errors.push('Judul gambar maksimal 180 karakter.')
+  if ((input.caption ?? '').trim().length > 500) errors.push('Caption maksimal 500 karakter.')
+  if (input.alt.trim().length > 240) errors.push('Deskripsi gambar maksimal 240 karakter.')
+
+  if (input.status === 'published') {
+    if (!input.imageUrl.trim()) errors.push('Gambar wajib dipilih sebelum dipublikasikan.')
+    if (!input.alt.trim()) errors.push('Deskripsi gambar wajib diisi sebelum dipublikasikan.')
+  }
+  if (input.imageUrl.trim()) errors.push(...validateGalleryImageUrl(input.imageUrl.trim()).errors)
+
+  return { errors, success: errors.length === 0 }
 }

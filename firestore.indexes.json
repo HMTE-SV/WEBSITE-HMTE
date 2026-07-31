@@ -13,15 +13,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "publishedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "events",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "publishedAt", "order": "DESCENDING" }
+        { "fieldPath": "date", "order": "DESCENDING" }
       ]
     },
     {
@@ -29,7 +21,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "order", "order": "DESCENDING" }
+        { "fieldPath": "order", "order": "ASCENDING" }
       ]
     }
   ],
@@ -52,6 +44,16 @@
     {
       "collectionGroup": "aspirations",
       "fieldPath": "internalNotes",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "contentRevisions",
+      "fieldPath": "before",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "contentRevisions",
+      "fieldPath": "after",
       "indexes": []
     }
   ]

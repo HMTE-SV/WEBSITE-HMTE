@@ -1,9 +1,18 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { getFirebaseAuth } from '@/lib/firebase/client'
+import { listContentDocuments } from '@/lib/firebase/content-services'
 import { uploadImageToImageKit, type ImageKitFolder } from '@/lib/admin/imagekit-upload'
+import {
+  DEFAULT_MEDIA_PICKER_LIMIT,
+  filterPickerMedia,
+  mediaFolderLabels,
+  registerUploadedMedia,
+  type MediaFolderFilter,
+} from '@/lib/admin/media-library'
 import { validateArticleCoverImage, validateGalleryImage } from '@/lib/admin/media-validation'
+import type { MediaDocument } from '@/types/firestore'
 
 /*
  * Satu isian gambar untuk foto pengurus, cover berita, dan galeri.
@@ -30,6 +39,7 @@ const maxSizeValidators = {
   pengurus: validateArticleCoverImage,
   berita: validateArticleCoverImage,
   galeri: validateGalleryImage,
+  situs: validateGalleryImage,
 } as const satisfies Record<ImageKitFolder, (file: File) => { errors: string[]; success: boolean }>
 
 export function AdminImageField({ folder, hint, label, onChange, value }: AdminImageFieldProps) {
@@ -37,6 +47,36 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false)
+  const [isLibraryLoading, setIsLibraryLoading] = useState(false)
+  const [libraryItems, setLibraryItems] = useState<MediaDocument[]>([])
+  const [libraryFolder, setLibraryFolder] = useState<MediaFolderFilter>(folder)
+  const [libraryQuery, setLibraryQuery] = useState('')
+  const [libraryLimit, setLibraryLimit] = useState(DEFAULT_MEDIA_PICKER_LIMIT)
+  const pickerResult = useMemo(
+    () => filterPickerMedia(libraryItems, { folder: libraryFolder, query: libraryQuery, limit: libraryLimit }),
+    [libraryFolder, libraryItems, libraryLimit, libraryQuery],
+  )
+
+  async function openLibrary() {
+    setIsLibraryOpen(true)
+    if (libraryItems.length > 0) return
+
+    setIsLibraryLoading(true)
+    setUploadError('')
+    try {
+      const items = await listContentDocuments<MediaDocument>('media')
+      setLibraryItems(
+        items
+          .filter((item) => item.status === 'active')
+          .sort((first, second) => (second.createdAt?.toMillis?.() ?? 0) - (first.createdAt?.toMillis?.() ?? 0)),
+      )
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'Gagal membuka pustaka media.')
+    } finally {
+      setIsLibraryLoading(false)
+    }
+  }
 
   async function handleFile(file: File | undefined) {
     if (!file) {
@@ -54,7 +94,7 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
     setIsUploading(true)
 
     try {
-      const url = await uploadImageToImageKit(file, folder, async () => {
+      const upload = await uploadImageToImageKit(file, folder, async () => {
         const currentUser = getFirebaseAuth().currentUser
 
         if (!currentUser) {
@@ -64,7 +104,8 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
         return currentUser.getIdToken()
       })
 
-      onChange(url)
+      await registerUploadedMedia(upload, file, folder)
+      onChange(upload.url)
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : 'Gagal mengunggah gambar.')
     } finally {
@@ -112,6 +153,14 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
             >
               {isUploading ? 'Mengunggah...' : 'Unggah gambar'}
             </button>
+            <button
+              className="admin-secondary-button"
+              type="button"
+              disabled={isUploading}
+              onClick={() => void openLibrary()}
+            >
+              Pilih dari pustaka
+            </button>
             {value ? (
               <button className="admin-secondary-button" type="button" onClick={() => onChange('')}>
                 Hapus
@@ -133,6 +182,71 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
         <p className="admin-form-error" role="alert">
           {uploadError}
         </p>
+      ) : null}
+      {isLibraryOpen ? (
+        <div className="admin-image-library-picker">
+          <div>
+            <strong>Pustaka media</strong>
+            <button type="button" onClick={() => setIsLibraryOpen(false)} aria-label="Tutup pustaka">
+              ×
+            </button>
+          </div>
+          <div className="admin-image-library-filters">
+            <label>
+              <span>Cari gambar</span>
+              <input
+                type="search"
+                value={libraryQuery}
+                onChange={(event) => { setLibraryQuery(event.target.value); setLibraryLimit(DEFAULT_MEDIA_PICKER_LIMIT) }}
+                placeholder="Nama file, alt, atau kredit"
+              />
+            </label>
+            <label>
+              <span>Kategori</span>
+              <select value={libraryFolder} onChange={(event) => { setLibraryFolder(event.target.value as MediaFolderFilter); setLibraryLimit(DEFAULT_MEDIA_PICKER_LIMIT) }}>
+                <option value="all">Semua kategori</option>
+                {Object.entries(mediaFolderLabels).map(([value, label]) => (
+                  <option value={value} key={value}>{label}{value === folder ? ' · disarankan' : ''}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {isLibraryLoading ? (
+            <p>Memuat media...</p>
+          ) : pickerResult.total === 0 ? (
+            <p>{libraryItems.length === 0 ? 'Belum ada media aktif. Unggah gambar untuk mendaftarkannya.' : 'Tidak ada gambar yang cocok dengan filter ini.'}</p>
+          ) : (
+            <>
+              <p className="admin-image-library-count">Menampilkan {pickerResult.items.length} dari {pickerResult.total} gambar</p>
+              <div className="admin-image-library-grid">
+                {pickerResult.items.map((item) => (
+                  <button
+                    type="button"
+                    className={item.url === value ? 'is-selected' : undefined}
+                    key={item.id}
+                    onClick={() => {
+                      onChange(item.url)
+                      setIsLibraryOpen(false)
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.thumbnailUrl || item.url} alt="" />
+                    <span>{item.alt || item.originalFileName}</span>
+                  </button>
+                ))}
+              </div>
+              {pickerResult.items.length < pickerResult.total ? (
+                <button
+                  className="admin-image-library-more"
+                  type="button"
+                  onClick={() => setLibraryLimit((current) => current + DEFAULT_MEDIA_PICKER_LIMIT)}
+                >
+                  Tampilkan {Math.min(DEFAULT_MEDIA_PICKER_LIMIT, pickerResult.total - pickerResult.items.length)} lagi
+                </button>
+              ) : null}
+            </>
+          )}
+        </div>
       ) : null}
       {hint ? <p className="admin-field-hint">{hint}</p> : null}
     </div>

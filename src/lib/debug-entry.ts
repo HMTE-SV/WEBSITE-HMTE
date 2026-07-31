@@ -1,22 +1,11 @@
-'use client'
-
-// #region debug
-const ENTRY_DEBUG_SESSION = 'hmte-entry-race-716866'
-const ENTRY_DEBUG_URL = 'http://localhost:8787/log'
-
-export function debugEntry(
-  msg: string,
-  data: Record<string, unknown> = {},
-  hypothesisId: string | null = null,
-) {
-  const payload = JSON.stringify({
-    sessionId: ENTRY_DEBUG_SESSION,
-    msg,
-    data,
-    hypothesisId,
-  })
-
-  if (navigator.sendBeacon?.(ENTRY_DEBUG_URL, payload)) return
-  fetch(ENTRY_DEBUG_URL, { method: 'POST', body: payload }).catch(() => {})
-}
-// #endregion
+// Modul ini sudah kosong dan tidak di-import siapa pun.
+//
+// Isinya dulu mengirim beacon ke http://localhost:8787/log dari Hero dan
+// LandingEntryChoice, sisa sesi debug race condition pintu masuk. Instrumentasi
+// itu ikut terkirim ke produksi: tiap pengunjung menembak localhost dari halaman
+// HTTPS (diblokir sebagai mixed content) sambil membawa scrollY dan state
+// interaksinya.
+//
+// File fisiknya belum bisa dihapus karena watcher `next dev` mengunci file di
+// Windows. Hapus dengan `del src\lib\debug-entry.ts` setelah dev server mati.
+export {}

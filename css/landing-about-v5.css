@@ -539,13 +539,17 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* Hand-off: lembar off-white section berikutnya menggeser di atas panggung navy */
-.about-story[data-ready] + .news-deck {
+/* Hand-off: lembar off-white seksi berikutnya menggeser di atas panggung navy.
+   Overlapnya dikurangi dari 16svh ke 9svh. Angka lama menelan hampir seperlima
+   layar panggung terakhir, jadi perpindahannya terbaca sebagai tumpang tindih
+   yang kasar, bukan sebagai satu lembar yang naik. Bayangannya juga diturunkan
+   supaya bibir lembar terbaca sebagai kertas, bukan sebagai lubang gelap. */
+.about-story[data-ready] + .newsroom {
   position: relative;
   z-index: 2;
-  margin-top: -16svh;
-  border-radius: clamp(28px, 4.5vw, 60px) clamp(28px, 4.5vw, 60px) 0 0;
-  box-shadow: 0 -30px 90px rgba(0, 8, 22, 0.5);
+  margin-top: -9svh;
+  border-radius: clamp(26px, 4vw, 52px) clamp(26px, 4vw, 52px) 0 0;
+  box-shadow: 0 -24px 64px rgba(0, 8, 22, 0.42);
 }
 
 /* ---------- Responsif ---------- */
