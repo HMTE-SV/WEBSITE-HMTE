@@ -20,6 +20,12 @@ import { getFirestore } from 'firebase-admin/firestore'
  *    Ini yang dipakai di produksi, karena Vercel tidak punya sistem berkas yang
  *    bisa diisi berkas rahasia.
  * 2. service-account.json di root, untuk pengembangan lokal. Sudah di-gitignore.
+ *
+ * Catatan versi: firebase-admin ditahan di 13.x. Yang 14.x menarik jwks-rsa 4
+ * yang me-`require('jose')` versi 6, dan jose 6 hanya punya bentuk ESM. Di Node
+ * yang belum mengizinkan require() memuat ESM, rute ini mati sebelum sempat
+ * jalan dengan ERR_REQUIRE_ESM. Jalur 13.x memakai jose 4 yang masih punya
+ * bentuk CommonJS, jadi ia hidup di Node versi mana pun yang dipakai peladen.
  */
 
 const SERVICE_ACCOUNT_PATH = 'service-account.json'
