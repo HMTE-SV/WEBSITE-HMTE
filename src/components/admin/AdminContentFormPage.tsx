@@ -32,7 +32,7 @@ import {
 import { requestRevalidation } from '@/lib/admin/revalidate'
 import { useUnsavedChangesGuard } from '@/lib/admin/use-unsaved-changes-guard'
 import { hasFirebaseConfig } from '@/lib/firebase/client'
-import { slugify } from '@/lib/slug'
+import { normalizeSlugInput, slugify } from '@/lib/slug'
 import type { ContentStatus } from '@/types/content'
 
 type AdminContentFormPageProps = {
@@ -106,14 +106,16 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
 
   function updateField<Field extends keyof ContentFormValues>(field: Field, value: ContentFormValues[Field]) {
     setIsDirty(true)
-    setValues((currentValues) => ({
-      ...currentValues,
-      [field]: value,
-      slug:
+    setValues((currentValues) => {
+      const shouldDeriveSlug =
         field === 'title' && kind === 'articles' && mode === 'create' && !currentValues.slug
-          ? slugify(String(value))
-          : currentValues.slug,
-    }))
+
+      return {
+        ...currentValues,
+        ...(shouldDeriveSlug ? { slug: slugify(String(value)) } : null),
+        [field]: value,
+      }
+    })
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -194,7 +196,8 @@ export function AdminContentFormPage({ documentId, kind }: AdminContentFormPageP
                   <div className="admin-form-grid">
                     <div className="admin-field">
                       <label htmlFor="content-slug">Slug URL</label>
-                      <div className="admin-input-prefix"><span>/berita/</span><input id="content-slug" value={values.slug} onChange={(event) => updateField('slug', slugify(event.target.value))} /></div>
+                      <div className="admin-input-prefix"><span>/berita/</span><input id="content-slug" value={values.slug} onChange={(event) => updateField('slug', normalizeSlugInput(event.target.value))} onBlur={(event) => updateField('slug', slugify(event.target.value))} maxLength={120} placeholder="judul-berita-kamu" /></div>
+                      <small>Huruf kecil, angka, dan tanda hubung. Spasi otomatis jadi tanda hubung.</small>
                     </div>
                     <div className="admin-field">
                       <label htmlFor="content-category">Kategori</label>
