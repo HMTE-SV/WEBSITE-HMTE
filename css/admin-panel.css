@@ -780,9 +780,73 @@
 .admin-rich-editor .tiptap blockquote { margin: 1.5em 0; padding: 14px 18px; border-top: 2px solid var(--hmte-gold); background: rgba(var(--hmte-gold-rgb),.08); color: var(--hmte-navy); }
 .admin-rich-editor .tiptap a { color: var(--hmte-teal); text-decoration: underline; text-underline-offset: 3px; }
 .admin-rich-editor .tiptap img { max-width: 100%; height: auto; display: block; margin: 24px auto; }
+/* Cermin aturan ukuran di halaman publik, supaya "sedang" di sini berarti sedang di sana juga. */
+.admin-rich-editor .tiptap img[data-size='medium'] { width: min(100%, 62%); }
+.admin-rich-editor .tiptap img[data-size='small'] { width: min(100%, 38%); }
+.admin-rich-editor .tiptap img[data-size='medium'][data-align='left'],
+.admin-rich-editor .tiptap img[data-size='small'][data-align='left'] { float: left; margin: 4px 24px 18px 0; }
+.admin-rich-editor .tiptap img[data-size='medium'][data-align='right'],
+.admin-rich-editor .tiptap img[data-size='small'][data-align='right'] { float: right; margin: 4px 0 18px 24px; }
+.admin-rich-editor .tiptap h2,
+.admin-rich-editor .tiptap h3,
+.admin-rich-editor .tiptap hr { clear: both; }
 .admin-rich-editor .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: #9aa4ad; pointer-events: none; }
 .admin-editor-footer { display: flex; gap: 18px; padding: 9px 13px; border-top: 1px solid var(--admin-line); color: var(--admin-muted); background: var(--admin-surface-soft); font-family: var(--font-mono); font-size: 8px; letter-spacing: .04em; text-transform: uppercase; }
 .admin-editor-inline-error { margin: 0; padding: 9px 12px; border-top: 1px solid rgba(169,54,54,.2); color: var(--admin-danger); background: rgba(169,54,54,.05); font-size: 9px; }
+
+/*
+ * Peringatan terbit. Nadanya sengaja berbeda dari .admin-editor-inline-error:
+ * ini bukan kesalahan yang menghalangi menyimpan, melainkan pemberitahuan
+ * bahwa ada bagian isi yang tidak akan ikut tampil di halaman publik.
+ */
+.admin-editor-publish-warning { padding: 10px 13px; border-top: 1px solid rgba(var(--hmte-gold-rgb),.4); background: rgba(var(--hmte-gold-rgb),.11); }
+.admin-editor-publish-warning p { margin: 0; color: var(--hmte-navy); font-size: 9.5px; line-height: 1.6; }
+.admin-editor-publish-warning p + p { margin-top: 6px; }
+
+/* Kontrol yang hanya berlaku untuk satu objek terpilih (gambar, sisipan). */
+.admin-editor-contextbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 10px; border-bottom: 1px solid var(--admin-line); background: rgba(var(--hmte-navy-rgb),.045); }
+.admin-editor-contextbar > span { color: var(--admin-muted); font-family: var(--font-mono); font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+.admin-editor-contextbar > div { display: flex; gap: 3px; padding-right: 8px; border-right: 1px solid var(--admin-line); }
+.admin-editor-contextbar button { min-height: 28px; padding: 0 10px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--admin-muted); cursor: pointer; font-family: var(--font-mono); font-size: 9px; font-weight: 700; }
+.admin-editor-contextbar button:hover:not(:disabled) { color: var(--hmte-navy); background: white; }
+.admin-editor-contextbar button[aria-pressed='true'] { color: var(--hmte-navy-deep); border-color: rgba(var(--hmte-gold-rgb),.42); background: rgba(var(--hmte-gold-rgb),.24); }
+.admin-editor-contextbar button:disabled { cursor: not-allowed; opacity: .3; }
+
+.admin-embed-verdict { margin: 0; font-size: 10px; font-weight: 600; }
+.admin-embed-verdict.is-ok { color: var(--hmte-teal); }
+.admin-embed-verdict.is-unknown { color: var(--admin-danger); }
+.admin-embed-support { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.admin-embed-support li { position: relative; padding-left: 14px; color: var(--admin-muted); font-size: 9px; line-height: 1.55; }
+.admin-embed-support li::before { content: ''; position: absolute; top: .55em; left: 0; width: 5px; height: 5px; border: 1px solid var(--hmte-gold-deep); border-radius: 50%; }
+
+/*
+ * Sisipan di dalam editor. Iframe-nya dibiarkan hidup supaya penulis melihat
+ * video yang benar, tapi pointer-events dimatikan: tanpa itu, klik selalu jatuh
+ * ke dalam iframe dan node-nya tidak pernah bisa dipilih apalagi dihapus.
+ */
+.admin-rich-editor .tiptap .article-embed { position: relative; margin: 1.8em 0; }
+.admin-rich-editor .tiptap .article-embed iframe { pointer-events: none; }
+.admin-rich-editor .tiptap .article-embed::after { content: attr(data-provider); position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 5px; background: rgba(var(--hmte-navy-rgb),.8); color: white; font-family: var(--font-mono); font-size: 8px; letter-spacing: .04em; text-transform: uppercase; }
+.admin-rich-editor .tiptap .article-embed.ProseMirror-selectednode { outline: 2px solid var(--hmte-gold-deep); outline-offset: 3px; }
+.admin-rich-editor .tiptap img.ProseMirror-selectednode { outline: 2px solid var(--hmte-gold-deep); outline-offset: 3px; }
+
+/*
+ * Pratinjau. Isi dirender memakai kelas .article-rich-content yang sama dengan
+ * halaman publik, jadi yang dilihat penulis tata letak sebenarnya. Pilihan
+ * lebar ponsel ada karena mayoritas pembaca berita HMTE datang dari ponsel,
+ * dan gambar "kecil" yang rapi di layar lebar sering jadi terlalu sempit di sana.
+ */
+.admin-editor-preview { border-top: 1px solid var(--admin-line); background: var(--tre-off-white); }
+.admin-editor-preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 12px; border-bottom: 1px solid var(--admin-line); background: var(--admin-surface-soft); }
+.admin-editor-preview-bar > span { color: var(--admin-muted); font-family: var(--font-mono); font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+.admin-editor-preview-bar > div { display: flex; gap: 3px; }
+.admin-editor-preview-bar button { min-height: 28px; padding: 0 11px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--admin-muted); cursor: pointer; font-family: var(--font-mono); font-size: 9px; font-weight: 700; }
+.admin-editor-preview-bar button[aria-pressed='true'] { color: var(--hmte-navy-deep); border-color: rgba(var(--hmte-gold-rgb),.42); background: rgba(var(--hmte-gold-rgb),.24); }
+.admin-editor-preview-stage { padding: clamp(22px, 4vw, 46px); }
+.admin-editor-preview-stage .article-rich-content { width: min(100%, 720px); margin: 0 auto; }
+.admin-editor-preview[data-device='phone'] .admin-editor-preview-stage { padding: 26px; }
+.admin-editor-preview[data-device='phone'] .article-rich-content { width: min(100%, 390px); padding: 24px 20px; border: 1px solid var(--admin-line-strong); border-radius: 22px; background: white; font-size: 15px; }
+.admin-editor-preview:empty { display: none; }
 
 /* Panel tautan dan gambar. Menggantikan window.prompt yang berantai tiga. */
 .admin-editor-panel { display: grid; gap: 11px; padding: 15px; border-bottom: 1px solid var(--admin-line); background: var(--admin-surface-soft); }
@@ -869,7 +933,50 @@
 .article-rich-content li { margin-bottom: .45em; }
 .article-rich-content blockquote { margin: 1.8em 0; padding: 22px clamp(20px, 4vw, 34px); border-block: 2px solid var(--hmte-gold); background: rgba(var(--hmte-gold-rgb), .09); color: var(--hmte-navy); font-family: var(--font-display); font-size: 1.12em; }
 .article-rich-content a { color: var(--hmte-teal); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+/*
+ * Ukuran gambar di dalam berita.
+ *
+ * Tiga peran, bukan lebar bebas. Nilai data-size di luar daftar ini sudah
+ * dinormalkan jadi "full" oleh sanitizeArticleContent, jadi aturan di bawah
+ * selalu punya pasangan.
+ */
 .article-rich-content img { width: 100%; height: auto; display: block; margin: 2em 0; }
+.article-rich-content img[data-size='medium'] { width: min(100%, 62%); }
+.article-rich-content img[data-size='small'] { width: min(100%, 38%); }
+.article-rich-content img[data-align='center'] { margin-inline: auto; }
+.article-rich-content img[data-size='medium'][data-align='left'],
+.article-rich-content img[data-size='small'][data-align='left'] { float: left; margin: .4em 1.8em 1.4em 0; }
+.article-rich-content img[data-size='medium'][data-align='right'],
+.article-rich-content img[data-size='small'][data-align='right'] { float: right; margin: .4em 0 1.4em 1.8em; }
+/* Heading tidak boleh naik ke samping gambar mengambang; itu terbaca sebagai tata letak rusak. */
+.article-rich-content h2,
+.article-rich-content h3,
+.article-rich-content hr,
+.article-rich-content .article-embed { clear: both; }
+
+/*
+ * Sisipan pihak ketiga. Tinggi diatur lewat aspect-ratio, bukan tinggi tetap,
+ * supaya video tetap proporsional di layar ponsel -- iframe dengan height tetap
+ * adalah penyebab paling umum kotak hitam bergaris di bawah video.
+ */
+.article-rich-content .article-embed { margin: 2.4em 0; }
+.article-rich-content .article-embed iframe { width: 100%; display: block; border: 0; border-radius: 4px; background: rgba(var(--hmte-navy-rgb), .06); }
+.article-rich-content .article-embed[data-aspect='video'] iframe { aspect-ratio: 16 / 9; }
+.article-rich-content .article-embed[data-aspect='document'] iframe,
+.article-rich-content .article-embed[data-aspect='map'] iframe { aspect-ratio: 4 / 3; }
+.article-rich-content .article-embed[data-aspect='audio'] iframe { aspect-ratio: auto; height: 152px; }
+.article-rich-content .article-embed figcaption,
+.article-rich-content .article-figure figcaption { margin-top: .7em; color: rgba(var(--hmte-navy-rgb), .66); font-size: .78em; line-height: 1.5; }
+.article-rich-content .article-figure { margin: 2.2em 0; }
+.article-rich-content .article-figure img { margin-block: 0; }
+
+@media (max-width: 640px) {
+  /* Gambar mengambang di kolom selebar ponsel menyisakan lajur teks 4-5 kata. */
+  .article-rich-content img[data-size='medium'],
+  .article-rich-content img[data-size='small'] { float: none; width: 100%; margin: 2em 0; }
+  .article-rich-content .article-embed[data-aspect='document'] iframe,
+  .article-rich-content .article-embed[data-aspect='map'] iframe { aspect-ratio: 3 / 4; }
+}
 .article-rich-content hr { margin: 2.5em 0; border: 0; border-top: 1px solid rgba(var(--hmte-navy-rgb), .18); }
 .article-rich-content pre { overflow-x: auto; padding: 18px; background: var(--hmte-navy-deep); color: var(--tre-off-white); font-family: var(--font-mono); font-size: .8em; }
 
