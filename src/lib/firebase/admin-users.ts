@@ -2,6 +2,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import { getFirebaseDb } from './client'
 import { readAdminClaims } from '@/lib/admin/claims'
+import { normalizeAdminPermissions } from '@/lib/admin/permissions'
 import { isAdminRole, type AdminUser } from '@/types/admin'
 
 /*
@@ -20,7 +21,7 @@ import { isAdminRole, type AdminUser } from '@/types/admin'
 
 export async function getAdminSession(user: User): Promise<AdminUser | null> {
   const result = await user.getIdTokenResult(true)
-  const { role, divisionCode } = readAdminClaims(result.claims as Record<string, unknown>)
+  const { role, divisionCode, permissions } = readAdminClaims(result.claims as Record<string, unknown>)
 
   if (role) {
     return {
@@ -28,6 +29,7 @@ export async function getAdminSession(user: User): Promise<AdminUser | null> {
       email: user.email || '',
       displayName: user.displayName,
       role,
+      permissions,
       divisionCode: divisionCode ? (divisionCode as AdminUser['divisionCode']) : undefined,
       active: true,
     }
@@ -58,6 +60,7 @@ export async function getLegacyAdminProfile(uid: string): Promise<AdminUser | nu
     email: typeof data.email === 'string' ? data.email : '',
     displayName: typeof data.displayName === 'string' ? data.displayName : null,
     role: data.role,
+    permissions: normalizeAdminPermissions(data.role, data.permissions),
     divisionCode: typeof data.divisionCode === 'string' ? data.divisionCode as AdminUser['divisionCode'] : undefined,
     active: true,
     // Penanda bahwa wewenangnya belum benar-benar terpasang di token. Panel

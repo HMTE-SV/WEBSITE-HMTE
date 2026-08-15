@@ -1,5 +1,6 @@
 import type { ArticleCategoryKey, ContentStatus } from '@/types/content'
 import { validateGalleryImageUrl } from './media-validation'
+import { validatePublicDataResources, type PublicDataCategory, type PublicDataResource } from '@/lib/public-data'
 
 type ValidationResult = {
   errors: string[]
@@ -19,6 +20,8 @@ type ArticleInput = {
   content: string
   coverImage?: string
   excerpt: string
+  publisher?: string
+  relatedProgram?: string
   slug: string
   status: ContentStatus
   title: string
@@ -42,12 +45,29 @@ function validateRequiredFields(fields: Array<[value: string | undefined, messag
 }
 
 export function validateAnnouncementInput(input: AnnouncementInput): ValidationResult {
-  return validateRequiredFields([
+  const result = validateRequiredFields([
     [input.title, 'Judul wajib diisi.'],
     [input.excerpt, 'Ringkasan wajib diisi.'],
+    [input.body?.replace(/<[^>]*>/g, '').replaceAll('&nbsp;', ' '), 'Isi pengumuman wajib diisi.'],
     [input.date, 'Tanggal wajib diisi.'],
     [input.status, 'Status wajib dipilih.'],
   ])
+
+  const errors = [...result.errors]
+  if ((input.body?.length ?? 0) > 400_000) errors.push('Isi pengumuman terlalu panjang. Maksimal 400.000 karakter.')
+
+  return { errors, success: errors.length === 0 }
+}
+
+type PublicDataInput = {
+  content: string
+  dataCategory: PublicDataCategory
+  excerpt: string
+  period: string
+  resources: PublicDataResource[]
+  slug: string
+  status: ContentStatus
+  title: string
 }
 
 export function validateArticleInput(input: ArticleInput): ValidationResult {
@@ -67,6 +87,14 @@ export function validateArticleInput(input: ArticleInput): ValidationResult {
 
   if (input.excerpt.trim().length > 320) {
     errors.push('Ringkasan maksimal 320 karakter.')
+  }
+
+  if ((input.publisher?.trim().length ?? 0) > 120) {
+    errors.push('Nama penerbit maksimal 120 karakter.')
+  }
+
+  if ((input.relatedProgram?.trim().length ?? 0) > 180) {
+    errors.push('Nama program terkait maksimal 180 karakter.')
   }
 
   if (input.content.length > 400_000) {
@@ -89,6 +117,28 @@ export function validateArticleInput(input: ArticleInput): ValidationResult {
     errors,
     success: errors.length === 0,
   }
+}
+
+export function validatePublicDataInput(input: PublicDataInput): ValidationResult {
+  const result = validateRequiredFields([
+    [input.title, 'Judul wajib diisi.'],
+    [input.excerpt, 'Ringkasan wajib diisi.'],
+    [input.content.replace(/<[^>]*>/g, '').replaceAll('&nbsp;', ' '), 'Penjelasan data wajib diisi.'],
+    [input.dataCategory, 'Kategori data wajib dipilih.'],
+    [input.status, 'Status wajib dipilih.'],
+  ])
+  const errors = [...result.errors, ...validatePublicDataResources(input.resources)]
+
+  if (input.title.trim().length > 180) errors.push('Judul maksimal 180 karakter.')
+  if (input.excerpt.trim().length > 320) errors.push('Ringkasan maksimal 320 karakter.')
+  if (input.period.trim().length > 80) errors.push('Periode maksimal 80 karakter.')
+  if (input.content.length > 400_000) errors.push('Isi halaman terlalu panjang. Maksimal 400.000 karakter.')
+  if (input.slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug)) {
+    errors.push('Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung.')
+  }
+  if (input.slug.length > 120) errors.push('Slug maksimal 120 karakter.')
+
+  return { errors, success: errors.length === 0 }
 }
 
 export function validateGalleryInput(input: GalleryInput): ValidationResult {

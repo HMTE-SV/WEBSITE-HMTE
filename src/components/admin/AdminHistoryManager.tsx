@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { limit, orderBy } from 'firebase/firestore'
-import { AdminEmptyState } from './AdminEmptyState'
+import { AdminConfirmDialog } from './AdminConfirmDialog'
 import { AdminShell } from './AdminShell'
 import { useAdminSession } from './AdminSessionContext'
 import { requestRevalidation } from '@/lib/admin/revalidate'
@@ -18,6 +18,17 @@ import type {
   ContentRevisionDocument,
 } from '@/types/firestore'
 
+/*
+ * /admin/history: lini masa baca-saja (§7 docs/DESIGN_ADMIN.md).
+ *
+ * Baris memakai .adm-row, bukan kartu — daftar 100 aktivitas terbaru harus
+ * terbaca satu pandang, bukan digulir lewat kartu longgar. Membuka satu entri
+ * tidak memakai laci: laci itu untuk MENYUNTING, dan halaman ini tidak pernah
+ * menyunting apa pun kecuali tombol restore superadmin. Rincian tampil sebagai
+ * panel kedua yang menempel di bawah daftar, supaya tetap bisa dicapai papan
+ * ketik berurutan (Tab dari daftar langsung ke rinciannya).
+ */
+
 const actionLabels: Record<AuditAction, string> = {
   create: 'Dibuat',
   update: 'Diperbarui',
@@ -25,9 +36,17 @@ const actionLabels: Record<AuditAction, string> = {
   restore: 'Dipulihkan',
 }
 
+const actionChipVariant: Record<AuditAction, string> = {
+  create: 'adm-chip--ok',
+  update: '',
+  delete: 'adm-chip--danger',
+  restore: 'adm-chip--warn',
+}
+
 const entityLabels: Record<AuditedContentCollectionName, string> = {
   announcements: 'Pengumuman',
   articles: 'Berita',
+  publicData: 'Data Publik',
   divisions: 'Divisi',
   gallery: 'Galeri',
   leaders: 'Pengurus',
@@ -56,6 +75,7 @@ function formatSnapshot(value: Record<string, unknown> | null) {
 
 async function revalidateRestoredEntity(entityType: AuditedContentCollectionName) {
   if (entityType === 'articles') return requestRevalidation('articles')
+  if (entityType === 'publicData') return requestRevalidation('publicData')
   if (entityType === 'announcements') return requestRevalidation('announcements')
   if (entityType === 'gallery') return requestRevalidation('gallery')
   if (['divisions', 'leaders', 'programs'].includes(entityType)) {
@@ -81,6 +101,7 @@ export function AdminHistoryManager() {
   const [action, setAction] = useState<'all' | AuditAction>('all')
   const [isLoading, setIsLoading] = useState(true)
   const [isRestoring, setIsRestoring] = useState(false)
+  const [isRestoreOpen, setIsRestoreOpen] = useState(false)
   const [error, setError] = useState('')
   const [feedback, setFeedback] = useState('')
 
@@ -123,13 +144,16 @@ export function AdminHistoryManager() {
   const selected = entries.find((entry) => entry.id === selectedId) ?? visibleEntries[0]
   const revision = revisions.find((item) => item.id === selected?.revisionId)
 
-  async function handleRestore() {
+  /*
+   * Konfirmasi memakai AdminConfirmDialog, bukan window.confirm. Dialog bawaan
+   * peramban tidak bisa diberi gaya, tampil berbeda di tiap peramban, dan
+   * menutup diri saat Enter ditekan — padahal Enter itu justru yang ditekan
+   * pengurus yang buru-buru, tanpa sempat membaca apa yang akan dipulihkan.
+   */
+  async function confirmRestore() {
     if (!revision || session.role !== 'superadmin') return
-    const confirmed = window.confirm(
-      `Pulihkan snapshot ${entityLabels[revision.entityType]} “${revision.entityId}”? Perubahan ini akan dicatat sebagai revision baru.`,
-    )
-    if (!confirmed) return
 
+    setIsRestoreOpen(false)
     setIsRestoring(true)
     setError('')
     setFeedback('')
@@ -156,85 +180,115 @@ export function AdminHistoryManager() {
   }
 
   return (
-    <AdminShell
-      activeHref="/admin/history"
-      kicker="Audit trail"
-      title="Riwayat perubahan"
-      description="Jejak create, update, delete, dan restore untuk konten publik. Snapshot privat tidak disimpan di sini."
-    >
-      <div className="admin-history-toolbar">
-        <label>
+    <AdminShell activeHref="/admin/history" title="Riwayat perubahan">
+      <div className="adm-hist-toolbar">
+        <label className="adm-field">
           <span className="sr-only">Cari riwayat</span>
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari entitas, pelaku, atau field" />
         </label>
-        <select value={action} onChange={(event) => setAction(event.target.value as 'all' | AuditAction)} aria-label="Saring aksi">
-          <option value="all">Semua aksi</option>
-          <option value="create">Dibuat</option>
-          <option value="update">Diperbarui</option>
-          <option value="delete">Dihapus</option>
-          <option value="restore">Dipulihkan</option>
-        </select>
-        <button className="admin-secondary-button" type="button" onClick={() => void loadHistory()}>
+        <label className="adm-field">
+          <span className="sr-only">Saring aksi</span>
+          <select value={action} onChange={(event) => setAction(event.target.value as 'all' | AuditAction)}>
+            <option value="all">Semua aksi</option>
+            <option value="create">Dibuat</option>
+            <option value="update">Diperbarui</option>
+            <option value="delete">Dihapus</option>
+            <option value="restore">Dipulihkan</option>
+          </select>
+        </label>
+        <button className="adm-btn adm-btn--ghost" type="button" onClick={() => void loadHistory()}>
           Muat ulang
         </button>
       </div>
 
-      {error ? <p className="admin-form-error" role="alert">{error}</p> : null}
-      {feedback ? <p className="admin-form-success" role="status">{feedback}</p> : null}
+      {error ? <p className="adm-hist-error" role="alert">{error}</p> : null}
+      {feedback ? <p className="adm-hist-feedback" role="status">{feedback}</p> : null}
 
-      {isLoading ? (
-        <AdminEmptyState kicker="Memuat" title="Mengambil jejak perubahan..." body="Membaca 100 aktivitas terbaru." />
-      ) : visibleEntries.length === 0 ? (
-        <AdminEmptyState kicker="Riwayat" title="Belum ada perubahan yang cocok." body="Mutasi berikutnya melalui panel akan tercatat otomatis." />
-      ) : (
-        <div className="admin-history-layout">
-          <div className="admin-history-list" role="list">
-            {visibleEntries.map((entry) => (
-              <button
-                type="button"
-                className={entry.id === selected?.id ? 'is-active' : undefined}
-                onClick={() => setSelectedId(entry.id)}
-                key={entry.id}
-              >
-                <span data-action={entry.action}>{actionLabels[entry.action]}</span>
+      <section className="adm-panel">
+        {isLoading ? (
+          <>
+            <div className="adm-row"><div className="adm-skeleton adm-hist-row-skeleton" aria-hidden="true" /></div>
+            <div className="adm-row"><div className="adm-skeleton adm-hist-row-skeleton" aria-hidden="true" /></div>
+            <div className="adm-row"><div className="adm-skeleton adm-hist-row-skeleton" aria-hidden="true" /></div>
+          </>
+        ) : visibleEntries.length === 0 ? (
+          <div className="adm-empty">
+            <h3>Belum ada perubahan yang cocok</h3>
+            <p>Setiap kali sebuah konten dibuat, diubah, dihapus, atau dipulihkan lewat panel ini, jejaknya akan muncul di sini secara otomatis.</p>
+          </div>
+        ) : (
+          visibleEntries.map((entry) => (
+            <button
+              className="adm-row adm-hist-row"
+              type="button"
+              aria-current={entry.id === selected?.id ? 'true' : undefined}
+              onClick={() => setSelectedId(entry.id)}
+              key={entry.id}
+            >
+              <span className={`adm-chip ${actionChipVariant[entry.action]}`}>{actionLabels[entry.action]}</span>
+              <span className="adm-row-main">
                 <strong>{entityLabels[entry.entityType]} · {entry.entityId}</strong>
                 <small>{formatTimestamp(entry.createdAt)} · {entry.actorEmail || entry.actorUid}</small>
-              </button>
-            ))}
+              </span>
+            </button>
+          ))
+        )}
+      </section>
+
+      {!isLoading && selected ? (
+        <section className="adm-panel">
+          <div className="adm-panel-head">
+            <div>
+              <h2>{entityLabels[selected.entityType]} · {selected.entityId}</h2>
+              <p>{selected.actorEmail || selected.actorUid} · {selected.actorRole} · {formatTimestamp(selected.createdAt)}</p>
+            </div>
+            <span className={`adm-chip ${actionChipVariant[selected.action]}`}>{actionLabels[selected.action]}</span>
           </div>
 
-          {selected ? (
-            <aside className="admin-history-inspector">
-              <header>
+          <div className="adm-hist-detail">
+            <p><strong>Field berubah:</strong> {selected.changedFields.join(', ') || '—'}</p>
+
+            {revision ? (
+              <div className="adm-hist-diff">
                 <div>
-                  <span>{entityLabels[selected.entityType]}</span>
-                  <h2>{selected.entityId}</h2>
+                  <span>Sebelum</span>
+                  <pre>{formatSnapshot(revision.before)}</pre>
                 </div>
-                <b data-action={selected.action}>{actionLabels[selected.action]}</b>
-              </header>
-              <dl>
-                <div><dt>Pelaku</dt><dd>{selected.actorEmail || selected.actorUid}</dd></div>
-                <div><dt>Role</dt><dd>{selected.actorRole}</dd></div>
-                <div><dt>Waktu</dt><dd>{formatTimestamp(selected.createdAt)}</dd></div>
-                <div><dt>Field berubah</dt><dd>{selected.changedFields.join(', ') || '—'}</dd></div>
-              </dl>
-              {revision ? (
-                <div className="admin-history-diff">
-                  <section><span>Sebelum</span><pre>{formatSnapshot(revision.before)}</pre></section>
-                  <section><span>Sesudah</span><pre>{formatSnapshot(revision.after)}</pre></section>
+                <div>
+                  <span>Sesudah</span>
+                  <pre>{formatSnapshot(revision.after)}</pre>
                 </div>
-              ) : <p>Snapshot revision tidak ditemukan.</p>}
-              {session.role === 'superadmin' && revision ? (
-                <button className="admin-primary-button" type="button" disabled={isRestoring} onClick={() => void handleRestore()}>
-                  {isRestoring ? 'Memulihkan...' : 'Pulihkan snapshot ini'}
-                </button>
-              ) : (
-                <p className="admin-field-hint">Restore dikunci untuk superadmin. Riwayat tetap dapat dibaca semua admin aktif.</p>
-              )}
-            </aside>
-          ) : null}
-        </div>
-      )}
+              </div>
+            ) : (
+              <p>Snapshot revision tidak ditemukan.</p>
+            )}
+
+            {session.role === 'superadmin' && revision ? (
+              <button
+                className={`adm-btn${isRestoring ? ' is-loading' : ''}`}
+                type="button"
+                disabled={isRestoring}
+                onClick={() => setIsRestoreOpen(true)}
+              >
+                Pulihkan snapshot ini
+              </button>
+            ) : (
+              <p className="adm-hist-hint">Restore dikunci untuk superadmin. Riwayat tetap dapat dibaca semua admin aktif.</p>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {isRestoreOpen && revision ? (
+        <AdminConfirmDialog
+          body="Isi lama akan menggantikan yang sekarang, dan penggantian itu sendiri dicatat sebagai perubahan baru — jadi langkah ini masih bisa ditelusuri."
+          confirmLabel="Pulihkan"
+          isBusy={isRestoring}
+          onCancel={() => setIsRestoreOpen(false)}
+          onConfirm={() => void confirmRestore()}
+          title={`Pulihkan ${entityLabels[revision.entityType]} "${revision.entityId}"?`}
+        />
+      ) : null}
     </AdminShell>
   )
 }

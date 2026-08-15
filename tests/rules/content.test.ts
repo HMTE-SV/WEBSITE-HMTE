@@ -136,6 +136,48 @@ describe('articles — siapa boleh menulis', () => {
   })
 })
 
+describe('publicData — data publik dan draf tetap terpisah', () => {
+  const publicData = withTimestamps({
+    title: 'Data Mahasiswa TRE 25',
+    slug: 'data-mahasiswa-tre-25',
+    excerpt: 'Direktori mahasiswa.',
+    content: '<p>Penjelasan data.</p>',
+    category: 'kemahasiswaan',
+    period: 'TRE 25',
+    resources: [],
+    status: 'published',
+  })
+
+  it('mengizinkan publik membaca yang terbit dan menutup draf', async () => {
+    await seedDocument(testEnv, ['publicData', 'terbit'], publicData)
+    await seedDocument(testEnv, ['publicData', 'draf'], { ...publicData, status: 'draft' })
+    const anon = testEnv.unauthenticatedContext()
+    await assertSucceeds(getDoc(doc(db(anon), 'publicData', 'terbit')))
+    await assertFails(getDoc(doc(db(anon), 'publicData', 'draf')))
+  })
+
+  it('mengizinkan editor menulis dan menolak viewer', async () => {
+    const editor = signedInAs(testEnv, 'redaksi')
+    await assertSucceeds(setDoc(doc(db(editor), 'publicData', 'baru'), publicData))
+    const viewer = signedInAs(testEnv, 'pengamat')
+    await assertFails(setDoc(doc(db(viewer), 'publicData', 'sisipan'), publicData))
+  })
+
+  it('menolak operator tanpa izin Data Publik dan menerima yang ditugaskan', async () => {
+    await seedAdmin(testEnv, 'operator-terbatas', 'editor', {
+      divisionCode: 'PH',
+      permissions: ['media', 'programs'],
+    })
+    await seedAdmin(testEnv, 'operator-data', 'editor', {
+      divisionCode: 'PH',
+      permissions: ['publicData'],
+    })
+
+    await assertFails(setDoc(doc(db(signedInAs(testEnv, 'operator-terbatas')), 'publicData', 'ditolak'), publicData))
+    await assertSucceeds(setDoc(doc(db(signedInAs(testEnv, 'operator-data')), 'publicData', 'diizinkan'), publicData))
+  })
+})
+
 describe('data organisasi — hanya yang aktif yang publik', () => {
   const collections = ['leaders', 'divisions', 'programs', 'partners'] as const
 

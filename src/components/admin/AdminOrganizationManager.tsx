@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { divisions } from '@/data/divisions'
-import { AdminEmptyState } from './AdminEmptyState'
+import { AdminConfirmDialog } from './AdminConfirmDialog'
+import { AdminDrawer } from './AdminDrawer'
 import { AdminImageField } from './AdminImageField'
 import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
@@ -54,7 +55,7 @@ import type { LeaderContactDocument, LeaderDocument, SiteSettingsDocument } from
 const programStatuses: ProgramStatus[] = ['Terjadwal', 'Berkala']
 
 /**
- * Judul halaman per jenis data.
+ * Judul halaman dan aksi utama per jenis data.
  *
  * Ketiganya dulu bertumpuk di balik satu menu "Kepengurusan" dengan tab di
  * dalamnya, jadi program kerja dan divisi praktis tidak pernah ditemukan
@@ -62,25 +63,10 @@ const programStatuses: ProgramStatus[] = ['Terjadwal', 'Berkala']
  * ini menerima `kind` sebagai prop, bukan menyimpannya sebagai state.
  */
 const organizationPageCopy = {
-  leaders: {
-    href: '/admin/leaders',
-    kicker: 'Organisasi',
-    title: 'Kelola pengurus',
-    description: 'Tambah, ubah, dan urutkan anggota kepengurusan beserta status tampil di publik.',
-  },
-  divisions: {
-    href: '/admin/divisions',
-    kicker: 'Organisasi',
-    title: 'Kelola divisi',
-    description: 'Atur unsur organisasi, kode divisi, dan deskripsi yang tampil di halaman divisi.',
-  },
-  programs: {
-    href: '/admin/programs',
-    kicker: 'Organisasi',
-    title: 'Kelola program kerja',
-    description: 'Atur program, bulan rencana, dan tanggal pasti yang menggambar papan agenda.',
-  },
-} as const satisfies Record<OrganizationKind, { href: string; kicker: string; title: string; description: string }>
+  leaders: { href: '/admin/leaders', title: 'Kepengurusan', addLabel: 'Tambah pengurus' },
+  divisions: { href: '/admin/divisions', title: 'Divisi', addLabel: 'Tambah divisi' },
+  programs: { href: '/admin/programs', title: 'Program kerja', addLabel: 'Tambah program' },
+} as const satisfies Record<OrganizationKind, { href: string; title: string; addLabel: string }>
 
 function getDocumentTitle(kind: OrganizationKind, document: ManagedOrganizationDocument) {
   if (kind === 'divisions' && 'shortName' in document) {
@@ -121,6 +107,8 @@ function getDocumentDetail(kind: OrganizationKind, document: ManagedOrganization
   return document.id
 }
 
+type Toast = { id: number; kind: 'ok' | 'danger'; message: string }
+
 type AdminOrganizationManagerProps = {
   kind: OrganizationKind
 }
@@ -159,14 +147,24 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
    */
   const [leaderRoster, setLeaderRoster] = useState<LeaderDocument[]>([])
   const [editingId, setEditingId] = useState('')
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState<ManagedOrganizationDocument | null>(null)
+  const [toast, setToast] = useState<Toast | null>(null)
+  const [search, setSearch] = useState('')
+  const [divisionFilter, setDivisionFilter] = useState<DivisionCode | ''>('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+
   const [values, setValues] = useState<OrganizationFormValues>(() => {
     const base = getEmptyOrganizationFormValues(kind)
     const division = session.role === 'superadmin' ? null : session.divisionCode
     return division ? { ...base, divisionCode: division } : base
   })
+  // Potret nilai form saat laci dibuka, dipakai untuk mendeteksi perubahan
+  // belum tersimpan sebelum laci ditutup paksa. State, bukan ref: dibaca saat
+  // render untuk menghitung `isDirty`, dan ref tidak boleh dibaca di situ.
+  const [initialValues, setInitialValues] = useState<OrganizationFormValues | null>(null)
   const [error, setError] = useState('')
   const [warnings, setWarnings] = useState<string[]>([])
-  const [feedback, setFeedback] = useState('')
   const [isLoading, setIsLoading] = useState(hasFirebaseConfig())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [busyId, setBusyId] = useState('')
@@ -203,6 +201,17 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
   }, [kind])
 
   const config = organizationCrudConfigs[kind]
+
+  // Roti panggang hilang sendiri 4 detik, sesuai kosakata .adm-toast.
+  useEffect(() => {
+    if (!toast) return
+    const timeout = window.setTimeout(() => setToast(null), 4000)
+    return () => window.clearTimeout(timeout)
+  }, [toast])
+
+  function notify(kind: Toast['kind'], message: string) {
+    setToast((current) => ({ id: (current?.id ?? 0) + 1, kind, message }))
+  }
 
   /*
    * Langganan, bukan sekali ambil.
@@ -287,19 +296,35 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
     }))
   }
 
-  function startEdit(document: ManagedOrganizationDocument) {
-    setEditingId(document.id)
-    setValues(organizationDocumentToFormValues(kind, document, contacts[document.id]?.email || ''))
+  function openCreate() {
+    const next = emptyValues()
+    setEditingId('')
+    setValues(next)
     setError('')
     setWarnings([])
-    setFeedback('')
+    setInitialValues(next)
+    setIsDrawerOpen(true)
   }
 
-  function resetForm() {
+  function openEdit(document: ManagedOrganizationDocument) {
+    const next = organizationDocumentToFormValues(kind, document, contacts[document.id]?.email || '')
+    setEditingId(document.id)
+    setValues(next)
+    setError('')
+    setWarnings([])
+    setInitialValues(next)
+    setIsDrawerOpen(true)
+  }
+
+  function closeDrawer() {
+    setIsDrawerOpen(false)
     setEditingId('')
     setValues(emptyValues())
     setWarnings([])
+    setInitialValues(null)
   }
+
+  const isDirty = initialValues ? JSON.stringify(values) !== JSON.stringify(initialValues) : false
 
   /*
    * Kontak pengurus tinggal di dokumen terpisah supaya emailnya tidak ikut
@@ -327,7 +352,6 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
-    setFeedback('')
 
     if (!hasFirebaseConfig()) {
       setError('Firebase belum dikonfigurasi.')
@@ -346,19 +370,19 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
 
     try {
       const payload = buildOrganizationPayload(kind, values)
+      const wasEditing = Boolean(editingId)
 
       if (editingId) {
         await updateContentDocument(config.collectionName, editingId, payload)
         await saveLeaderContact(editingId)
-        setFeedback(`${config.label} berhasil diperbarui.`)
       } else {
         const createdId = await createContentDocument(config.collectionName, payload)
         await saveLeaderContact(createdId)
-        setFeedback(`${config.label} berhasil ditambahkan.`)
       }
 
       await requestRevalidation('organization')
-      resetForm()
+      notify('ok', `${config.label} berhasil ${wasEditing ? 'diperbarui' : 'ditambahkan'}.`)
+      closeDrawer()
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Gagal menyimpan data organisasi.')
     } finally {
@@ -368,32 +392,27 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
 
   async function handleToggleActive(document: ManagedOrganizationDocument) {
     setBusyId(document.id)
-    setError('')
-    setFeedback('')
 
     try {
       await updateContentDocument(config.collectionName, document.id, {
         active: !document.active,
       })
-      setFeedback('Status aktif berhasil diperbarui.')
+      notify('ok', 'Status aktif berhasil diperbarui.')
       await requestRevalidation('organization')
     } catch (activeError) {
-      setError(activeError instanceof Error ? activeError.message : 'Gagal memperbarui status.')
+      notify('danger', activeError instanceof Error ? activeError.message : 'Gagal memperbarui status.')
     } finally {
       setBusyId('')
     }
   }
 
-  async function handleDelete(document: ManagedOrganizationDocument) {
-    const confirmed = window.confirm(`Hapus "${getDocumentTitle(kind, document)}"?`)
-
-    if (!confirmed) {
-      return
-    }
-
+  // Tindakan merusak: konfirmasi dulu lewat modal tengah, bukan window.confirm
+  // bawaan peramban yang tidak mengikuti sistem desain panel ini.
+  async function confirmDelete() {
+    const document = confirmTarget
+    if (!document) return
+    setConfirmTarget(null)
     setBusyId(document.id)
-    setError('')
-    setFeedback('')
 
     try {
       await deleteContentDocument(config.collectionName, document.id)
@@ -405,14 +424,24 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
         await deleteContentDocument('leaderContacts', document.id)
       }
 
-      setFeedback(`${config.label} berhasil dihapus.`)
+      notify('ok', `${config.label} berhasil dihapus.`)
+      if (editingId === document.id) closeDrawer()
       await requestRevalidation('organization')
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus data organisasi.')
+      notify('danger', deleteError instanceof Error ? deleteError.message : 'Gagal menghapus data organisasi.')
     } finally {
       setBusyId('')
     }
   }
+
+  useEffect(() => {
+    if (!confirmTarget) return
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setConfirmTarget(null)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [confirmTarget])
 
   // Pratinjau dihitung ulang tiap ketikan supaya pengurus melihat akibat
   // isiannya sebelum menyimpan. Ini yang mengubah pengisian tanggal dari
@@ -463,34 +492,243 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
   // dan editor tanpa bidang tidak boleh menulis apa pun di halaman ini.
   const canWriteHere = canWrite && !hasNoDivision && !(kind === 'divisions' && !isSuperadmin)
 
+  // Pencarian nama + saring bidang/status. Ini yang membuat 71 baris pengurus
+  // dan 37 baris program tetap satu pandang alih-alih menggulir buta.
+  const filteredItems = useMemo(() => {
+    const needle = search.trim().toLocaleLowerCase('id-ID')
+
+    return visibleItems.filter((item) => {
+      if (needle && !getDocumentTitle(kind, item).toLocaleLowerCase('id-ID').includes(needle)) {
+        return false
+      }
+      if (divisionFilter && 'divisionCode' in item && item.divisionCode !== divisionFilter) {
+        return false
+      }
+      if (statusFilter === 'active' && !item.active) return false
+      if (statusFilter === 'inactive' && item.active) return false
+      return true
+    })
+  }, [visibleItems, search, divisionFilter, statusFilter, kind])
+
+  const editingDocument = editingId
+    ? items.find((item) => item.id === editingId) ?? null
+    : null
+
+  const showDivisionFilter = kind !== 'divisions' && isSuperadmin
+
   return (
     <AdminShell
       activeHref={copy.href}
-      description={copy.description}
-      kicker={copy.kicker}
       title={copy.title}
+      actions={
+        canWriteHere ? (
+          <button className="adm-btn" type="button" onClick={openCreate}>
+            + {copy.addLabel}
+          </button>
+        ) : null
+      }
     >
       {!hasFirebaseConfig() ? (
-        <AdminEmptyState
-          body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat mengelola data organisasi dari Firestore."
-          kicker="Konfigurasi"
-          title="Firebase belum siap."
-        />
+        <div className="adm-empty">
+          <h3>Firebase belum siap.</h3>
+          <p>Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat mengelola data organisasi dari Firestore.</p>
+        </div>
       ) : (
-        <>
-          {canWriteHere ? (
-            <form className="admin-content-form" onSubmit={handleSubmit}>
-            <div className="admin-form-grid">
-              <div className="admin-field">
-                <label htmlFor="org-name">{kind === 'divisions' ? 'Nama divisi' : 'Nama'}</label>
-                <input id="org-name" value={values.name} onChange={(event) => updateField('name', event.target.value)} />
+        <div className="adm-panel">
+          <div className="adm-panel-head">
+            <h2>{config.label}</h2>
+            <p>{isLoading ? 'Memuat…' : `${filteredItems.length} dari ${visibleItems.length} data`}</p>
+          </div>
+
+          <div className="adm-org-toolbar">
+            <div className="adm-org-search">
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={kind === 'divisions' ? 'Cari divisi…' : 'Cari nama…'}
+                aria-label="Cari nama"
+              />
+            </div>
+            {showDivisionFilter ? (
+              <select
+                value={divisionFilter}
+                onChange={(event) => setDivisionFilter(event.target.value as DivisionCode | '')}
+                aria-label="Saring bidang"
+              >
+                <option value="">Semua bidang</option>
+                {divisions.map((division) => (
+                  <option value={division.code} key={division.code}>
+                    {division.shortName}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}
+              aria-label="Saring status"
+            >
+              <option value="all">Semua status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Nonaktif</option>
+            </select>
+          </div>
+
+          {!canWriteHere ? (
+            <p className="adm-org-access-note">
+              {hasNoDivision
+                ? 'Akun ini belum ditugaskan ke bidang mana pun, jadi belum ada data yang boleh diubah. Minta superadmin menetapkannya lewat menu Akun Admin.'
+                : kind === 'divisions'
+                  ? 'Daftar unsur organisasi hanya bisa diubah superadmin, karena kode divisi di sini menentukan batas wewenang semua editor.'
+                  : 'Role viewer dapat membaca data organisasi, tetapi tidak dapat menambah, mengubah, atau menghapusnya.'}
+            </p>
+          ) : null}
+
+          {isLoading ? (
+            <div aria-hidden="true">
+              {[52, 52, 52].map((height, index) => (
+                <div className="adm-org-skeleton-row" key={index}>
+                  <span className="adm-skeleton" style={{ width: '40%', height: 14 }} />
+                  <span className="adm-skeleton" style={{ width: '20%', height: 14 }} />
+                </div>
+              ))}
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="adm-empty">
+              <h3>{visibleItems.length === 0 ? `${config.label} belum ada.` : 'Tidak ada yang cocok.'}</h3>
+              <p>
+                {visibleItems.length === 0
+                  ? `Tambahkan ${config.label.toLowerCase()} pertama untuk mulai mengelola data organisasi.`
+                  : 'Ubah kata kunci pencarian atau saringan bidang/status di atas.'}
+              </p>
+              {canWriteHere && visibleItems.length === 0 ? (
+                <button className="adm-btn" type="button" onClick={openCreate}>
+                  + {copy.addLabel}
+                </button>
+              ) : null}
+            </div>
+          ) : (
+            filteredItems.map((item) => (
+              <div className="adm-row" key={item.id}>
+                <div className="adm-row-main">
+                  <strong>{getDocumentTitle(kind, item)}</strong>
+                  <small>{getDocumentDetail(kind, item)}</small>
+                </div>
+                <span className={`adm-chip ${item.active ? 'adm-chip--ok' : ''}`}>
+                  {item.active ? 'Aktif' : 'Nonaktif'}
+                </span>
+                <div className="adm-row-actions">
+                  {canWriteHere ? (
+                    <>
+                      <button className="adm-btn adm-btn--ghost" type="button" onClick={() => openEdit(item)}>
+                        Sunting
+                      </button>
+                      <button
+                        className="adm-btn adm-btn--ghost"
+                        type="button"
+                        disabled={busyId === item.id}
+                        onClick={() => void handleToggleActive(item)}
+                      >
+                        {item.active ? 'Nonaktifkan' : 'Aktifkan'}
+                      </button>
+                      {kind !== 'leaders' ? (
+                        <button
+                          className="adm-btn adm-btn--danger"
+                          type="button"
+                          disabled={busyId === item.id}
+                          onClick={() => setConfirmTarget(item)}
+                        >
+                          Hapus
+                        </button>
+                      ) : null}
+                    </>
+                  ) : (
+                    <button className="adm-btn adm-btn--ghost" type="button" onClick={() => openEdit(item)}>
+                      Lihat
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="admin-field">
+            ))
+          )}
+        </div>
+      )}
+
+      {isDrawerOpen ? (
+        <AdminDrawer
+          title={editingId ? `Sunting ${config.label.toLowerCase()}` : `Tambah ${config.label.toLowerCase()}`}
+          description={kind === 'leaders'
+            ? 'Kelola identitas, penempatan, dan profil anggota dalam satu ruang kerja.'
+            : kind === 'programs'
+              ? 'Susun informasi utama, jadwal, dan isi halaman program secara bertahap.'
+              : 'Perbarui data organisasi dengan susunan yang jelas dan terjaga.'}
+          isDirty={canWriteHere && isDirty}
+          onClose={closeDrawer}
+          size="wide"
+          footer={
+            canWriteHere ? (
+              <>
+                <button className="adm-btn adm-btn--ghost" type="button" onClick={closeDrawer}>
+                  Batal
+                </button>
+                <button
+                  className={`adm-btn${isSubmitting ? ' is-loading' : ''}`}
+                  type="submit"
+                  form="adm-org-form"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Menyimpan…' : editingId ? 'Simpan perubahan' : 'Tambah data'}
+                </button>
+              </>
+            ) : (
+              <button className="adm-btn adm-btn--ghost" type="button" onClick={closeDrawer}>
+                Tutup
+              </button>
+            )
+          }
+        >
+          <form className={`adm-org-form adm-org-form--${kind}`} id="adm-org-form" onSubmit={handleSubmit}>
+            {kind === 'leaders' ? (
+              <div className="adm-org-editor-intro">
+                <span>{values.photo ? 'Foto sudah dipilih' : 'Belum ada foto'}</span>
+                <div>
+                  <strong>{values.name || 'Anggota baru'}</strong>
+                  <p>{values.role || 'Jabatan belum diisi'} · {values.divisionCode}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {kind === 'programs' ? (
+              <div className="adm-org-editor-intro adm-org-editor-intro--program">
+                <span>{values.programStatus}</span>
+                <div>
+                  <strong>{values.name || 'Program baru'}</strong>
+                  <p>{values.divisionCode} · {schedulePreview.label}</p>
+                </div>
+              </div>
+            ) : null}
+
+            <section className={kind === 'leaders' || kind === 'programs' ? 'adm-org-editor-section' : undefined}>
+              {kind === 'leaders' ? <header><span>01</span><div><h3>Identitas dan penempatan</h3><p>Data utama yang tampil di direktori kepengurusan.</p></div></header> : null}
+              {kind === 'programs' ? <header><span>01</span><div><h3>Identitas program</h3><p>Nama, bidang pemilik, status, dan ringkasan untuk kartu publik.</p></div></header> : null}
+            <div className="adm-org-grid-2">
+              <div className="adm-field">
+                <label htmlFor="org-name">{kind === 'divisions' ? 'Nama divisi' : 'Nama'}</label>
+                <input
+                  id="org-name"
+                  value={values.name}
+                  disabled={!canWriteHere}
+                  onChange={(event) => updateField('name', event.target.value)}
+                />
+              </div>
+              <div className="adm-field">
                 <label htmlFor="org-order">Urutan</label>
                 <input
                   id="org-order"
                   type="number"
                   value={values.order}
+                  disabled={!canWriteHere}
                   onChange={(event) => updateField('order', event.target.value)}
                 />
               </div>
@@ -498,16 +736,21 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
 
             {kind === 'leaders' ? (
               <>
-                <div className="admin-form-grid">
-                  <div className="admin-field">
+                <div className="adm-org-grid-2">
+                  <div className="adm-field">
                     <label htmlFor="org-role">Jabatan</label>
-                    <input id="org-role" value={values.role} onChange={(event) => updateField('role', event.target.value)} />
+                    <input
+                      id="org-role"
+                      value={values.role}
+                      disabled={!canWriteHere}
+                      onChange={(event) => updateField('role', event.target.value)}
+                    />
                   </div>
-                  <div className="admin-field">
+                  <div className="adm-field">
                     <label htmlFor="org-division">Divisi</label>
                     <select
                       id="org-division"
-                      disabled={isDivisionScoped}
+                      disabled={!canWriteHere || isDivisionScoped}
                       value={values.divisionCode}
                       onChange={(event) => updateField('divisionCode', event.target.value as DivisionCode)}
                     >
@@ -526,103 +769,17 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                   onChange={(url) => updateField('photo', url)}
                   value={values.photo}
                 />
-                <div className="admin-form-grid">
-                  <div className="admin-field">
-                    <label htmlFor="org-email">Email (internal)</label>
-                    <input
-                      id="org-email"
-                      type="email"
-                      value={values.email}
-                      onChange={(event) => updateField('email', event.target.value)}
-                      aria-describedby="org-email-hint"
-                    />
-                    <p className="admin-field-hint" id="org-email-hint">
-                      Disimpan terpisah dan tidak pernah tampil di halaman publik.
-                    </p>
-                  </div>
-                  <div className="admin-field">
-                    <label htmlFor="org-batch">Angkatan</label>
-                    <input
-                      id="org-batch"
-                      inputMode="numeric"
-                      placeholder="2023"
-                      value={values.batch}
-                      onChange={(event) => updateField('batch', event.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="admin-form-grid">
-                  <div className="admin-field">
-                    <label htmlFor="org-instagram">Instagram</label>
-                    <input
-                      id="org-instagram"
-                      value={values.instagram}
-                      onChange={(event) => updateField('instagram', event.target.value)}
-                    />
-                  </div>
-                  <div className="admin-field">
-                    {/*
-                      Isian ini dulu tidak ada padahal payload tetap menulis
-                      values.linkedin. Akibatnya menyimpan pengurus lewat panel
-                      diam-diam mengosongkan tautan LinkedIn-nya.
-                    */}
-                    <label htmlFor="org-linkedin">LinkedIn</label>
-                    <input
-                      id="org-linkedin"
-                      value={values.linkedin}
-                      onChange={(event) => updateField('linkedin', event.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="admin-field">
-                  <label htmlFor="org-bio">Bio</label>
-                  <textarea id="org-bio" value={values.bio} onChange={(event) => updateField('bio', event.target.value)} rows={4} />
-                </div>
-              </>
-            ) : null}
-
-            {kind === 'divisions' ? (
-              <>
-                <div className="admin-form-grid">
-                  <div className="admin-field">
-                    <label htmlFor="org-code">Kode</label>
-                    <select id="org-code" value={values.code} onChange={(event) => updateField('code', event.target.value as DivisionCode)}>
-                      {divisions.map((division) => (
-                        <option value={division.code} key={division.code}>
-                          {division.code}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="admin-field">
-                    <label htmlFor="org-short-name">Nama pendek</label>
-                    <input
-                      id="org-short-name"
-                      value={values.shortName}
-                      onChange={(event) => updateField('shortName', event.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="admin-field">
-                  <label htmlFor="org-description">Deskripsi</label>
-                  <textarea
-                    id="org-description"
-                    value={values.description}
-                    onChange={(event) => updateField('description', event.target.value)}
-                    rows={5}
-                  />
-                </div>
               </>
             ) : null}
 
             {kind === 'programs' ? (
               <>
-                <div className="admin-form-grid">
-                  <div className="admin-field">
+                <div className="adm-org-grid-2">
+                  <div className="adm-field">
                     <label htmlFor="org-program-division">Divisi</label>
                     <select
                       id="org-program-division"
-                      disabled={isDivisionScoped}
+                      disabled={!canWriteHere || isDivisionScoped}
                       value={values.divisionCode}
                       onChange={(event) => updateField('divisionCode', event.target.value as DivisionCode)}
                     >
@@ -633,11 +790,12 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                       ))}
                     </select>
                   </div>
-                  <div className="admin-field">
+                  <div className="adm-field">
                     <label htmlFor="org-program-status">Status program</label>
                     <select
                       id="org-program-status"
                       value={values.programStatus}
+                      disabled={!canWriteHere}
                       onChange={(event) => updateField('programStatus', event.target.value as ProgramStatus)}
                     >
                       {programStatuses.map((status) => (
@@ -648,18 +806,133 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                     </select>
                   </div>
                 </div>
-                <div className="admin-field">
+                <div className="adm-field">
                   <label htmlFor="org-desc">Deskripsi singkat</label>
-                  <input id="org-desc" value={values.desc} onChange={(event) => updateField('desc', event.target.value)} />
+                  <textarea
+                    id="org-desc"
+                    value={values.desc}
+                    disabled={!canWriteHere}
+                    onChange={(event) => updateField('desc', event.target.value)}
+                    rows={3}
+                  />
+                  <small>Dipakai pada kartu program. Usahakan ringkas dan langsung menjelaskan kegiatannya.</small>
                 </div>
+              </>
+            ) : null}
+            </section>
 
-                <fieldset className="admin-month-picker">
-                  <legend>Bulan rencana</legend>
-                  <p className="admin-field-hint" id="org-months-hint">
+            {kind === 'leaders' ? (
+              <section className="adm-org-editor-section">
+                <header><span>02</span><div><h3>Kontak dan profil</h3><p>Email tetap internal; akun sosial dan bio dapat tampil ke publik.</p></div></header>
+                <div className="adm-org-grid-2">
+                  <div className="adm-field">
+                    <label htmlFor="org-email">Email (internal)</label>
+                    <input
+                      id="org-email"
+                      type="email"
+                      value={values.email}
+                      disabled={!canWriteHere}
+                      onChange={(event) => updateField('email', event.target.value)}
+                    />
+                    <small>Disimpan terpisah dan tidak pernah tampil di halaman publik.</small>
+                  </div>
+                  <div className="adm-field">
+                    <label htmlFor="org-batch">Angkatan</label>
+                    <input
+                      id="org-batch"
+                      inputMode="numeric"
+                      placeholder="2023"
+                      value={values.batch}
+                      disabled={!canWriteHere}
+                      onChange={(event) => updateField('batch', event.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="adm-org-grid-2">
+                  <div className="adm-field">
+                    <label htmlFor="org-instagram">Instagram</label>
+                    <input
+                      id="org-instagram"
+                      value={values.instagram}
+                      disabled={!canWriteHere}
+                      onChange={(event) => updateField('instagram', event.target.value)}
+                    />
+                  </div>
+                  <div className="adm-field">
+                    <label htmlFor="org-linkedin">LinkedIn</label>
+                    <input
+                      id="org-linkedin"
+                      value={values.linkedin}
+                      disabled={!canWriteHere}
+                      onChange={(event) => updateField('linkedin', event.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="adm-field">
+                  <label htmlFor="org-bio">Bio</label>
+                  <textarea
+                    id="org-bio"
+                    value={values.bio}
+                    disabled={!canWriteHere}
+                    onChange={(event) => updateField('bio', event.target.value)}
+                    rows={4}
+                  />
+                </div>
+              </section>
+            ) : null}
+
+            {kind === 'divisions' ? (
+              <>
+                <div className="adm-org-grid-2">
+                  <div className="adm-field">
+                    <label htmlFor="org-code">Kode</label>
+                    <select
+                      id="org-code"
+                      value={values.code}
+                      disabled={!canWriteHere}
+                      onChange={(event) => updateField('code', event.target.value as DivisionCode)}
+                    >
+                      {divisions.map((division) => (
+                        <option value={division.code} key={division.code}>
+                          {division.code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="adm-field">
+                    <label htmlFor="org-short-name">Nama pendek</label>
+                    <input
+                      id="org-short-name"
+                      value={values.shortName}
+                      disabled={!canWriteHere}
+                      onChange={(event) => updateField('shortName', event.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="adm-field">
+                  <label htmlFor="org-description">Deskripsi</label>
+                  <textarea
+                    id="org-description"
+                    value={values.description}
+                    disabled={!canWriteHere}
+                    onChange={(event) => updateField('description', event.target.value)}
+                    rows={5}
+                  />
+                </div>
+              </>
+            ) : null}
+
+            {kind === 'programs' ? (
+              <>
+                <section className="adm-org-editor-section">
+                  <header><span>02</span><div><h3>Jadwal dan agenda</h3><p>Tentukan bulan rencana atau tanggal pasti yang akan tampil di Agenda.</p></div></header>
+                <fieldset className="adm-org-fieldset adm-org-fieldset--nested">
+                  <legend>Peta bulan</legend>
+                  <p className="adm-org-hint" id="org-months-hint">
                     Bulan perkiraan dari Buku Panduan. Ini yang menggambar arsir program di peta
                     dua belas bulan halaman Agenda. Boleh dikosongkan kalau tanggalnya sudah pasti.
                   </p>
-                  <div className="admin-month-grid" aria-describedby="org-months-hint">
+                  <div className="adm-org-months" aria-describedby="org-months-hint">
                     {MONTH_NAMES_SHORT.map((label, index) => {
                       const month = index + 1
                       const isSelected = values.months.includes(month)
@@ -667,7 +940,8 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                       return (
                         <button
                           type="button"
-                          className="admin-month-box"
+                          className="adm-org-month-box"
+                          disabled={!canWriteHere}
                           aria-pressed={isSelected}
                           onClick={() => updateField('months', toggleProgramMonth(values.months, month))}
                           key={label}
@@ -679,37 +953,37 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                   </div>
                 </fieldset>
 
-                <div className="admin-form-grid">
-                  <div className="admin-field">
+                <div className="adm-org-grid-2">
+                  <div className="adm-field">
                     <label htmlFor="org-start-date">Tanggal mulai</label>
                     <input
                       id="org-start-date"
                       type="date"
                       value={values.startDate}
+                      disabled={!canWriteHere}
                       onChange={(event) => updateField('startDate', event.target.value)}
                       aria-describedby="org-date-hint"
                     />
                   </div>
-                  <div className="admin-field">
+                  <div className="adm-field">
                     <label htmlFor="org-end-date">Tanggal selesai</label>
                     <input
                       id="org-end-date"
                       type="date"
                       value={values.endDate}
+                      disabled={!canWriteHere}
                       onChange={(event) => updateField('endDate', event.target.value)}
                       aria-describedby="org-date-hint"
                     />
                   </div>
                 </div>
-                <p className="admin-field-hint" id="org-date-hint">
+                <p className="adm-org-hint" id="org-date-hint">
                   Kosongkan kalau tanggal belum fix. Kegiatan sehari cukup isi tanggal mulai.
                   Tanggal pasti selalu menang atas bulan rencana di atas.
                 </p>
 
-                <div className="admin-schedule-preview" aria-live="polite">
-                  <span className="admin-schedule-preview-kicker">
-                    Tampil di Agenda {agendaYear}
-                  </span>
+                <div className="adm-org-schedule-preview" aria-live="polite">
+                  <span>Tampil di Agenda {agendaYear}</span>
                   <strong>{schedulePreview.label}</strong>
                   <p>
                     {schedulePreview.precision === 'exact'
@@ -720,20 +994,22 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                   </p>
                 </div>
 
-                <div className="admin-field">
+                <div className="adm-field">
                   <label htmlFor="org-date">Label tanggal manual</label>
                   <input
                     id="org-date"
                     value={values.date}
+                    disabled={!canWriteHere}
                     onChange={(event) => updateField('date', event.target.value)}
                     placeholder={schedulePreview.label}
                     aria-describedby="org-date-label-hint"
                   />
-                  <p className="admin-field-hint" id="org-date-label-hint">
+                  <small id="org-date-label-hint">
                     Biarkan kosong dan labelnya diambil dari jadwal di atas. Isi hanya kalau butuh
                     kalimat khusus, misalnya &quot;Menyesuaikan kalender akademik&quot;.
-                  </p>
+                  </small>
                 </div>
+                </section>
 
                 {/*
                   Mulai di sini seluruh isi halaman rincian program. Sebelumnya
@@ -742,70 +1018,74 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                   ketiganya ditulis sebagai konstanta di dalam repo. Program
                   keempat mustahil punya halaman yang berisi tanpa mengubah kode.
                 */}
-                <fieldset className="admin-detail-group">
-                  <legend>Isi halaman rincian</legend>
-                  <p className="admin-field-hint">
+                <section className="adm-org-editor-section adm-org-editor-section--wide">
+                  <header><span>03</span><div><h3>Isi halaman rincian</h3><p>Lengkapi konteks, tahapan, berkas, dan penanggung jawab yang dibutuhkan publik.</p></div></header>
+                  <p className="adm-org-hint">
                     Semuanya boleh dikosongkan. Bagian yang kosong tidak digambar di halaman
                     program, bukan tampil sebagai kotak kosong.
                   </p>
 
-                  <div className="admin-field">
+                  <div className="adm-field">
                     <label htmlFor="org-summary">Ringkasan panjang</label>
                     <textarea
                       id="org-summary"
                       value={values.summary}
+                      disabled={!canWriteHere}
                       onChange={(event) => updateField('summary', event.target.value)}
                       rows={4}
                       aria-describedby="org-summary-hint"
                     />
-                    <p className="admin-field-hint" id="org-summary-hint">
+                    <small id="org-summary-hint">
                       Satu sampai tiga paragraf pendek. Deskripsi singkat di atas tetap dipakai
                       untuk kartu di katalog, jadi tidak perlu diulang persis.
-                    </p>
+                    </small>
                   </div>
 
-                  <div className="admin-field">
+                  <div className="adm-field">
                     <label htmlFor="org-objectives">Poin fokus</label>
                     <textarea
                       id="org-objectives"
                       value={values.objectives}
+                      disabled={!canWriteHere}
                       onChange={(event) => updateField('objectives', event.target.value)}
                       rows={4}
                       placeholder={'Kesiapan pengurus menjalankan tanggung jawab organisasi\nPengembangan hard skill dan soft skill'}
                       aria-describedby="org-objectives-hint"
                     />
-                    <p className="admin-field-hint" id="org-objectives-hint">
+                    <small id="org-objectives-hint">
                       Satu poin per baris, tanpa tanda hubung di depan. Baris kosong diabaikan.
-                    </p>
+                    </small>
                   </div>
 
-                  <div className="admin-repeat">
-                    <div className="admin-repeat-head">
+                  <div className="adm-org-repeat">
+                    <div className="adm-org-repeat-head">
                       <span>Tahapan pelaksanaan</span>
                       <button
+                        className="adm-btn adm-btn--ghost"
                         type="button"
-                        disabled={values.timeline.length >= PROGRAM_TIMELINE_LIMIT}
+                        disabled={!canWriteHere || values.timeline.length >= PROGRAM_TIMELINE_LIMIT}
                         onClick={() =>
                           updateField('timeline', [...values.timeline, emptyTimelineEntry()])
                         }
                       >
-                        Tambah tahapan
+                        + Tambah tahapan
                       </button>
                     </div>
 
                     {values.timeline.length === 0 ? (
-                      <p className="admin-field-hint">
+                      <p className="adm-org-hint">
                         Belum ada tahapan. Program satu hari memang tidak butuh ini.
                       </p>
                     ) : (
                       values.timeline.map((entry, index) => (
-                        <div className="admin-repeat-row" key={`timeline-${index}`}>
-                          <div className="admin-form-grid">
-                            <div className="admin-field">
+                        <div className="adm-org-repeat-row" key={`timeline-${index}`}>
+                          <div className="adm-org-grid-2">
+                            <div className="adm-field">
                               <label htmlFor={`org-timeline-label-${index}`}>Judul tahapan</label>
                               <input
                                 id={`org-timeline-label-${index}`}
                                 value={entry.label}
+                                disabled={!canWriteHere}
                                 onChange={(event) =>
                                   updateField(
                                     'timeline',
@@ -816,12 +1096,13 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                                 }
                               />
                             </div>
-                            <div className="admin-field">
+                            <div className="adm-field">
                               <label htmlFor={`org-timeline-when-${index}`}>Waktu</label>
                               <input
                                 id={`org-timeline-when-${index}`}
                                 value={entry.when}
                                 placeholder="April"
+                                disabled={!canWriteHere}
                                 onChange={(event) =>
                                   updateField(
                                     'timeline',
@@ -833,12 +1114,13 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                               />
                             </div>
                           </div>
-                          <div className="admin-field">
+                          <div className="adm-field">
                             <label htmlFor={`org-timeline-detail-${index}`}>Keterangan</label>
                             <textarea
                               id={`org-timeline-detail-${index}`}
                               value={entry.detail}
                               rows={2}
+                              disabled={!canWriteHere}
                               onChange={(event) =>
                                 updateField(
                                   'timeline',
@@ -850,8 +1132,9 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                             />
                           </div>
                           <button
-                            className="admin-repeat-remove"
+                            className="adm-org-remove-link"
                             type="button"
+                            disabled={!canWriteHere}
                             onClick={() =>
                               updateField('timeline', removeListRow(values.timeline, index))
                             }
@@ -863,35 +1146,37 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                     )}
                   </div>
 
-                  <div className="admin-repeat">
-                    <div className="admin-repeat-head">
+                  <div className="adm-org-repeat">
+                    <div className="adm-org-repeat-head">
                       <span>Berkas dan tautan</span>
                       <button
+                        className="adm-btn adm-btn--ghost"
                         type="button"
-                        disabled={values.resources.length >= PROGRAM_RESOURCE_LIMIT}
+                        disabled={!canWriteHere || values.resources.length >= PROGRAM_RESOURCE_LIMIT}
                         onClick={() =>
                           updateField('resources', [...values.resources, emptyProgramResource()])
                         }
                       >
-                        Tambah berkas
+                        + Tambah berkas
                       </button>
                     </div>
 
                     {values.resources.length === 0 ? (
-                      <p className="admin-field-hint">
+                      <p className="adm-org-hint">
                         Belum ada berkas. Tempel tautan proposal, formulir pendaftaran, atau
                         laporan yang sudah bisa diakses publik.
                       </p>
                     ) : (
                       values.resources.map((entry, index) => (
-                        <div className="admin-repeat-row" key={`resource-${index}`}>
-                          <div className="admin-form-grid">
-                            <div className="admin-field">
+                        <div className="adm-org-repeat-row" key={`resource-${index}`}>
+                          <div className="adm-org-grid-2">
+                            <div className="adm-field">
                               <label htmlFor={`org-resource-label-${index}`}>Nama berkas</label>
                               <input
                                 id={`org-resource-label-${index}`}
                                 value={entry.label}
                                 placeholder="Formulir pendaftaran"
+                                disabled={!canWriteHere}
                                 onChange={(event) =>
                                   updateField(
                                     'resources',
@@ -902,12 +1187,13 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                                 }
                               />
                             </div>
-                            <div className="admin-field">
+                            <div className="adm-field">
                               <label htmlFor={`org-resource-note-${index}`}>Keterangan</label>
                               <input
                                 id={`org-resource-note-${index}`}
                                 value={entry.note}
                                 placeholder="PDF · 400 KB"
+                                disabled={!canWriteHere}
                                 onChange={(event) =>
                                   updateField(
                                     'resources',
@@ -919,13 +1205,14 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                               />
                             </div>
                           </div>
-                          <div className="admin-field">
+                          <div className="adm-field">
                             <label htmlFor={`org-resource-url-${index}`}>Alamat</label>
                             <input
                               id={`org-resource-url-${index}`}
                               value={entry.url}
                               inputMode="url"
                               placeholder="https://"
+                              disabled={!canWriteHere}
                               onChange={(event) =>
                                 updateField(
                                   'resources',
@@ -937,8 +1224,9 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                             />
                           </div>
                           <button
-                            className="admin-repeat-remove"
+                            className="adm-org-remove-link"
                             type="button"
+                            disabled={!canWriteHere}
                             onClick={() =>
                               updateField('resources', removeListRow(values.resources, index))
                             }
@@ -950,22 +1238,22 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                     )}
                   </div>
 
-                  <div className="admin-repeat">
-                    <div className="admin-repeat-head">
+                  <div className="adm-org-repeat">
+                    <div className="adm-org-repeat-head">
                       <span>Penanggung jawab</span>
                     </div>
-                    <p className="admin-field-hint" id="org-coordinator-hint">
+                    <p className="adm-org-hint" id="org-coordinator-hint">
                       Dipilih dari pengurus aktif bidang {values.divisionCode}. Yang tersimpan
                       namanya, bukan acuan ke dokumen, jadi menghapus pengurus tidak merusak
                       halaman program.
                     </p>
 
                     {divisionLeaders.length === 0 ? (
-                      <p className="admin-field-hint">
+                      <p className="adm-org-hint">
                         Belum ada pengurus aktif di bidang ini. Tambahkan lewat menu Pengurus dulu.
                       </p>
                     ) : (
-                      <div className="admin-chip-picker" aria-describedby="org-coordinator-hint">
+                      <div className="adm-org-chip-picker" aria-describedby="org-coordinator-hint">
                         {divisionLeaders.map((leader) => {
                           const isSelected = selectedCoordinatorKeys.has(
                             leader.name.trim().toLocaleLowerCase('id-ID'),
@@ -975,6 +1263,7 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                             <button
                               type="button"
                               key={leader.id}
+                              disabled={!canWriteHere}
                               aria-pressed={isSelected}
                               onClick={() =>
                                 updateField(
@@ -992,17 +1281,18 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                     )}
 
                     {orphanCoordinators.length > 0 ? (
-                      <div className="admin-chip-orphans">
-                        <p className="admin-field-hint">
+                      <div className="adm-org-chip-orphans">
+                        <p className="adm-org-hint">
                           Nama berikut tersimpan di program ini tapi tidak ada di daftar pengurus
                           aktif bidang {values.divisionCode}. Tetap tampil di halaman publik sampai
                           dilepas.
                         </p>
-                        <div className="admin-chip-picker">
+                        <div className="adm-org-chip-picker">
                           {orphanCoordinators.map((name) => (
                             <button
                               type="button"
                               key={`orphan-${name}`}
+                              disabled={!canWriteHere}
                               aria-pressed
                               onClick={() =>
                                 updateField('coordinators', toggleCoordinator(values.coordinators, name))
@@ -1016,17 +1306,18 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
                       </div>
                     ) : null}
                   </div>
-                </fieldset>
+                </section>
 
-                <label className="admin-check-row">
+                <label className="adm-org-check-row">
                   <input
                     type="checkbox"
                     checked={values.featured}
+                    disabled={!canWriteHere}
                     onChange={(event) => updateField('featured', event.target.checked)}
                   />
                   Tandai sebagai program sorotan
                 </label>
-                <p className="admin-field-hint">
+                <p className="adm-org-hint">
                   Program sorotan tampil paling besar di bagian atas /program-kerja. Sebelum ini,
                   ketiganya dipatok dari daftar nama di dalam kode, jadi mengganti nama program
                   lewat panel diam-diam menghilangkan sorotannya.
@@ -1034,115 +1325,65 @@ export function AdminOrganizationManager({ kind }: AdminOrganizationManagerProps
               </>
             ) : null}
 
-            <label className="admin-check-row">
-              <input type="checkbox" checked={values.active} onChange={(event) => updateField('active', event.target.checked)} />
+            <label className="adm-org-check-row">
+              <input
+                type="checkbox"
+                checked={values.active}
+                disabled={!canWriteHere}
+                onChange={(event) => updateField('active', event.target.checked)}
+              />
               Aktif dan tampil di publik
             </label>
 
+            {kind === 'leaders' && editingDocument && canWriteHere ? (
+              <section className="adm-danger-zone adm-org-danger-zone">
+                <div>
+                  <strong>Hapus anggota</strong>
+                  <p>Penghapusan dipindahkan ke dalam editor agar tidak bisa tertekan saat mengelola daftar.</p>
+                </div>
+                <button
+                  className="adm-btn adm-btn--danger"
+                  type="button"
+                  disabled={busyId === editingDocument.id}
+                  onClick={() => setConfirmTarget(editingDocument)}
+                >
+                  Hapus anggota
+                </button>
+              </section>
+            ) : null}
+
             {error ? (
-              <p className="admin-form-error" role="alert">
+              <p className="adm-org-alert adm-org-alert--danger" role="alert">
                 {error}
               </p>
             ) : null}
             {warnings.length > 0 ? (
-              <ul className="admin-form-warning" aria-live="polite">
+              <ul className="adm-org-alert adm-org-alert--warn" aria-live="polite">
                 {warnings.map((warning) => (
                   <li key={warning}>{warning}</li>
                 ))}
               </ul>
             ) : null}
-            {feedback ? <p className="admin-form-success">{feedback}</p> : null}
+          </form>
+        </AdminDrawer>
+      ) : null}
 
-            <div className="admin-form-actions">
-              <button className="admin-primary-button" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Menyimpan...' : editingId ? 'Update data' : 'Tambah data'}
-              </button>
-              {editingId ? (
-                <button className="admin-secondary-button" type="button" onClick={resetForm}>
-                  Batal edit
-                </button>
-              ) : null}
-            </div>
-            </form>
-          ) : (
-            <AdminEmptyState
-              body={
-                hasNoDivision
-                  ? 'Akun ini belum ditugaskan ke bidang mana pun, jadi belum ada data yang boleh diubah. Minta superadmin menetapkannya lewat menu Akun Admin.'
-                  : kind === 'divisions'
-                    ? 'Daftar unsur organisasi hanya bisa diubah superadmin, karena kode divisi di sini yang menentukan batas wewenang semua editor.'
-                    : 'Role viewer dapat membaca data organisasi, tetapi tidak dapat menambah, mengubah, atau menghapusnya.'
-              }
-              kicker="Akses"
-              title={hasNoDivision ? 'Bidang belum ditetapkan' : 'Mode lihat saja'}
-            />
-          )}
+      {confirmTarget ? (
+        <AdminConfirmDialog
+          body="Tindakan ini tidak bisa dibatalkan. Data akan hilang dari halaman publik."
+          onCancel={() => setConfirmTarget(null)}
+          onConfirm={() => void confirmDelete()}
+          title={`Hapus ${getDocumentTitle(kind, confirmTarget)}?`}
+        />
+      ) : null}
 
-          {isLoading ? (
-            <AdminEmptyState body="Mohon tunggu sebentar." kicker="Memuat" title="Mengambil data organisasi..." />
-          ) : visibleItems.length === 0 ? (
-            <AdminEmptyState
-              body={`Tambahkan ${config.label.toLowerCase()} pertama untuk mulai mengelola data organisasi.`}
-              title={`${config.label} belum ada.`}
-            />
-          ) : (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Nama</th>
-                    <th>Detail</th>
-                    <th>Status</th>
-                    <th>Urutan</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleItems.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <strong>{getDocumentTitle(kind, item)}</strong>
-                      </td>
-                      <td>{getDocumentDetail(kind, item)}</td>
-                      <td>
-                        <span className={`admin-status-badge ${item.active ? 'published' : 'draft'}`}>
-                          {item.active ? 'active' : 'inactive'}
-                        </span>
-                      </td>
-                      <td>{item.order}</td>
-                      <td>
-                        {canWriteHere ? (
-                          <div className="admin-table-actions">
-                            <button type="button" onClick={() => startEdit(item)}>
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              disabled={busyId === item.id}
-                              onClick={() => void handleToggleActive(item)}
-                            >
-                              {item.active ? 'Nonaktifkan' : 'Aktifkan'}
-                            </button>
-                            <button
-                              type="button"
-                              disabled={busyId === item.id}
-                              onClick={() => void handleDelete(item)}
-                            >
-                              Hapus
-                            </button>
-                          </div>
-                        ) : (
-                          <span>Lihat saja</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
-      )}
+      {toast ? (
+        <div className="adm-toasts">
+          <div className={`adm-toast${toast.kind === 'danger' ? ' adm-toast--danger' : ''}`} role="status">
+            {toast.message}
+          </div>
+        </div>
+      ) : null}
     </AdminShell>
   )
 }

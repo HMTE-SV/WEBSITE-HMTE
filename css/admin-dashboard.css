@@ -1,0 +1,417 @@
+/* Tata letak khas area "dashboard" pada panel admin.
+   Sistem dan token ada di css/admin.css — JANGAN menyalin nilai mentah ke sini,
+   pakai token --adm-*. Berkas ini hanya untuk susunan yang benar-benar khas
+   halaman, bukan untuk komponen yang seharusnya jadi milik bersama.
+   Spesifikasi: docs/DESIGN_ADMIN.md */
+
+/* Sapaan memakai nama pengurus, bukan judul menu generik — judul menu itu
+   sendiri sudah hidup di jejak lokasi bar atas. */
+.adm-dash-greeting h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--adm-ink);
+}
+
+.adm-dash-greeting p {
+  margin: 4px 0 0;
+  color: var(--adm-muted);
+  font-size: 0.875rem;
+}
+
+/* Dasbor adalah SATU-SATUNYA halaman admin yang boleh memakai kartu
+   (Larangan 5 di docs/DESIGN_ADMIN.md). Tiga kartu per baris di layar lebar,
+   turun bertahap supaya tetap terbaca satu pandang di 768px. */
+.adm-dash-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.adm-dash-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--adm-line);
+  border-radius: var(--adm-r-lg);
+  background: var(--adm-surface);
+  box-shadow: var(--adm-shadow-1);
+}
+
+.adm-dash-metric > span:first-child {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--adm-muted);
+}
+
+.adm-dash-metric strong {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--adm-ink);
+}
+
+.adm-dash-metric small {
+  font-size: 0.75rem;
+  color: var(--adm-muted);
+}
+
+.adm-dash-metric-skeleton {
+  width: 3.5rem;
+  height: 1.5rem;
+}
+
+.adm-dash-agenda-skeleton {
+  width: 60%;
+  height: 1rem;
+}
+
+/* Galat ringkasan mengambil alih baris kartu; tetap satu panel, bukan kartu
+   bersarang di dalam kisi kartu. */
+.adm-dash-metric-error {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.adm-dash-metric-error p {
+  margin: 0;
+  color: var(--adm-danger);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 900px) {
+  .adm-dash-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .adm-dash-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================================================
+   /admin/history — lini masa baca-saja.
+   =================================================================== */
+
+.adm-hist-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.adm-hist-toolbar .adm-field {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.adm-hist-toolbar .adm-field:first-child {
+  flex: 2 1 280px;
+}
+
+/* Baris riwayat adalah <button>, bukan <div>, supaya bisa dituju papan ketik.
+   .adm-row dari admin.css sudah menata warna dan tinggi; sisanya di sini
+   sekadar meniadakan gaya bawaan elemen tombol peramban. */
+.adm-hist-row {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--adm-line);
+  font: inherit;
+  cursor: pointer;
+}
+
+.adm-hist-row:first-child { border-top: 0; }
+
+/* Baris terpilih ditandai lewat latar dan bobot teks — bukan garis aksen di
+   satu sisi (Larangan 2), penanda paling dikenali dari antarmuka buatan AI. */
+.adm-hist-row[aria-current='true'] {
+  background: var(--adm-sunken);
+}
+
+.adm-hist-row[aria-current='true'] strong {
+  color: var(--adm-accent);
+}
+
+.adm-hist-row-skeleton {
+  width: 100%;
+  height: 1rem;
+}
+
+.adm-hist-error {
+  margin: 0;
+  color: var(--adm-danger);
+  font-size: 0.8125rem;
+}
+
+.adm-hist-feedback {
+  margin: 0;
+  color: var(--adm-ok);
+  font-size: 0.8125rem;
+}
+
+.adm-hist-detail {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.adm-hist-detail > p { margin: 0; font-size: 0.8125rem; }
+
+.adm-hist-diff {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.adm-hist-diff > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.adm-hist-diff span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--adm-muted);
+}
+
+.adm-hist-diff pre {
+  margin: 0;
+  max-height: 320px;
+  padding: 10px;
+  overflow: auto;
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-sunken);
+  color: var(--adm-ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.adm-hist-hint {
+  margin: 0;
+  color: var(--adm-muted);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 640px) {
+  .adm-hist-diff {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Dashboard V7 — komposisi command board dari referensi final
+   ========================================================================== */
+
+.adm-dash { display: grid; gap: 16px; }
+
+.adm-dash-greeting > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #607899;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adm-dash-greeting h1 {
+  font-size: clamp(1.8rem, 3.4vw, 2.65rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.04;
+}
+
+.adm-dash-greeting p { max-width: 720px; margin-top: 8px; }
+
+.adm-dash-command {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(280px, 0.95fr);
+  gap: 16px;
+}
+
+.adm-dash-priority,
+.adm-dash-capacity {
+  min-height: 255px;
+  overflow: hidden;
+  border-radius: 18px;
+  color: #ffffff;
+}
+
+.adm-dash-priority {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 28px;
+  background: linear-gradient(118deg, #0b3777 0%, #155bb7 56%, #2a88cf 100%);
+  box-shadow: 0 18px 40px rgba(15, 81, 164, 0.16);
+}
+
+.adm-dash-priority > div { align-self: center; }
+
+.adm-dash-priority span,
+.adm-dash-capacity > span {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adm-dash-priority > div > span { color: #d5e8ff; }
+
+.adm-dash-priority h2 {
+  max-width: 580px;
+  margin: 28px 0 7px;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.adm-dash-priority p { max-width: 520px; margin: 0; color: #e6f1ff; font-size: 0.875rem; }
+
+.adm-dash-priority > a {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.adm-dash-priority > a span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0b4c9d;
+  font-size: 0.875rem;
+  transition: transform 160ms var(--adm-ease);
+}
+
+.adm-dash-priority > a:hover span { transform: translate(2px, -2px); }
+
+.adm-dash-capacity {
+  display: flex;
+  flex-direction: column;
+  padding: 26px;
+  background: linear-gradient(150deg, #1474bb 0%, #1d94cb 100%);
+  box-shadow: 0 18px 40px rgba(18, 125, 186, 0.13);
+}
+
+.adm-dash-capacity > span { color: #dff4ff; }
+
+.adm-dash-capacity-total {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 26px 0 auto;
+}
+
+.adm-dash-capacity-total strong {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6vw, 4.8rem);
+  letter-spacing: -0.08em;
+  line-height: 0.82;
+}
+
+.adm-dash-capacity-total p { max-width: 110px; margin: 0; color: #e8f8ff; font-size: 0.6875rem; line-height: 1.35; }
+.adm-dash-capacity-total .adm-skeleton { width: 92px; height: 58px; background: rgba(255, 255, 255, 0.22); }
+
+.adm-dash-capacity dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 22px 0 0; }
+.adm-dash-capacity dl div { display: flex; min-width: 0; flex-direction: column-reverse; padding: 10px; border-radius: 11px; background: rgba(4, 73, 139, 0.28); }
+.adm-dash-capacity dt { color: #d8f2ff; font-size: 0.625rem; }
+.adm-dash-capacity dd { margin: 0; color: #ffffff; font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; }
+
+.adm-dash-agenda { padding: 24px; overflow: visible; }
+
+.adm-dash-agenda > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 14px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--adm-line);
+}
+
+.adm-dash-agenda > header span { color: #1768bd; font-family: var(--font-mono); font-size: 0.625rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; }
+.adm-dash-agenda h2 { margin: 4px 0 0; color: var(--adm-ink); font-family: var(--font-display); font-size: clamp(1.35rem, 2.5vw, 2rem); letter-spacing: -0.045em; }
+
+.adm-dash-agenda-count { display: flex; min-width: 102px; align-items: center; gap: 10px; padding-left: 18px; border-left: 1px solid var(--adm-line); }
+.adm-dash-agenda-count strong { color: #1768d3; font-family: var(--font-display); font-size: 2.4rem; letter-spacing: -0.06em; line-height: 1; }
+.adm-dash-agenda-count small { color: var(--adm-muted); font-family: var(--font-mono); font-size: 0.625rem; line-height: 1.35; }
+
+.adm-dash-agenda-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.adm-dash-agenda-skeleton { min-height: 126px; width: 100%; }
+
+.adm-dash-agenda-card {
+  display: grid;
+  min-height: 128px;
+  align-content: space-between;
+  gap: 7px;
+  padding: 15px;
+  border: 1px solid #d5dfec;
+  border-radius: 13px;
+  background: #eff6ff;
+  color: var(--adm-ink);
+  text-decoration: none;
+  transition: transform 160ms var(--adm-ease), box-shadow 160ms var(--adm-ease);
+}
+
+.adm-dash-agenda-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(8, 35, 73, 0.08); }
+.adm-dash-agenda-card > span { color: #1768bd; font-family: var(--font-mono); font-size: 0.625rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.adm-dash-agenda-card h3 { margin: 3px 0 0; font-family: var(--font-display); font-size: 1.1rem; letter-spacing: -0.035em; }
+.adm-dash-agenda-card p { margin: 8px 0 0; color: #61738f; font-size: 0.6875rem; }
+.adm-dash-agenda-card b { justify-self: end; color: inherit; font-size: 0.625rem; }
+.adm-dash-agenda-card.tone-1 { background: #e5f7f0; color: #08664d; }
+.adm-dash-agenda-card.tone-2 { background: #e8f3ff; color: #0d54a3; }
+.adm-dash-agenda-card.tone-3 { background: #f3efff; color: #6a40b5; }
+.adm-dash-agenda-card.tone-4 { background: #fff3e8; color: #a45317; }
+.adm-dash-agenda-card.tone-5 { background: #eaf8fb; color: #08758c; }
+.adm-dash-agenda-card.tone-6 { background: #edf1ff; color: #4057b4; }
+
+.adm-dash-shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.adm-dash-shortcuts a { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 14px 15px; border: 1px solid var(--adm-line); border-radius: 13px; background: #ffffff; color: var(--adm-ink); text-decoration: none; box-shadow: var(--adm-shadow-1); }
+.adm-dash-shortcuts span { grid-row: 1 / 3; color: #1b67bd; font-family: var(--font-mono); font-size: 0.625rem; }
+.adm-dash-shortcuts strong { font-size: 0.8125rem; }
+.adm-dash-shortcuts small { color: var(--adm-muted); font-size: 0.6875rem; }
+
+@media (max-width: 1100px) {
+  .adm-dash-command { grid-template-columns: 1fr; }
+  .adm-dash-capacity { min-height: 210px; }
+  .adm-dash-agenda-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-dash-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .adm-dash-priority { min-height: 310px; align-items: flex-start; flex-direction: column; padding: 22px; }
+  .adm-dash-priority h2 { margin-top: 22px; }
+  .adm-dash-capacity { padding: 22px; }
+  .adm-dash-agenda { padding: 18px; }
+  .adm-dash-agenda > header { align-items: flex-start; }
+  .adm-dash-agenda-count { min-width: auto; }
+  .adm-dash-agenda-grid,
+  .adm-dash-shortcuts { grid-template-columns: 1fr; }
+}

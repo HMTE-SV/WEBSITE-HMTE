@@ -1552,3 +1552,49 @@
   .admin-gallery-editor > header,
   .admin-gallery-editor .admin-form-actions { align-items: stretch; flex-direction: column; }
 }
+
+/*
+ * Panel unduhan — satu dokumen, baris terlipat.
+ *
+ * `<details>`/`<summary>` dipakai untuk baris terlipat: gratis dapat perilaku
+ * keyboard dan aksesibilitas bawaan browser, tidak perlu state buka/tutup
+ * kustom untuk tiap baris kecuali yang dipaksa terbuka (baris bermasalah).
+ */
+.admin-downloads-workspace { display: grid; gap: 14px; }
+.admin-downloads-summary { display: grid; grid-template-columns: 130px 130px 130px minmax(0,1fr); border: 1px solid var(--admin-line); background: #fffefb; }
+.admin-downloads-summary > div { display: grid; gap: 3px; padding: 15px; border-right: 1px solid var(--admin-line); }
+.admin-downloads-summary span { color: var(--admin-muted); font: 700 7px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+.admin-downloads-summary strong { color: var(--hmte-navy); font-size: 27px; line-height: 1; }
+.admin-downloads-summary small { color: var(--admin-muted); font: 500 8px var(--font-mono); }
+.admin-downloads-summary p { align-self: center; margin: 0; padding: 15px 18px; color: var(--admin-muted); font-size: 10px; line-height: 1.65; }
+
+.admin-downloads-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 14px; border: 1px solid var(--admin-line); background: rgba(255,254,250,.92); }
+.admin-downloads-search { display: grid; gap: 6px; flex: 1 1 220px; }
+.admin-downloads-search span { color: var(--admin-muted); font: 700 7px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+.admin-downloads-search input { min-height: 38px; padding: 0 11px; border: 1px solid var(--admin-line-strong); border-radius: 3px; background: white; color: var(--admin-ink); font: inherit; font-size: 10px; }
+.admin-downloads-status-filter { display: flex; gap: 4px; }
+.admin-downloads-status-filter button { min-height: 38px; padding: 0 11px; border: 1px solid var(--admin-line-strong); background: white; color: var(--admin-muted); cursor: pointer; font: 700 7px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.admin-downloads-status-filter button.is-active { border-color: var(--hmte-navy); background: var(--hmte-navy); color: white; }
+
+.admin-downloads-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.admin-downloads-row { border: 1px solid var(--admin-line); background: #fffefb; }
+.admin-downloads-row.is-invalid { border-color: var(--admin-danger); box-shadow: inset 4px 0 var(--admin-danger); }
+.admin-downloads-row summary { display: grid; grid-template-columns: auto 30px minmax(0,1fr) 70px 120px; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; list-style: none; }
+.admin-downloads-row summary::-webkit-details-marker { display: none; }
+.admin-downloads-ribbon { justify-self: start; padding: 3px 7px; background: var(--admin-danger); color: white; font: 700 7px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.admin-downloads-order { color: var(--admin-muted); font: 700 10px var(--font-mono); }
+.admin-downloads-title { min-width: 0; overflow: hidden; color: var(--hmte-navy); font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.admin-downloads-format { color: var(--hmte-teal); font: 700 8px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.admin-downloads-status { justify-self: start; padding: 3px 6px; background: #e8e5dc; color: var(--hmte-navy); font: 700 7px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.admin-downloads-status[data-status="ready"] { background: rgba(var(--hmte-teal-rgb,20,120,110),.16); }
+.admin-downloads-status[data-status="hidden"] { background: rgba(var(--admin-danger-rgb,190,60,60),.14); }
+.admin-downloads-detail { display: grid; gap: 14px; padding: 0 14px 16px; border-top: 1px solid var(--admin-line); }
+.admin-downloads-detail > .admin-form-grid { padding-top: 14px; }
+
+@media (max-width: 760px) {
+  .admin-downloads-summary { grid-template-columns: 1fr 1fr; }
+  .admin-downloads-summary p { grid-column: 1 / -1; border-top: 1px solid var(--admin-line); }
+  .admin-downloads-row summary { grid-template-columns: auto 24px minmax(0,1fr); }
+  .admin-downloads-format,
+  .admin-downloads-status { grid-column: 2 / -1; justify-self: start; }
+}

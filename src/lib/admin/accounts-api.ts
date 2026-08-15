@@ -1,5 +1,6 @@
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import type { AdminRole } from '@/types/admin'
+import type { AdminPermission } from './permissions'
 
 /*
  * Klien untuk /api/admin/accounts.
@@ -39,6 +40,7 @@ export type CreateAccountInput = {
   displayName?: string
   role: AdminRole
   divisionCode?: string
+  permissions?: AdminPermission[]
 }
 
 export type CreateAccountResult = {
@@ -55,6 +57,7 @@ export type UpdateAccountInput = {
   uid: string
   role?: AdminRole
   divisionCode?: string
+  permissions?: AdminPermission[]
   active?: boolean
 }
 

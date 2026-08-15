@@ -24,4 +24,10 @@ describe('content audit snapshots', () => {
       'Memulihkan berita artikel-1',
     )
   })
+
+  it('labels public data revisions clearly', () => {
+    expect(buildAuditSummary('create', 'publicData', 'data-tre-25')).toBe(
+      'Membuat data publik data-tre-25',
+    )
+  })
 })

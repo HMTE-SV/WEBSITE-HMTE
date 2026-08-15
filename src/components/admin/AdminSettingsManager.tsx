@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
-import { AdminEmptyState } from './AdminEmptyState'
 import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
 import { requestRevalidation } from '@/lib/admin/revalidate'
@@ -200,38 +199,48 @@ export function AdminSettingsManager() {
       : 'Sinkron dengan website publik'
 
   return (
-    <AdminShell activeHref="/admin/settings" description="Ruang kendali identitas, navigasi, footer, kanal resmi, dan metadata seluruh website." kicker="Global CMS" title="Pengaturan situs">
+    <AdminShell activeHref="/admin/settings" title="Pengaturan situs">
       {!hasFirebaseConfig() ? (
-        <AdminEmptyState body="Isi .env.local sesuai FIREBASE_SETUP.md agar pengaturan dapat dimuat." kicker="Konfigurasi" title="Firebase belum siap." />
+        <div className="adm-empty">
+          <h3>Firebase belum siap.</h3>
+          <p>Isi .env.local sesuai FIREBASE_SETUP.md agar pengaturan dapat dimuat.</p>
+        </div>
       ) : isLoading ? (
-        <AdminEmptyState body="Mohon tunggu sebentar." kicker="Memuat" title="Mengambil versi terbit dan draft..." />
+        <div aria-hidden="true">
+          {[0, 1].map((index) => (
+            <div className="adm-org-skeleton-row" key={index}>
+              <span className="adm-skeleton" style={{ width: '40%', height: 14 }} />
+              <span className="adm-skeleton" style={{ width: '20%', height: 14 }} />
+            </div>
+          ))}
+        </div>
       ) : (
-        <div className="admin-settings-workspace">
-          {!isSuperadmin ? <p className="admin-form-error" role="status">Hanya superadmin yang boleh mengubah pengaturan situs. Isian dikunci.</p> : null}
-          <section className="admin-settings-status" aria-label="Status publikasi">
-            <div><span className={`admin-settings-status-dot ${differsFromPublished || hasLocalChanges ? 'is-draft' : 'is-live'}`} /><div><small>Status dokumen</small><strong>{statusLabel}</strong></div></div>
+        <div className="adm-set-workspace">
+          {!isSuperadmin ? <p className="adm-org-alert adm-org-alert--danger" role="status">Hanya superadmin yang boleh mengubah pengaturan situs. Isian dikunci.</p> : null}
+          <section className="adm-set-status" aria-label="Status publikasi">
+            <div><span className={`adm-set-status-dot ${differsFromPublished || hasLocalChanges ? 'is-draft' : 'is-live'}`} /><div><small>Status dokumen</small><strong>{statusLabel}</strong></div></div>
             <dl><div><dt>Terakhir terbit</dt><dd>{formatTimestamp(lastPublishedAt)}</dd></div><div><dt>Editor</dt><dd>{session.email}</dd></div></dl>
           </section>
 
-          <div className="admin-settings-layout">
-            <aside className="admin-settings-tabs" role="tablist" aria-label="Bagian pengaturan global">
-              {editorTabs.map((tab) => <button key={tab.id} data-invalid={validationAttempted && validation.issues.some((issue) => issue.tab === tab.id)} type="button" role="tab" aria-selected={activeTab === tab.id} className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}><span>{tab.number}</span>{tab.label}</button>)}
+          <div className="adm-set-layout">
+            <aside className="adm-set-tabs" role="tablist" aria-label="Bagian pengaturan global">
+              {editorTabs.map((tab) => <button key={tab.id} data-invalid={validationAttempted && validation.issues.some((issue) => issue.tab === tab.id)} type="button" role="tab" aria-selected={activeTab === tab.id} className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>)}
             </aside>
 
-            <form className="admin-settings-editor" onSubmit={(event) => event.preventDefault()}>
+            <form className="adm-set-editor" onSubmit={(event) => event.preventDefault()}>
               {activeTab === 'identity' ? <IdentityEditor values={values} preview={preview} disabled={!isSuperadmin} updateField={updateField} /> : null}
               {activeTab === 'channels' ? <ChannelsEditor values={values} preview={preview} disabled={!isSuperadmin} updateField={updateField} /> : null}
               {activeTab === 'header' ? <HeaderEditor values={values} disabled={!isSuperadmin} updateField={updateField} updateNavigation={updateNavigation} updateNavigationChild={updateNavigationChild} addNavigationItem={addNavigationItem} addNavigationChild={addNavigationChild} /> : null}
               {activeTab === 'footer' ? <FooterEditor values={values} disabled={!isSuperadmin} updateField={updateField} updateFooterColumn={updateFooterColumn} updateFooterLink={updateFooterLink} addFooterColumn={addFooterColumn} addFooterLink={addFooterLink} /> : null}
               {activeTab === 'seo' ? <SeoEditor values={values} preview={preview} disabled={!isSuperadmin} updateField={updateField} /> : null}
 
-              {validationAttempted && !validation.success ? <div className="admin-validation-summary" role="alert"><strong>Pengaturan belum siap diterbitkan.</strong><ul>{validation.issues.map((issue, index) => <li key={`${issue.tab}-${index}`}><button type="button" onClick={() => setActiveTab(issue.tab)}>{issue.message}</button></li>)}</ul></div> : null}
-              {error ? <p className="admin-form-error" role="alert">{error}</p> : null}
-              {feedback ? <p className="admin-form-success" role="status">{feedback}</p> : null}
-              <footer className="admin-settings-actions">
+              {validationAttempted && !validation.success ? <div className="adm-set-validation-summary" role="alert"><strong>Pengaturan belum siap diterbitkan.</strong><ul>{validation.issues.map((issue, index) => <li key={`${issue.tab}-${index}`}><button type="button" onClick={() => setActiveTab(issue.tab)}>{issue.message}</button></li>)}</ul></div> : null}
+              {error ? <p className="adm-org-alert adm-org-alert--danger" role="alert">{error}</p> : null}
+              {feedback ? <p className="adm-org-alert adm-org-alert--ok" role="status">{feedback}</p> : null}
+              <footer className="adm-set-actions">
                 <div><strong>{hasLocalChanges ? 'Ada perubahan lokal' : differsFromPublished ? 'Draft siap diterbitkan' : 'Tidak ada perubahan'}</strong><span>Publikasi selalu tercatat di riwayat dan dapat dipulihkan.</span></div>
-                <button className="admin-secondary-button" type="button" disabled={!isSuperadmin || busyAction !== null || !hasLocalChanges} onClick={() => void saveDraft()}>{busyAction === 'save' ? 'Menyimpan...' : 'Simpan draft'}</button>
-                <button className="admin-primary-button" type="button" disabled={!isSuperadmin || busyAction !== null || (!differsFromPublished && !hasLocalChanges)} onClick={() => void publish()}>{busyAction === 'publish' ? 'Menerbitkan...' : 'Terbitkan ke website'}</button>
+                <button className="adm-btn adm-btn--ghost" type="button" disabled={!isSuperadmin || busyAction !== null || !hasLocalChanges} onClick={() => void saveDraft()}>{busyAction === 'save' ? 'Menyimpan...' : 'Simpan draft'}</button>
+                <button className={`adm-btn${busyAction === 'publish' ? ' is-loading' : ''}`} type="button" disabled={!isSuperadmin || busyAction !== null || (!differsFromPublished && !hasLocalChanges)} onClick={() => void publish()}>{busyAction === 'publish' ? 'Menerbitkan...' : 'Terbitkan ke website'}</button>
               </footer>
             </form>
           </div>
@@ -247,14 +256,17 @@ type EditorProps = {
   updateField: <Key extends keyof FormValues>(key: Key, value: FormValues[Key]) => void
 }
 
-function SectionHeader({ number, label, title, body }: { number: string; label: string; title: string; body: string }) {
-  return <header><span>{number} / {label}</span><h2>{title}</h2><p>{body}</p></header>
+// Tanpa nomor "01 / Identitas" di atas tiap seksi: itu persis kicker yang
+// dilarang §6.7, perancah yang dikenali sebagai buatan AI. Judul dan kalimat
+// penjelas saja sudah menjawab "apa isi bagian ini".
+function SectionHeader({ title, body }: { title: string; body: string }) {
+  return <header><h2>{title}</h2><p>{body}</p></header>
 }
 
 function IdentityEditor({ values, preview, disabled, updateField }: EditorProps & { preview: SiteSettings }) {
-  return <section className="admin-settings-section">
-    <SectionHeader number="01" label="Identitas" title="Siapa yang berbicara di website ini?" body="Nilai ini dipakai lintas halaman, bukan hanya di footer." />
-    <div className="admin-settings-grid two-column">
+  return <section className="adm-set-section">
+    <SectionHeader title="Siapa yang berbicara di website ini?" body="Nilai ini dipakai lintas halaman, bukan hanya di footer." />
+    <div className="adm-set-grid two-column">
       <label><span>Nama singkat situs</span><input disabled={disabled} value={values.siteName} onChange={(e) => updateField('siteName', e.target.value)} /></label>
       <label><span>Nama organisasi</span><input disabled={disabled} value={values.organizationName} onChange={(e) => updateField('organizationName', e.target.value)} /></label>
       <label><span>Program studi</span><input disabled={disabled} value={values.programName} onChange={(e) => updateField('programName', e.target.value)} /></label>
@@ -264,17 +276,17 @@ function IdentityEditor({ values, preview, disabled, updateField }: EditorProps 
       <label><span>Periode</span><input disabled={disabled} value={values.periodLabel} onChange={(e) => updateField('periodLabel', e.target.value)} /></label>
       <label><span>Tahun agenda</span><input inputMode="numeric" disabled={disabled} value={values.agendaYear} onChange={(e) => updateField('agendaYear', e.target.value)} /></label>
     </div>
-    <label className="admin-settings-wide-field"><span>Tagline</span><textarea rows={3} disabled={disabled} value={values.tagline} onChange={(e) => updateField('tagline', e.target.value)} /></label>
-    <label className="admin-settings-wide-field"><span>Konteks alamat / lembaga</span><input disabled={disabled} value={values.address} onChange={(e) => updateField('address', e.target.value)} /></label>
-    <label className="admin-settings-wide-field"><span>Semboyan penutup</span><input disabled={disabled} value={values.closingCheer} onChange={(e) => updateField('closingCheer', e.target.value)} /></label>
-    <div className="admin-settings-preview"><small>Pratinjau footer</small><strong>{formatCabinetTitle(preview)} · {formatPeriodTitle(preview)}</strong><p>{preview.organizationName} — {preview.address}</p></div>
+    <label className="adm-set-wide-field"><span>Tagline</span><textarea rows={3} disabled={disabled} value={values.tagline} onChange={(e) => updateField('tagline', e.target.value)} /></label>
+    <label className="adm-set-wide-field"><span>Konteks alamat / lembaga</span><input disabled={disabled} value={values.address} onChange={(e) => updateField('address', e.target.value)} /></label>
+    <label className="adm-set-wide-field"><span>Semboyan penutup</span><input disabled={disabled} value={values.closingCheer} onChange={(e) => updateField('closingCheer', e.target.value)} /></label>
+    <div className="adm-set-preview"><small>Pratinjau footer</small><strong>{formatCabinetTitle(preview)} · {formatPeriodTitle(preview)}</strong><p>{preview.organizationName} — {preview.address}</p></div>
   </section>
 }
 
 function ChannelsEditor({ values, preview, disabled, updateField }: EditorProps & { preview: SiteSettings }) {
-  return <section className="admin-settings-section">
-    <SectionHeader number="02" label="Kanal resmi" title="Satu sumber untuk semua tautan resmi." body="Footer dan halaman kontak mengikuti nilai ini setelah diterbitkan." />
-    <div className="admin-settings-grid two-column">
+  return <section className="adm-set-section">
+    <SectionHeader title="Satu sumber untuk semua tautan resmi." body="Footer dan halaman kontak mengikuti nilai ini setelah diterbitkan." />
+    <div className="adm-set-grid two-column">
       <label><span>Instagram</span><input disabled={disabled} value={values.instagram} onChange={(e) => updateField('instagram', normalizeInstagramHandle(e.target.value))} /><small>{instagramLabel(preview)}</small></label>
       <label><span>Email</span><input type="email" disabled={disabled} value={values.email} onChange={(e) => updateField('email', e.target.value)} /></label>
       <label><span>Website</span><input type="url" disabled={disabled} value={values.website} onChange={(e) => updateField('website', e.target.value)} /></label>
@@ -292,32 +304,41 @@ type HeaderEditorProps = EditorProps & {
 }
 
 function HeaderEditor({ values, disabled, updateField, updateNavigation, updateNavigationChild, addNavigationItem, addNavigationChild }: HeaderEditorProps) {
-  return <section className="admin-settings-section">
-    <SectionHeader number="03" label="Header" title="Susun jalur utama pengunjung." body="Menu tersembunyi tetap tersimpan dalam draft, tetapi tidak tampil di website." />
-    <div className="admin-settings-grid two-column compact">
-      <label><span>Label tombol kanan</span><input disabled={disabled} maxLength={180} value={values.headerCtaLabel} onChange={(e) => updateField('headerCtaLabel', e.target.value)} /></label>
-      <label><span>Tujuan tombol</span><input disabled={disabled} maxLength={2048} value={values.headerCtaHref} onChange={(e) => updateField('headerCtaHref', e.target.value)} /><small>Boleh berupa /path-internal, #anchor, mailto:, tel:, atau URL HTTP/HTTPS.</small></label>
+  return <section className="adm-set-section">
+    {/* Kalimat ini sengaja menyebut "navbar situs publik": bagian ini mengubah
+        apa yang dilihat pengunjung, bukan konfigurasi internal panel. */}
+    <SectionHeader title="Susun menu navbar yang dilihat pengunjung." body="Perubahan di sini langsung membentuk header situs publik setelah diterbitkan. Menu tersembunyi tetap tersimpan dalam draft, tetapi tidak tampil di website." />
+    <div className="adm-set-cta-control">
+      <div>
+        <strong>Tombol aksi di sisi kanan navbar</strong>
+        <p>Tombol berborder emas dapat disembunyikan tanpa menghapus label dan tautannya.</p>
+      </div>
+      <Visibility checked={values.headerCtaVisible} disabled={disabled} onChange={(visible) => updateField('headerCtaVisible', visible)} />
     </div>
-    <div className="admin-structure-list">
-      {values.navigation.map((item, index) => <article className="admin-structure-card" key={item.id}>
-        <div className="admin-structure-row">
-          <span className="admin-structure-index">{String(index + 1).padStart(2, '0')}</span>
+    <div className="adm-set-grid two-column compact">
+      <label><span>Label tombol kanan</span><input disabled={disabled || !values.headerCtaVisible} maxLength={180} value={values.headerCtaLabel} onChange={(e) => updateField('headerCtaLabel', e.target.value)} /></label>
+      <label><span>Tujuan tombol</span><input disabled={disabled || !values.headerCtaVisible} maxLength={2048} value={values.headerCtaHref} onChange={(e) => updateField('headerCtaHref', e.target.value)} /><small>Boleh berupa /path-internal, #anchor, mailto:, tel:, atau URL HTTP/HTTPS.</small></label>
+    </div>
+    <div className="adm-set-structure-list">
+      {values.navigation.map((item, index) => <article className="adm-set-structure-card" key={item.id}>
+        <div className="adm-set-structure-row">
+          <span className="adm-set-structure-index">{String(index + 1).padStart(2, '0')}</span>
           <input aria-label="Label menu" disabled={disabled} value={item.label} onChange={(e) => updateNavigation(index, { label: e.target.value })} />
           <input aria-label="Tujuan menu" disabled={disabled || item.children.length > 0} value={item.href} onChange={(e) => updateNavigation(index, { href: e.target.value })} />
           <Visibility checked={item.visible} disabled={disabled} onChange={(visible) => updateNavigation(index, { visible })} />
           <RowActions disabled={disabled} index={index} length={values.navigation.length} onMove={(direction) => updateField('navigation', moveItem(values.navigation, index, direction))} onDelete={() => updateField('navigation', values.navigation.filter((_, itemIndex) => itemIndex !== index))} />
         </div>
-        {item.children.map((child, childIndex) => <div className="admin-structure-row is-child" key={child.id}>
-          <span className="admin-structure-branch">↳</span>
+        {item.children.map((child, childIndex) => <div className="adm-set-structure-row is-child" key={child.id}>
+          <span className="adm-set-structure-branch">↳</span>
           <input aria-label="Label submenu" disabled={disabled} value={child.label} onChange={(e) => updateNavigationChild(index, childIndex, { label: e.target.value })} />
           <input aria-label="Tujuan submenu" disabled={disabled} value={child.href} onChange={(e) => updateNavigationChild(index, childIndex, { href: e.target.value })} />
           <Visibility checked={child.visible} disabled={disabled} onChange={(visible) => updateNavigationChild(index, childIndex, { visible })} />
           <RowActions disabled={disabled} index={childIndex} length={item.children.length} onMove={(direction) => updateNavigation(index, { children: moveItem(item.children, childIndex, direction) })} onDelete={() => updateNavigation(index, { children: item.children.filter((_, currentIndex) => currentIndex !== childIndex) })} />
         </div>)}
-        <button className="admin-inline-add" type="button" disabled={disabled} onClick={() => addNavigationChild(index)}>+ Tambah submenu</button>
+        <button className="adm-btn adm-btn--ghost" type="button" disabled={disabled} onClick={() => addNavigationChild(index)}>+ Tambah submenu</button>
       </article>)}
     </div>
-    <button className="admin-secondary-button" type="button" disabled={disabled} onClick={addNavigationItem}>+ Tambah menu utama</button>
+    <button className="adm-btn adm-btn--ghost" type="button" disabled={disabled} onClick={addNavigationItem}>+ Tambah menu utama</button>
   </section>
 }
 
@@ -329,53 +350,57 @@ type FooterEditorProps = EditorProps & {
 }
 
 function FooterEditor({ values, disabled, updateField, updateFooterColumn, updateFooterLink, addFooterColumn, addFooterLink }: FooterEditorProps) {
-  return <section className="admin-settings-section">
-    <SectionHeader number="04" label="Footer" title="Informasi penutup di setiap halaman." body="Tautan dapat memakai URL sendiri atau mengikuti kanal resmi." />
-    <div className="admin-settings-grid two-column compact">
+  return <section className="adm-set-section">
+    <SectionHeader title="Informasi penutup di setiap halaman." body="Tautan dapat memakai URL sendiri atau mengikuti kanal resmi." />
+    <div className="adm-set-grid two-column compact">
       <label><span>Catatan masthead</span><input disabled={disabled} value={values.footerMastheadNote} onChange={(e) => updateField('footerMastheadNote', e.target.value)} /></label>
       <label><span>Subcatatan masthead</span><input disabled={disabled} value={values.footerMastheadSubnote} onChange={(e) => updateField('footerMastheadSubnote', e.target.value)} /></label>
     </div>
-    <div className="admin-structure-list">
-      {values.footerColumns.map((column, columnIndex) => <article className="admin-structure-card" key={column.id}>
-        <div className="admin-structure-row footer-column-row">
-          <span className="admin-structure-index">{String(columnIndex + 1).padStart(2, '0')}</span>
+    <div className="adm-set-structure-list">
+      {values.footerColumns.map((column, columnIndex) => <article className="adm-set-structure-card" key={column.id}>
+        <div className="adm-set-structure-row footer-column-row">
+          <span className="adm-set-structure-index">{String(columnIndex + 1).padStart(2, '0')}</span>
           <input aria-label="Judul kolom footer" disabled={disabled} value={column.title} onChange={(e) => updateFooterColumn(columnIndex, { title: e.target.value })} />
           <Visibility checked={column.visible} disabled={disabled} onChange={(visible) => updateFooterColumn(columnIndex, { visible })} />
           <RowActions disabled={disabled} index={columnIndex} length={values.footerColumns.length} onMove={(direction) => updateField('footerColumns', moveItem(values.footerColumns, columnIndex, direction))} onDelete={() => updateField('footerColumns', values.footerColumns.filter((_, index) => index !== columnIndex))} />
         </div>
-        {column.links.map((link, linkIndex) => <div className="admin-footer-link-row" key={link.id}>
-          <span className="admin-structure-branch">↳</span>
+        {column.links.map((link, linkIndex) => <div className="adm-set-footer-link-row" key={link.id}>
+          <span className="adm-set-structure-branch">↳</span>
           <input aria-label="Label tautan footer" disabled={disabled} value={link.label} onChange={(e) => updateFooterLink(columnIndex, linkIndex, { label: e.target.value })} />
           <select aria-label="Sumber tautan footer" disabled={disabled} value={link.channel} onChange={(e) => updateFooterLink(columnIndex, linkIndex, { channel: e.target.value as SiteFooterLink['channel'] })}><option value="">URL sendiri</option>{siteChannelKeys.map((channel) => <option value={channel} key={channel}>{channel}</option>)}</select>
           <input aria-label="URL tautan footer" disabled={disabled || Boolean(link.channel)} value={link.href} onChange={(e) => updateFooterLink(columnIndex, linkIndex, { href: e.target.value })} placeholder={link.channel ? 'Mengikuti kanal resmi' : '/tujuan'} />
           <Visibility checked={link.visible} disabled={disabled} onChange={(visible) => updateFooterLink(columnIndex, linkIndex, { visible })} />
-          <label className="admin-visibility-toggle"><input type="checkbox" disabled={disabled} checked={link.newTab} onChange={(e) => updateFooterLink(columnIndex, linkIndex, { newTab: e.target.checked })} /><span>Tab baru</span></label>
-          <button className="admin-text-danger" type="button" disabled={disabled} onClick={() => updateFooterColumn(columnIndex, { links: column.links.filter((_, index) => index !== linkIndex) })}>Hapus</button>
+          <label className="adm-set-visibility-toggle"><input type="checkbox" disabled={disabled} checked={link.newTab} onChange={(e) => updateFooterLink(columnIndex, linkIndex, { newTab: e.target.checked })} /><span>Tab baru</span></label>
+          <button className="adm-set-remove-link" type="button" disabled={disabled} onClick={() => updateFooterColumn(columnIndex, { links: column.links.filter((_, index) => index !== linkIndex) })}>Hapus</button>
         </div>)}
-        <button className="admin-inline-add" type="button" disabled={disabled} onClick={() => addFooterLink(columnIndex)}>+ Tambah tautan</button>
+        <button className="adm-btn adm-btn--ghost" type="button" disabled={disabled} onClick={() => addFooterLink(columnIndex)}>+ Tambah tautan</button>
       </article>)}
     </div>
-    <button className="admin-secondary-button" type="button" disabled={disabled} onClick={addFooterColumn}>+ Tambah kolom footer</button>
+    <button className="adm-btn adm-btn--ghost" type="button" disabled={disabled} onClick={addFooterColumn}>+ Tambah kolom footer</button>
   </section>
 }
 
 function SeoEditor({ values, preview, disabled, updateField }: EditorProps & { preview: SiteSettings }) {
-  return <section className="admin-settings-section">
-    <SectionHeader number="05" label="SEO" title="Identitas website di mesin pencari." body="Metadata ini menjadi bawaan global untuk halaman tanpa metadata khusus." />
-    <div className="admin-settings-grid two-column">
+  return <section className="adm-set-section">
+    <SectionHeader title="Identitas website di mesin pencari." body="Metadata ini menjadi bawaan global untuk halaman tanpa metadata khusus." />
+    <div className="adm-set-grid two-column">
       <label><span>URL utama</span><input type="url" disabled={disabled} value={values.siteUrl} onChange={(e) => updateField('siteUrl', e.target.value)} /></label>
       <label><span>Locale Open Graph</span><input disabled={disabled} value={values.locale} onChange={(e) => updateField('locale', e.target.value)} /></label>
     </div>
-    <label className="admin-settings-wide-field"><span>Judul situs</span><input disabled={disabled} maxLength={65} value={values.siteTitle} onChange={(e) => updateField('siteTitle', e.target.value)} /><small>{values.siteTitle.length}/65 karakter</small></label>
-    <label className="admin-settings-wide-field"><span>Deskripsi situs</span><textarea rows={4} disabled={disabled} maxLength={170} value={values.siteDescription} onChange={(e) => updateField('siteDescription', e.target.value)} /><small>{values.siteDescription.length}/170 karakter</small></label>
-    <div className="admin-serp-preview"><small>Pratinjau hasil pencarian</small><strong>{preview.siteTitle}</strong><span>{preview.siteUrl}</span><p>{preview.siteDescription}</p></div>
+    <label className="adm-set-wide-field"><span>Judul situs</span><input disabled={disabled} maxLength={65} value={values.siteTitle} onChange={(e) => updateField('siteTitle', e.target.value)} /><small>{values.siteTitle.length}/65 karakter</small></label>
+    <label className="adm-set-wide-field"><span>Deskripsi situs</span><textarea rows={4} disabled={disabled} maxLength={170} value={values.siteDescription} onChange={(e) => updateField('siteDescription', e.target.value)} /><small>{values.siteDescription.length}/170 karakter</small></label>
+    <div className="adm-set-serp-preview"><small>Pratinjau hasil pencarian</small><strong>{preview.siteTitle}</strong><span>{preview.siteUrl}</span><p>{preview.siteDescription}</p></div>
   </section>
 }
 
 function Visibility({ checked, disabled, onChange }: { checked: boolean; disabled: boolean; onChange: (value: boolean) => void }) {
-  return <label className="admin-visibility-toggle"><input type="checkbox" disabled={disabled} checked={checked} onChange={(event) => onChange(event.target.checked)} /><span>Tampil</span></label>
+  return <label className="adm-set-visibility-toggle"><input type="checkbox" disabled={disabled} checked={checked} onChange={(event) => onChange(event.target.checked)} /><span>Tampil</span></label>
 }
 
 function RowActions({ disabled, index, length, onMove, onDelete }: { disabled: boolean; index: number; length: number; onMove: (direction: -1 | 1) => void; onDelete: () => void }) {
-  return <div className="admin-row-actions"><button type="button" aria-label="Naikkan" disabled={disabled || index === 0} onClick={() => onMove(-1)}>↑</button><button type="button" aria-label="Turunkan" disabled={disabled || index === length - 1} onClick={() => onMove(1)}>↓</button><button type="button" disabled={disabled} onClick={onDelete}>Hapus</button></div>
+  return <div className="adm-row-actions">
+    <button className="adm-btn adm-btn--ghost adm-btn--icon" type="button" aria-label="Naikkan" disabled={disabled || index === 0} onClick={() => onMove(-1)}>↑</button>
+    <button className="adm-btn adm-btn--ghost adm-btn--icon" type="button" aria-label="Turunkan" disabled={disabled || index === length - 1} onClick={() => onMove(1)}>↓</button>
+    <button className="adm-set-remove-link" type="button" disabled={disabled} onClick={onDelete}>Hapus</button>
+  </div>
 }

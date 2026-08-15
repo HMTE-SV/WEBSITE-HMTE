@@ -1,0 +1,3 @@
+module.exports=[42523,a=>{"use strict";var b=a.i(7997);a.s(["default",0,function(){return(0,b.jsx)("main",{className:"admin-dashboard",children:(0,b.jsxs)("section",{className:"admin-main admin-route-loading","aria-live":"polite",children:[(0,b.jsx)("span",{className:"admin-kicker",children:"Admin HMTE"}),(0,b.jsx)("h1",{children:"Memuat halaman admin..."})]})})}])},32512,a=>{a.n(a.i(42523))}];
+
+//# sourceMappingURL=src_app_admin_%28protected%29_loading_tsx_0ez9lfl._.js.map

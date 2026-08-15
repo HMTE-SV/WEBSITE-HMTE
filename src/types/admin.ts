@@ -1,4 +1,5 @@
 import type { DivisionCode } from './content'
+import type { AdminPermission } from '@/lib/admin/permissions'
 
 export const adminRoles = ['superadmin', 'editor', 'viewer'] as const
 
@@ -20,6 +21,8 @@ export type AdminUser = {
    * terkunci sampai ditugaskan daripada terbuka ke semua bidang.
    */
   divisionCode?: DivisionCode
+  /** Modul panel yang boleh dibuka. Superadmin selalu memiliki semuanya. */
+  permissions: AdminPermission[]
   active: boolean
   /**
    * Sesi ini disusun dari dokumen `adminUsers`, bukan dari custom claims.

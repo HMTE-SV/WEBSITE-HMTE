@@ -1,6 +1,8 @@
 import { revalidatePath } from 'next/cache'
 import { NextResponse } from 'next/server'
 import { verifyFirebaseIdToken } from '@/lib/firebase/verify-id-token'
+import { readAdminClaims } from '@/lib/admin/claims'
+import { hasAdminPermission, type AdminPermission } from '@/lib/admin/permissions'
 
 /*
  * Menyegarkan halaman publik segera setelah panel menyimpan sesuatu.
@@ -22,12 +24,25 @@ import { verifyFirebaseIdToken } from '@/lib/firebase/verify-id-token'
 const revalidationTargets = {
   announcements: ['/pengumuman'],
   articles: ['/berita', '/'],
+  downloads: ['/arsip', '/template-dokumen', '/unduhan'],
   gallery: ['/galeri'],
   media: ['/'],
   organization: ['/kepengurusan', '/program-kerja', '/agenda', '/'],
   pages: ['/', '/kontak'],
+  publicData: ['/data'],
   settings: ['/'],
 } as const
+
+const revalidationPermissions: Record<Exclude<keyof typeof revalidationTargets, 'settings'>, AdminPermission[]> = {
+  announcements: ['announcements'],
+  articles: ['articles'],
+  downloads: ['downloads'],
+  gallery: ['gallery'],
+  media: ['media'],
+  organization: ['leaders', 'programs', 'divisions'],
+  pages: ['pages'],
+  publicData: ['publicData'],
+}
 
 export type RevalidationTarget = keyof typeof revalidationTargets
 
@@ -60,6 +75,21 @@ export async function POST(request: Request) {
    */
   if (target === 'articles') {
     revalidatePath('/berita/[slug]', 'page')
+  }
+
+  const { role, permissions } = readAdminClaims(user.claims)
+  const allowed = role === 'superadmin'
+    || (role === 'editor'
+      && target !== 'settings'
+      && revalidationPermissions[target as keyof typeof revalidationPermissions]
+        .some((permission) => hasAdminPermission({ role, permissions }, permission)))
+
+  if (!allowed) {
+    return NextResponse.json({ error: 'Akun ini tidak diberi akses untuk menyegarkan modul tersebut.' }, { status: 403 })
+  }
+
+  if (target === 'publicData') {
+    revalidatePath('/data/[slug]', 'page')
   }
 
   if (target === 'organization') {

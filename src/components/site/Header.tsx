@@ -149,7 +149,7 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
                     <Link
                       href={child.href}
                       className={child.href === activeHref ? 'active' : undefined}
-                      key={child.href}
+                      key={child.id}
                       onClick={closeAll}
                     >
                       {child.label}
@@ -160,22 +160,24 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
             )
           })}
         </nav>
-        <Link href={settings.headerCtaHref} className="hdr-cta">
-          {settings.headerCtaLabel}{' '}
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M5 12h14M13 5l7 7-7 7" />
-          </svg>
-        </Link>
+        {settings.headerCtaVisible ? (
+          <Link href={settings.headerCtaHref} className="hdr-cta">
+            {settings.headerCtaLabel}{' '}
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 5l7 7-7 7" />
+            </svg>
+          </Link>
+        ) : null}
       </div>
     </header>
   )

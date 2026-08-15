@@ -5,7 +5,18 @@ const eslintConfig = [
   ...nextVitals,
   ...nextTs,
   {
-    ignores: ['.next/**', 'node_modules/**', 'public/**', 'Testing/**', 'verification/**'],
+    ignores: [
+      '.next/**',
+      '**/.next/**',
+      '.claude/**',
+      '.next-stale-*/**',
+      '.recovery-residual-*/**',
+      '.codex-remote-attachments/**',
+      'node_modules/**',
+      'public/**',
+      'Testing/**',
+      'verification/**',
+    ],
   },
 ]
 

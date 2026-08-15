@@ -2,6 +2,8 @@
 
 import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AdminConfirmDialog } from './AdminConfirmDialog'
+import { AdminDrawer } from './AdminDrawer'
 import { AdminEmptyState } from './AdminEmptyState'
 import { AdminImageField } from './AdminImageField'
 import { useAdminSession } from './AdminSessionContext'
@@ -21,6 +23,12 @@ import { hasFirebaseConfig } from '@/lib/firebase/client'
 import type { ContentStatus } from '@/types/content'
 import type { GalleryDocument } from '@/types/firestore'
 
+/*
+ * Galeri memakai KISI, bukan baris — pengecualian yang disahkan §4 karena
+ * isinya memang visual. Menyunting tetap pindah ke laci kanan supaya kisinya
+ * tidak didorong keluar layar oleh formulir sebaris seperti sebelumnya.
+ */
+
 type GalleryFormValues = Pick<GalleryDocument, 'alt' | 'imageUrl' | 'status' | 'title'> & { caption: string }
 
 const emptyValues: GalleryFormValues = {
@@ -33,8 +41,14 @@ const emptyValues: GalleryFormValues = {
 
 const statusLabels: Record<ContentStatus, string> = {
   draft: 'Draft',
-  published: 'Published',
-  archived: 'Archived',
+  published: 'Terbit',
+  archived: 'Arsip',
+}
+
+const statusChipVariant: Record<ContentStatus, string> = {
+  draft: 'adm-chip--warn',
+  published: 'adm-chip--ok',
+  archived: '',
 }
 
 function formValuesFromItem(item: GalleryDocument): GalleryFormValues {
@@ -54,14 +68,16 @@ export function AdminGalleryManager() {
   const [values, setValues] = useState<GalleryFormValues>(emptyValues)
   const [loadedSnapshot, setLoadedSnapshot] = useState(JSON.stringify(emptyValues))
   const [editingId, setEditingId] = useState('')
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [feedback, setFeedback] = useState('')
   const [isLoading, setIsLoading] = useState(hasFirebaseConfig())
   const [isSaving, setIsSaving] = useState(false)
   const [busyId, setBusyId] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<GalleryDocument | null>(null)
   const isDirty = JSON.stringify(values) !== loadedSnapshot
 
-  useUnsavedChangesGuard(canWrite && isDirty)
+  useUnsavedChangesGuard(canWrite && isDrawerOpen && isDirty)
 
   const loadGallery = useCallback(async () => {
     if (!hasFirebaseConfig()) {
@@ -93,24 +109,28 @@ export function AdminGalleryManager() {
     setFeedback('')
   }
 
-  function resetEditor(force = false) {
-    if (!force && isDirty && !window.confirm('Buang perubahan galeri yang belum disimpan?')) return
+  function openCreateDrawer() {
     setValues(emptyValues)
     setLoadedSnapshot(JSON.stringify(emptyValues))
     setEditingId('')
     setErrors([])
     setFeedback('')
+    setIsDrawerOpen(true)
   }
 
-  function editItem(item: GalleryDocument) {
-    if (isDirty && !window.confirm('Buang perubahan galeri yang belum disimpan dan buka item lain?')) return
+  function openEditDrawer(item: GalleryDocument) {
     const nextValues = formValuesFromItem(item)
     setValues(nextValues)
     setLoadedSnapshot(JSON.stringify(nextValues))
     setEditingId(item.id)
     setErrors([])
     setFeedback('')
-    document.getElementById('gallery-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setIsDrawerOpen(true)
+  }
+
+  // AdminDrawer sendiri sudah menahan tutup dan minta konfirmasi selama dirty.
+  function closeDrawer() {
+    setIsDrawerOpen(false)
   }
 
   async function handleSave(event: React.FormEvent<HTMLFormElement>) {
@@ -137,9 +157,8 @@ export function AdminGalleryManager() {
         await createContentDocument<GalleryDocument>('gallery', { ...payload, order: nextOrder })
         setFeedback(values.status === 'published' ? 'Gambar ditambahkan dan diterbitkan.' : 'Draft galeri berhasil dibuat.')
       }
-      setValues(emptyValues)
-      setLoadedSnapshot(JSON.stringify(emptyValues))
-      setEditingId('')
+      setLoadedSnapshot(JSON.stringify(values))
+      setIsDrawerOpen(false)
       await loadGallery()
       await requestRevalidation('gallery')
     } catch (saveError) {
@@ -168,14 +187,16 @@ export function AdminGalleryManager() {
     }
   }
 
-  async function handleDelete(item: GalleryDocument) {
-    if (!window.confirm(`Hapus gambar "${item.title}"? File ImageKit tidak ikut dihapus.`)) return
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    const item = deleteTarget
     setBusyId(item.id)
     setErrors([])
     setFeedback('')
     try {
       await deleteContentDocument('gallery', item.id)
-      if (editingId === item.id) resetEditor(true)
+      if (editingId === item.id) closeDrawer()
+      setDeleteTarget(null)
       await loadGallery()
       await requestRevalidation('gallery')
       setFeedback('Data gambar dihapus dari Firestore. File asli tetap tersimpan di ImageKit.')
@@ -186,60 +207,120 @@ export function AdminGalleryManager() {
     }
   }
 
-  return (
-    <AdminShell activeHref="/admin/gallery" description="Edit metadata, status publikasi, dan urutan foto kegiatan HMTE." kicker="Galeri" title="Kelola galeri">
-      {!hasFirebaseConfig() ? (
-        <AdminEmptyState body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat mengelola galeri." kicker="Konfigurasi" title="Firebase belum siap." />
-      ) : (
-        <div className="admin-gallery-workspace">
-          <section className="admin-gallery-summary">
-            <div><span>Arsip visual</span><strong>{items.length}</strong><small>total item</small></div>
-            <div><span>Terbit</span><strong>{publishedCount}</strong><small>tampil publik</small></div>
-            <p>Urutan panel sama dengan urutan halaman publik. Draft dan arsip tetap tersimpan tetapi tidak terlihat pengunjung.</p>
-          </section>
+  const primaryAction = canWrite ? (
+    <button className="adm-btn" type="button" onClick={openCreateDrawer}>+ Tambah item</button>
+  ) : null
 
-          {canWrite ? (
-            <form className="admin-content-form admin-gallery-editor" id="gallery-editor" onSubmit={handleSave}>
-              <header><div><span>{editingId ? 'Edit item' : 'Item baru'}</span><h2>{editingId ? 'Perbarui foto galeri.' : 'Tambahkan dokumentasi.'}</h2></div>{editingId ? <button className="admin-secondary-button" type="button" onClick={() => resetEditor()}>Batal edit</button> : null}</header>
-              <div className="admin-form-grid">
-                <div className="admin-field"><label htmlFor="gallery-title">Judul gambar</label><input id="gallery-title" value={values.title} maxLength={180} onChange={(event) => updateField('title', event.target.value)} /><small>{values.title.length}/180</small></div>
-                <div className="admin-field"><label htmlFor="gallery-status">Status</label><select id="gallery-status" value={values.status} onChange={(event) => updateField('status', event.target.value as ContentStatus)}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select><small>{values.status === 'published' ? 'Tampil di galeri publik' : values.status === 'draft' ? 'Hanya terlihat admin' : 'Disimpan sebagai arsip'}</small></div>
-              </div>
-              <AdminImageField folder="galeri" hint="Pemilih otomatis membuka kategori Galeri. Maksimal 5MB, JPG, PNG, atau WebP." label="Gambar" onChange={(value) => updateField('imageUrl', value)} value={values.imageUrl} />
-              <div className="admin-field"><label htmlFor="gallery-alt">Deskripsi gambar</label><input id="gallery-alt" value={values.alt} maxLength={240} onChange={(event) => updateField('alt', event.target.value)} placeholder="Jelaskan apa yang terlihat untuk pembaca layar" /><small>{values.alt.length}/240 · wajib sebelum published</small></div>
-              <div className="admin-field"><label htmlFor="gallery-caption">Caption</label><textarea id="gallery-caption" value={values.caption} maxLength={500} onChange={(event) => updateField('caption', event.target.value)} rows={3} /><small>{values.caption.length}/500</small></div>
-              {errors.length ? <div className="admin-form-error" role="alert">{errors.map((message) => <p key={message}>{message}</p>)}</div> : null}
-              {feedback ? <p className="admin-form-success" role="status">{feedback}</p> : null}
-              <div className="admin-form-actions"><span>{isDirty ? 'Perubahan belum disimpan' : 'Editor bersih'}</span><button className="admin-primary-button" type="submit" disabled={isSaving}>{isSaving ? 'Menyimpan...' : editingId ? 'Simpan perubahan' : 'Simpan item'}</button></div>
-            </form>
-          ) : <AdminEmptyState body="Role viewer dapat melihat galeri, tetapi tidak dapat mengubahnya." kicker="Akses" title="Mode lihat saja" />}
+  return (
+    <AdminShell activeHref="/admin/gallery" title="Galeri" actions={primaryAction}>
+      {!hasFirebaseConfig() ? (
+        <AdminEmptyState body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat mengelola galeri." title="Firebase belum siap." />
+      ) : (
+        <>
+          <p className="adp-summary">
+            <strong>{items.length}</strong> total item · <strong>{publishedCount}</strong> tampil publik. Urutan panel sama dengan urutan halaman publik.
+          </p>
+
+          {!canWrite ? (
+            <p className="adp-inline-error" role="status">Role viewer dapat melihat galeri, tetapi tidak dapat mengubahnya.</p>
+          ) : null}
+
+          {errors.length ? <div className="adp-inline-error" role="alert">{errors.map((message) => <p key={message}>{message}</p>)}</div> : null}
+          {feedback ? <p className="adp-inline-success" role="status">{feedback}</p> : null}
 
           {isLoading ? (
-            <AdminEmptyState body="Mohon tunggu sebentar." kicker="Memuat" title="Mengambil data galeri..." />
+            <div className="adp-grid" aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, index) => <div className="adm-skeleton adp-tile-skeleton" key={index} />)}
+            </div>
           ) : items.length === 0 ? (
-            <AdminEmptyState body="Buat draft pertama untuk mulai mengisi galeri publik." title="Belum ada gambar galeri." />
+            <AdminEmptyState
+              title="Belum ada gambar galeri."
+              body="Foto kegiatan HMTE akan tampil di sini begitu ditambahkan. Buat draft pertama untuk mulai mengisi galeri publik."
+              action={primaryAction}
+            />
           ) : (
-            <div className="admin-gallery-grid">
+            <div className="adp-grid">
               {items.map((item, index) => (
-                <article className="admin-gallery-item" data-status={item.status} key={item.id}>
-                  <div className="admin-gallery-image">{item.imageUrl ? <Image src={item.imageUrl} alt={item.alt || ''} width={640} height={360} /> : <span>Draft tanpa gambar</span>}<b>{String(index + 1).padStart(2, '0')}</b></div>
-                  <div className="admin-gallery-item-copy">
-                    <span className="admin-gallery-status">{statusLabels[item.status]}</span>
+                <article className="adp-tile" data-status={item.status} key={item.id}>
+                  <div className="adp-tile-media">
+                    {item.imageUrl ? (
+                      <Image src={item.imageUrl} alt={item.alt || ''} width={480} height={300} />
+                    ) : (
+                      <span>Draft tanpa gambar</span>
+                    )}
+                    <b className="adp-tile-index">{String(index + 1).padStart(2, '0')}</b>
+                  </div>
+                  <div className="adp-tile-body">
+                    <span className={`adm-chip ${statusChipVariant[item.status]}`.trim()}>{statusLabels[item.status]}</span>
                     <strong>{item.title || 'Tanpa judul'}</strong>
                     {item.caption ? <p>{item.caption}</p> : null}
-                    <div className="admin-gallery-item-actions">
-                      <button type="button" disabled={!canWrite || busyId === `order:${item.id}` || index === 0} onClick={() => void moveItem(item, -1)}>↑ Naik</button>
-                      <button type="button" disabled={!canWrite || busyId === `order:${item.id}` || index === items.length - 1} onClick={() => void moveItem(item, 1)}>↓ Turun</button>
-                      {canWrite ? <button type="button" onClick={() => editItem(item)}>Edit</button> : null}
-                      {canWrite ? <button className="is-danger" type="button" onClick={() => void handleDelete(item)} disabled={busyId === item.id}>Hapus</button> : null}
+                    <div className="adp-tile-actions">
+                      <button type="button" aria-label="Naikkan urutan" disabled={!canWrite || busyId === `order:${item.id}` || index === 0} onClick={() => void moveItem(item, -1)}>↑</button>
+                      <button type="button" aria-label="Turunkan urutan" disabled={!canWrite || busyId === `order:${item.id}` || index === items.length - 1} onClick={() => void moveItem(item, 1)}>↓</button>
+                      {canWrite ? <button className="adm-btn adm-btn--ghost" type="button" onClick={() => openEditDrawer(item)}>Edit</button> : null}
+                      {canWrite ? <button className="adm-btn adm-btn--danger" type="button" onClick={() => setDeleteTarget(item)} disabled={busyId === item.id}>Hapus</button> : null}
                     </div>
                   </div>
                 </article>
               ))}
             </div>
           )}
-        </div>
+        </>
       )}
+
+      {isDrawerOpen ? (
+        <AdminDrawer
+          title={editingId ? 'Edit item galeri' : 'Item galeri baru'}
+          isDirty={isDirty}
+          onClose={closeDrawer}
+          footer={
+            <>
+              <span>{isDirty ? 'Belum disimpan' : 'Tersimpan'}</span>
+              <button className="adm-btn" form="gallery-editor-form" type="submit" disabled={isSaving}>
+                {isSaving ? 'Menyimpan...' : editingId ? 'Simpan perubahan' : 'Simpan item'}
+              </button>
+            </>
+          }
+        >
+          <form className="adp-drawer-form" id="gallery-editor-form" onSubmit={handleSave}>
+            <div className="adm-field">
+              <label htmlFor="gallery-title">Judul gambar</label>
+              <input id="gallery-title" value={values.title} maxLength={180} onChange={(event) => updateField('title', event.target.value)} />
+              <small>{values.title.length}/180</small>
+            </div>
+            <div className="adm-field">
+              <label htmlFor="gallery-status">Status</label>
+              <select id="gallery-status" value={values.status} onChange={(event) => updateField('status', event.target.value as ContentStatus)}>
+                <option value="draft">Draft</option>
+                <option value="published">Terbit</option>
+                <option value="archived">Arsip</option>
+              </select>
+            </div>
+            <AdminImageField folder="galeri" hint="Pemilih otomatis membuka kategori Galeri. Maksimal 5MB, JPG, PNG, atau WebP." label="Gambar" onChange={(value) => updateField('imageUrl', value)} value={values.imageUrl} />
+            <div className="adm-field">
+              <label htmlFor="gallery-alt">Deskripsi gambar</label>
+              <input id="gallery-alt" value={values.alt} maxLength={240} onChange={(event) => updateField('alt', event.target.value)} placeholder="Jelaskan apa yang terlihat untuk pembaca layar" />
+              <small>{values.alt.length}/240 · wajib sebelum terbit</small>
+            </div>
+            <div className="adm-field">
+              <label htmlFor="gallery-caption">Caption</label>
+              <textarea id="gallery-caption" value={values.caption} maxLength={500} onChange={(event) => updateField('caption', event.target.value)} rows={3} />
+              <small>{values.caption.length}/500</small>
+            </div>
+            {errors.length ? <div className="adp-inline-error" role="alert">{errors.map((message) => <p key={message}>{message}</p>)}</div> : null}
+          </form>
+        </AdminDrawer>
+      ) : null}
+
+      {deleteTarget ? (
+        <AdminConfirmDialog
+          title="Hapus gambar galeri?"
+          body={`"${deleteTarget.title || 'Gambar ini'}" akan dihapus dari Firestore. File ImageKit tidak ikut terhapus.`}
+          isBusy={busyId === deleteTarget.id}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => void confirmDelete()}
+        />
+      ) : null}
     </AdminShell>
   )
 }

@@ -1,0 +1,6 @@
+1:I[39756,["/_next/static/chunks/01xlw8hd842-c.js","/_next/static/chunks/0d3shmwh5_nmn.js"],"LoadingBoundaryProvider"]
+2:"$Sreact.fragment"
+3:I[73183,["/_next/static/chunks/15kvxl3nxwftb.js","/_next/static/chunks/07bgzxhr8i~id.js","/_next/static/chunks/0j.us98wdkq_b.js"],"AdminAuthGuard"]
+4:I[39756,["/_next/static/chunks/01xlw8hd842-c.js","/_next/static/chunks/0d3shmwh5_nmn.js"],"default"]
+5:I[37457,["/_next/static/chunks/01xlw8hd842-c.js","/_next/static/chunks/0d3shmwh5_nmn.js"],"default"]
+0:{"rsc":["$","$L1",null,{"loading":[["$","main","l",{"className":"admin-dashboard","children":["$","section",null,{"className":"admin-main admin-route-loading","aria-live":"polite","children":[["$","span",null,{"className":"admin-kicker","children":"Admin HMTE"}],["$","h1",null,{"children":"Memuat halaman admin..."}]]}]}],[],[]],"children":["$","$2","c",{"children":[[["$","script","script-0",{"src":"/_next/static/chunks/07bgzxhr8i~id.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/0j.us98wdkq_b.js","async":true}]],["$","$L3",null,{"children":["$","$L4",null,{"parallelRouterKey":"children","template":["$","$L5",null,{}]}]}]]}]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"n2o9p9G_-Jay7nQSuTMDL"}

@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // Memungkinkan build verifikasi berjalan berdampingan dengan `next dev`
+  // tanpa berebut lock `.next`. Vercel tetap memakai `.next` secara default.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   images: {
     remotePatterns: [
       {

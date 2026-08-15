@@ -641,15 +641,15 @@ export function AdminRichTextEditor({ onChange, value }: AdminRichTextEditorProp
             />
           </label>
           <div className="admin-editor-panel-actions">
-            <button className="admin-primary-button" type="button" onClick={applyLink}>
+            <button className="adm-btn" type="button" onClick={applyLink}>
               Pasang
             </button>
             {toolbarState.isLink ? (
-              <button className="admin-secondary-button" type="button" onClick={removeLink}>
+              <button className="adm-btn adm-btn--ghost" type="button" onClick={removeLink}>
                 Lepas
               </button>
             ) : null}
-            <button className="admin-secondary-button" type="button" onClick={() => setPanel('none')}>
+            <button className="adm-btn adm-btn--ghost" type="button" onClick={() => setPanel('none')}>
               Batal
             </button>
           </div>
@@ -678,7 +678,7 @@ export function AdminRichTextEditor({ onChange, value }: AdminRichTextEditorProp
           </label>
           <div className="admin-editor-panel-actions">
             <button
-              className="admin-primary-button"
+              className="adm-btn"
               type="button"
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
@@ -686,7 +686,7 @@ export function AdminRichTextEditor({ onChange, value }: AdminRichTextEditorProp
               {isUploading ? 'Mengunggah...' : 'Unggah dari perangkat'}
             </button>
             <button
-              className="admin-secondary-button"
+              className="adm-btn adm-btn--ghost"
               type="button"
               disabled={!imageUrlDraft.trim()}
               onClick={() => {
@@ -699,7 +699,7 @@ export function AdminRichTextEditor({ onChange, value }: AdminRichTextEditorProp
             >
               Sisipkan dari URL
             </button>
-            <button className="admin-secondary-button" type="button" onClick={() => setPanel('none')}>
+            <button className="adm-btn adm-btn--ghost" type="button" onClick={() => setPanel('none')}>
               Batal
             </button>
           </div>
@@ -754,10 +754,10 @@ export function AdminRichTextEditor({ onChange, value }: AdminRichTextEditorProp
           ) : null}
 
           <div className="admin-editor-panel-actions">
-            <button className="admin-primary-button" type="button" disabled={!resolvedEmbed} onClick={insertEmbed}>
+            <button className="adm-btn" type="button" disabled={!resolvedEmbed} onClick={insertEmbed}>
               Sisipkan
             </button>
-            <button className="admin-secondary-button" type="button" onClick={() => setPanel('none')}>
+            <button className="adm-btn adm-btn--ghost" type="button" onClick={() => setPanel('none')}>
               Batal
             </button>
           </div>

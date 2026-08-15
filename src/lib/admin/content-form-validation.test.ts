@@ -77,6 +77,21 @@ describe('admin content form validation', () => {
     })
   })
 
+  it('accepts optional publication context for an article', () => {
+    const result = validateArticleInput({
+      title: 'Website HMTE resmi diluncurkan',
+      slug: 'website-hmte-resmi-diluncurkan',
+      excerpt: 'Kanal informasi resmi untuk mahasiswa TRE.',
+      content: '<p>Website ini menghubungkan informasi organisasi dan program kerja.</p>',
+      category: 'berita-utama',
+      publisher: 'Bidang Komunikasi dan Informasi',
+      relatedProgram: 'Website HMTE',
+      status: 'published',
+    })
+
+    expect(result).toEqual({ success: true, errors: [] })
+  })
+
   it('rejects empty rich text and non-ImageKit covers', () => {
     const result = validateArticleInput({
       title: 'Berita HMTE',

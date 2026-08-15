@@ -77,6 +77,7 @@ async function main() {
     const next = buildAdminClaims({
       active: data.active !== false,
       divisionCode: typeof data.divisionCode === 'string' ? data.divisionCode : null,
+      permissions: data.permissions,
       role: data.role,
     })
 
@@ -84,7 +85,11 @@ async function main() {
       const account = await getAuth().getUser(uid)
       const current = readAdminClaims(account.customClaims || {})
 
-      if (claimsAreEqual({ divisionCode: current.divisionCode, role: current.role ?? undefined }, next)) {
+      if (claimsAreEqual({
+        divisionCode: current.divisionCode,
+        permissions: current.permissions,
+        role: current.role ?? undefined,
+      }, next)) {
         dilewati += 1
         continue
       }
@@ -94,7 +99,7 @@ async function main() {
       }
 
       const ringkasan = next.role
-        ? `${next.role}${next.divisionCode ? ` / ${next.divisionCode}` : ''}`
+        ? `${next.role}${next.divisionCode ? ` / ${next.divisionCode}` : ''} · ${next.permissions?.length ?? 'semua'} modul`
         : 'tanpa akses (nonaktif)'
       console.log(`  set    ${label}: ${ringkasan}`)
       diperbarui += 1

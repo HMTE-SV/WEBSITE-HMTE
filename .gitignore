@@ -12,6 +12,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .next-local
+.next-local-dev
+.next-rbac-check
 verification
 .codex-run
 outputs

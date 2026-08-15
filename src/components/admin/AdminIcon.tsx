@@ -15,6 +15,7 @@ export function AdminIcon({ name }: { name: AdminNavIcon }) {
   if (name === 'announcement') return <svg {...props}><path d="M4 13V9l13-5v14L4 13Z" /><path d="M7 14v5h4l-1-4M17 9h3M18 6l2-2M18 16l2 2" /></svg>
   if (name === 'calendar') return <svg {...props}><path d="M5 4h14a1 1 0 0 1 1 1v15H4V5a1 1 0 0 1 1-1ZM8 2v4M16 2v4M4 9h16" /><path d="M8 13h2M14 13h2M8 17h2" /></svg>
   if (name === 'article') return <svg {...props}><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5M9 12h7M9 16h7" /></svg>
+  if (name === 'data') return <svg {...props}><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></svg>
   if (name === 'page') return <svg {...props}><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5" /></svg>
   if (name === 'gallery') return <svg {...props}><rect x="3" y="4" width="18" height="16" rx="1" /><circle cx="9" cy="10" r="2" /><path d="m4 18 5-4 3 2 3-3 5 5" /></svg>
   if (name === 'media') return <svg {...props}><path d="M3 6h7l2 2h9v11H3z" /><circle cx="9" cy="13" r="2" /><path d="m4 18 4-3 3 2 3-3 5 4" /></svg>

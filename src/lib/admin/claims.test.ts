@@ -15,6 +15,7 @@ describe('buildAdminClaims', () => {
   it('editor membawa bidangnya', () => {
     expect(buildAdminClaims({ active: true, divisionCode: 'IPTEK', role: 'editor' })).toEqual({
       divisionCode: 'IPTEK',
+      permissions: ['media', 'programs'],
       role: 'editor',
     })
   })
@@ -26,6 +27,7 @@ describe('buildAdminClaims', () => {
    */
   it('editor tanpa bidang tidak mendapat divisionCode kosong', () => {
     expect(buildAdminClaims({ active: true, divisionCode: '  ', role: 'editor' })).toEqual({
+      permissions: ['media', 'programs'],
       role: 'editor',
     })
   })
@@ -33,16 +35,25 @@ describe('buildAdminClaims', () => {
 
 describe('readAdminClaims', () => {
   it('token pengunjung biasa tidak menghasilkan role', () => {
-    expect(readAdminClaims({})).toEqual({ divisionCode: '', role: null })
+    expect(readAdminClaims({})).toEqual({ divisionCode: '', permissions: [], role: null })
   })
 
   it('role yang tidak dikenal ditolak, bukan diteruskan', () => {
-    expect(readAdminClaims({ role: 'dewa' })).toEqual({ divisionCode: '', role: null })
+    expect(readAdminClaims({ role: 'dewa' })).toEqual({ divisionCode: '', permissions: [], role: null })
   })
 
   it('membaca role dan bidang dari payload token', () => {
     expect(readAdminClaims({ divisionCode: 'PH', role: 'editor' })).toEqual({
       divisionCode: 'PH',
+      permissions: ['media', 'programs'],
+      role: 'editor',
+    })
+  })
+
+  it('menyaring permission asing dari token', () => {
+    expect(readAdminClaims({ role: 'editor', permissions: ['publicData', 'root'] })).toEqual({
+      divisionCode: '',
+      permissions: ['publicData'],
       role: 'editor',
     })
   })
@@ -61,5 +72,12 @@ describe('claimsAreEqual', () => {
 
   it('membedakan akun yang baru dinonaktifkan', () => {
     expect(claimsAreEqual({ role: 'editor' }, {})).toBe(false)
+  })
+
+  it('membedakan perubahan akses modul', () => {
+    expect(claimsAreEqual(
+      { role: 'editor', permissions: ['media'] },
+      { role: 'editor', permissions: ['media', 'publicData'] },
+    )).toBe(false)
   })
 })

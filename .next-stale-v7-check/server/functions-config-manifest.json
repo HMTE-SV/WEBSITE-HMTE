@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/admin/accounts": {},
+    "/api/admin/media": {},
+    "/api/imagekit-auth": {},
+    "/api/revalidate": {}
+  }
+}

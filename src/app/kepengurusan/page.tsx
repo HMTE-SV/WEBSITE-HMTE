@@ -40,8 +40,7 @@ export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Kepengurusan HMTE TRE SV UGM',
-  description:
-    'Delapan unsur organisasi dan seluruh anggota kepengurusan HMTE TRE SV UGM dalam satu direktori.',
+  description: 'Delapan unsur organisasi dan seluruh anggota kepengurusan HMTE TRE SV UGM.',
 }
 
 export default async function LeadershipPage() {
@@ -68,7 +67,7 @@ export default async function LeadershipPage() {
       <section className="soft-surface" aria-labelledby="leadership-title">
         <div className="soft-shell">
           <header className="ppl-hero has-hero-backdrop">
-            <HeroBackdrop variant="drift" mesh={false} />
+            <HeroBackdrop variant="drift" />
             <div className="ppl-hero-copy">
               <p>
                 {cabinetTitle} · {settings.periodLabel}
@@ -76,10 +75,6 @@ export default async function LeadershipPage() {
               <h1 id="leadership-title">
                 Satu kabinet, <span>{totalLeaders} orang di dalamnya.</span>
               </h1>
-              <p className="ppl-hero-lead">
-                Delapan unsur organisasi dan seluruh pengurusnya ada di halaman ini. Mulai dari
-                bidangnya, atau langsung cari nama dan jabatan.
-              </p>
               <dl className="ppl-hero-stats" aria-label="Ringkasan organisasi">
                 <div>
                   <dt>Unsur</dt>
@@ -110,7 +105,7 @@ export default async function LeadershipPage() {
             <header className="division-index-board-head">
               <div>
                 <span>{String(divisions.length).padStart(2, '0')} ruang kerja</span>
-                <h2 id="division-board-title">Mulai dari bidangnya.</h2>
+                <h2 id="division-board-title">Bidang organisasi.</h2>
               </div>
               <p>Setiap panel membuka anggota dan agenda bidang terkait.</p>
             </header>

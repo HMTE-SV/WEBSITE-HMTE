@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArticleCover } from '@/components/site/ArticleCover'
 import { PublicPageFrame } from '@/components/site/PublicPage'
 import { getPublishedArticleBySlug, getPublishedArticleFeed } from '@/lib/article-data'
+import { getProgramHref } from '@/lib/organization-slugs'
 
 /* Alasan sama dengan /berita. Lihat komentar di src/app/berita/page.tsx. */
 export const revalidate = 300
@@ -34,6 +35,7 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
     return {
       title: `${article.title} | HMTE TRE SV UGM`,
       description: article.excerpt,
+      authors: [{ name: article.publisher }],
       openGraph: {
         title: article.title,
         description: article.excerpt,
@@ -43,6 +45,7 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
         // pratinjau jatuh ke gambar bawaan situs, yang jujur.
         ...(article.image ? { images: [article.image] } : {}),
         type: 'article',
+        ...(article.dateIso ? { publishedTime: article.dateIso } : {}),
       },
     }
   } catch {
@@ -59,6 +62,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
   const relatedArticles = (await getPublishedArticleFeed())
     .filter((item) => item.slug !== article.slug && item.categoryKey === article.categoryKey)
     .slice(0, 3)
+  const showArticleMeta = article.showArticleMeta !== false
 
   return (
     <PublicPageFrame activeHref="/berita">
@@ -72,11 +76,6 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
               <span>{article.categoryLabel}</span>
               <h1>{article.title}</h1>
               <p>{article.excerpt}</p>
-              <div className="article-story-byline" aria-label="Informasi artikel">
-                <strong>{article.publisher}</strong>
-                <time dateTime={article.dateIso || undefined}>{article.publishedLabel}</time>
-                <span>{article.readTime}</span>
-              </div>
             </div>
           </div>
         </header>
@@ -95,18 +94,22 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
         </div>
 
         <section className="article-story-body" aria-label="Isi berita">
-          <div className="public-shell article-story-body-grid">
-            <aside className="article-story-facts">
-              <span>Informasi publikasi</span>
-              <dl>
-                <div><dt>Penerbit</dt><dd>{article.publisher}</dd></div>
-                <div><dt>Kanal</dt><dd>{article.categoryLabel}</dd></div>
-                <div><dt>Terbit</dt><dd>{article.publishedLabel}</dd></div>
-                <div><dt>Waktu baca</dt><dd>{article.readTime}</dd></div>
-              </dl>
-            </aside>
+          <div className={`public-shell article-story-body-grid${showArticleMeta ? '' : ' article-story-body-grid--without-meta'}`}>
+            {showArticleMeta ? (
+              <aside className="article-story-facts" aria-label="Informasi publikasi">
+                <div className="article-story-facts-heading">
+                  <span><i aria-hidden="true" /> Informasi artikel</span>
+                  <small>Detail publikasi resmi</small>
+                </div>
+                <dl>
+                  <div><dt>Penerbit</dt><dd>{article.publisher}</dd></div>
+                  <div><dt>Terbit</dt><dd>{article.publishedLabel}</dd></div>
+                  <div><dt>Kategori</dt><dd>{article.categoryLabel}</dd></div>
+                  <div><dt>Program terkait</dt><dd>{article.relatedProgram ? <Link href={getProgramHref({ name: article.relatedProgram })}>{article.relatedProgram}<span aria-hidden="true">↗</span></Link> : 'Tidak terkait program tertentu'}</dd></div>
+                </dl>
+              </aside>
+            ) : null}
             <div className="article-story-copy">
-              <p className="article-story-lead">{article.excerpt}</p>
               <div className="article-rich-content" dangerouslySetInnerHTML={{ __html: article.contentHtml }} />
               <div className="article-story-note">
                 <span>Catatan redaksi</span>

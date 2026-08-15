@@ -26,8 +26,10 @@ export function validateSiteSettings(settings: SiteSettings) {
   requireText(settings.programName, 'Program studi', 'identity')
   requireText(settings.universityName, 'Universitas', 'identity')
   if (!Number.isInteger(settings.agendaYear) || settings.agendaYear < 2000 || settings.agendaYear > 2200) issues.push({ tab: 'identity', message: 'Tahun agenda harus berupa tahun yang valid.' })
-  requireText(settings.headerCtaLabel, 'Label tombol header', 'header')
-  if (!isValidEditorialUrl(settings.headerCtaHref)) issues.push({ tab: 'header', message: 'Tujuan tombol header harus berupa path internal atau URL yang sah.' })
+  if (settings.headerCtaVisible) {
+    requireText(settings.headerCtaLabel, 'Label tombol header', 'header')
+    if (!isValidEditorialUrl(settings.headerCtaHref)) issues.push({ tab: 'header', message: 'Tujuan tombol header harus berupa path internal atau URL yang sah.' })
+  }
 
   for (const item of settings.navigation.filter((entry) => entry.visible)) {
     requireText(item.label, 'Label menu yang ditampilkan', 'header')

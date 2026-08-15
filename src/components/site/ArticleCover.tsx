@@ -53,12 +53,7 @@ export function ArticleCover({
 
   return (
     <span className={className ? `article-cover-art ${className}` : 'article-cover-art'} data-flip={flip}>
-      {/*
-        `mesh` dimatikan. Kisi 88px dirancang untuk hero selebar layar; di dalam
-        kartu selebar 320px ia tinggal empat garis dan langsung terbaca sebagai
-        garis, bukan tekstur.
-      */}
-      <HeroBackdrop mesh={false} variant={variant} />
+      <HeroBackdrop variant={variant} />
     </span>
   )
 }

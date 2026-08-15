@@ -54,6 +54,8 @@ function toPublicArticle(document: ArticleDocument): PublicArticle {
     image: document.coverImage || '',
     publisher: document.publisher || defaultPublisher,
     publisherIcon: '/assets/favicon.svg',
+    relatedProgram: document.relatedProgram?.trim() || undefined,
+    showArticleMeta: document.showArticleMeta !== false,
     publishedLabel,
     readTime: document.readTime || getReadingTime(document.content),
     slug: document.slug,

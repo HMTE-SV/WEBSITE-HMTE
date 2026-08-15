@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -43,6 +44,7 @@ import type {
   GalleryDocument,
   MediaDocument,
   PublishableDocument,
+  PublicDataDocument,
 } from '@/types/firestore'
 
 export type CreateDocumentInput<T extends FirestoreDocument> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
@@ -188,7 +190,7 @@ function applyPublicationTimestamp(
   payload: DocumentData,
   currentData?: DocumentData,
 ) {
-  if (!['announcements', 'articles', 'gallery'].includes(collectionName) || !('status' in data)) {
+  if (!['announcements', 'articles', 'gallery', 'publicData'].includes(collectionName) || !('status' in data)) {
     return
   }
 
@@ -211,6 +213,25 @@ export async function listContentDocuments<T extends FirestoreDocument>(
 ) {
   const snapshot = await getDocs(query(getCollection<T>(collectionName), ...constraints))
   return snapshot.docs.map((documentSnapshot) => documentSnapshot.data())
+}
+
+/**
+ * Menghitung dokumen tanpa mengunduh isinya.
+ *
+ * Dasbor admin hanya perlu angka ("71 pengurus", "37 program"), bukan tiap
+ * bidang dari tiap dokumen. `listContentDocuments` menarik seluruh dokumen ke
+ * klien untuk sekadar menghitung `.length`-nya — mahal begitu koleksi bertambah
+ * besar, dan makin sia-sia karena dasbor cuma menampilkan sebuah angka.
+ * `getCountFromServer` menghitung di sisi Firestore dan mengirim satu bilangan.
+ */
+export async function countContentDocuments(
+  collectionName: FirestoreCollectionName,
+  constraints: QueryConstraint[] = [],
+) {
+  const snapshot = await getCountFromServer(
+    query(collection(getFirebaseDb(), collectionName), ...constraints),
+  )
+  return snapshot.data().count
 }
 
 /**
@@ -614,12 +635,24 @@ export function listPublishedArticles(maxItems?: number) {
   return listPublishedDocuments<ArticleDocument>('articles', 'publishedAt', 'desc', maxItems)
 }
 
-export async function isArticleSlugAvailable(slug: string, excludedDocumentId?: string) {
+export async function isContentSlugAvailable(
+  collectionName: Extract<FirestoreCollectionName, 'articles' | 'publicData'>,
+  slug: string,
+  excludedDocumentId?: string,
+) {
   const snapshot = await getDocs(
-    query(collection(getFirebaseDb(), 'articles'), where('slug', '==', slug), limit(2)),
+    query(collection(getFirebaseDb(), collectionName), where('slug', '==', slug), limit(2)),
   )
 
   return snapshot.docs.every((documentSnapshot) => documentSnapshot.id === excludedDocumentId)
+}
+
+export function isArticleSlugAvailable(slug: string, excludedDocumentId?: string) {
+  return isContentSlugAvailable('articles', slug, excludedDocumentId)
+}
+
+export function listPublishedPublicData(maxItems?: number) {
+  return listPublishedDocuments<PublicDataDocument>('publicData', 'publishedAt', 'desc', maxItems)
 }
 
 export function listPublishedGalleryItems(maxItems?: number) {

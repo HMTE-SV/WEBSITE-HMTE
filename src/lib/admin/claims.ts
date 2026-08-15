@@ -1,4 +1,8 @@
 import { isAdminRole, type AdminRole } from '@/types/admin'
+import {
+  normalizeAdminPermissions,
+  type AdminPermission,
+} from './permissions'
 
 /*
  * Bentuk custom claims yang ditempelkan ke akun admin.
@@ -17,11 +21,13 @@ import { isAdminRole, type AdminRole } from '@/types/admin'
 export type AdminClaims = {
   role?: AdminRole
   divisionCode?: string
+  permissions?: AdminPermission[]
 }
 
 export type AdminClaimsInput = {
   role: AdminRole
   divisionCode?: string | null
+  permissions?: unknown
   active: boolean
 }
 
@@ -40,27 +46,39 @@ export function buildAdminClaims(input: AdminClaimsInput): AdminClaims {
     return {}
   }
 
-  if (input.role !== 'editor') {
+  if (input.role === 'superadmin') {
     return { role: input.role }
+  }
+
+  const permissions = normalizeAdminPermissions(input.role, input.permissions)
+
+  if (input.role === 'viewer') {
+    return { role: input.role, permissions }
   }
 
   const divisionCode = (input.divisionCode || '').trim()
 
-  return divisionCode ? { role: 'editor', divisionCode } : { role: 'editor' }
+  return divisionCode
+    ? { role: 'editor', divisionCode, permissions }
+    : { role: 'editor', permissions }
 }
 
 export type ResolvedAdminClaims = {
   role: AdminRole | null
   divisionCode: string
+  permissions: AdminPermission[]
 }
 
 /** Membaca claims dari payload token yang sudah diverifikasi tanda tangannya. */
 export function readAdminClaims(token: Record<string, unknown>): ResolvedAdminClaims {
   const role = token.role
 
+  const resolvedRole = isAdminRole(role) ? role : null
+
   return {
-    role: isAdminRole(role) ? role : null,
+    role: resolvedRole,
     divisionCode: typeof token.divisionCode === 'string' ? token.divisionCode : '',
+    permissions: resolvedRole ? normalizeAdminPermissions(resolvedRole, token.permissions) : [],
   }
 }
 
@@ -71,6 +89,11 @@ export function readAdminClaims(token: Record<string, unknown>): ResolvedAdminCl
  * yang sudah benar bukan sekadar sia-sia: ia mengganggu sesi yang sedang jalan.
  */
 export function claimsAreEqual(current: AdminClaims, next: AdminClaims) {
+  const currentPermissions = current.permissions || []
+  const nextPermissions = next.permissions || []
+
   return (current.role || '') === (next.role || '')
     && (current.divisionCode || '') === (next.divisionCode || '')
+    && currentPermissions.length === nextPermissions.length
+    && currentPermissions.every((permission, index) => permission === nextPermissions[index])
 }

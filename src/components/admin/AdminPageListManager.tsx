@@ -4,40 +4,48 @@ import Link from 'next/link'
 import { AdminShell } from './AdminShell'
 import { pageDefinitions, pageKeys } from '@/lib/page-content'
 
+/*
+ * /admin/pages: daftar baca-saja yang menautkan ke AdminPageEditor per halaman
+ * (§7 docs/DESIGN_ADMIN.md). Baris memakai .adm-row, bukan kartu — daftar ini
+ * akan bertambah panjang begitu halaman lain ditambahkan ke registry, dan
+ * baris rapat tetap terbaca satu pandang sementara kartu longgar tidak.
+ */
+
 export function AdminPageListManager() {
+  const hasPages = pageKeys.length > 0
+
   return (
-    <AdminShell
-      activeHref="/admin/pages"
-      kicker="Page CMS"
-      title="Halaman situs"
-      description="Kelola copy, urutan section, visibilitas, SEO, dan gambar bernama tanpa mengubah layout publik."
-    >
-      <section className="admin-page-index-intro">
-        <span>Gelombang pertama</span>
-        <h2>Editor berbasis struktur halaman.</h2>
-        <p>Beranda dan Kontak memakai model editor yang sama. Halaman berikutnya dapat ditambahkan ke registry tanpa membuat ulang alur draft, publish, dan restore.</p>
+    <AdminShell activeHref="/admin/pages" title="Halaman situs">
+      <section className="adm-panel">
+        <div className="adm-panel-head">
+          <div>
+            <h2>Editor berbasis struktur halaman</h2>
+            <p>Beranda dan Kontak memakai model editor yang sama — copy, urutan section, visibilitas, SEO, dan gambar bernama tanpa mengubah layout publik.</p>
+          </div>
+        </div>
+
+        {hasPages ? (
+          pageKeys.map((pageKey) => {
+            const definition = pageDefinitions[pageKey]
+            const mediaCount = definition.sections.reduce((total, section) => total + section.mediaSlotKeys.length, 0)
+
+            return (
+              <Link className="adm-row" href={`/admin/pages/${pageKey}`} key={pageKey}>
+                <span className="adm-row-main">
+                  <strong>{definition.label}</strong>
+                  <small>{definition.path} · {definition.sections.length} section · {mediaCount} slot gambar</small>
+                </span>
+                <span className="adm-chip">Buka editor</span>
+              </Link>
+            )
+          })
+        ) : (
+          <div className="adm-empty">
+            <h3>Belum ada halaman terdaftar</h3>
+            <p>Halaman muncul di sini begitu ditambahkan ke registry `pageDefinitions`. Halaman pertama biasanya Beranda atau Kontak.</p>
+          </div>
+        )}
       </section>
-      <div className="admin-page-index-list">
-        {pageKeys.map((pageKey, index) => {
-          const definition = pageDefinitions[pageKey]
-          const mediaCount = definition.sections.reduce((total, section) => total + section.mediaSlotKeys.length, 0)
-          return (
-            <article key={pageKey}>
-              <span className="admin-page-index-number">{String(index + 1).padStart(2, '0')}</span>
-              <div>
-                <small>{definition.path}</small>
-                <h3>{definition.label}</h3>
-                <p>{definition.description}</p>
-              </div>
-              <dl>
-                <div><dt>Section</dt><dd>{definition.sections.length}</dd></div>
-                <div><dt>Slot gambar</dt><dd>{mediaCount}</dd></div>
-              </dl>
-              <Link className="admin-primary-button" href={`/admin/pages/${pageKey}`}>Buka editor</Link>
-            </article>
-          )
-        })}
-      </div>
     </AdminShell>
   )
 }

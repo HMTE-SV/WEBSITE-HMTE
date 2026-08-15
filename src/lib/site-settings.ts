@@ -43,6 +43,7 @@ export type SiteSettings = {
   x: string
   address: string
   closingCheer: string
+  headerCtaVisible: boolean
   headerCtaLabel: string
   headerCtaHref: string
   navigation: SiteNavigationItem[]
@@ -71,6 +72,7 @@ const defaultNavigation: SiteNavigationItem[] = [
       { id: 'articles', label: 'Berita', href: '/berita', visible: true },
       { id: 'agenda', label: 'Agenda', href: '/agenda', visible: true },
       { id: 'announcements', label: 'Pengumuman', href: '/pengumuman', visible: true },
+      { id: 'public-data', label: 'Data Publik', href: '/data', visible: true },
       { id: 'gallery', label: 'Galeri', href: '/galeri', visible: true },
     ],
   },
@@ -79,6 +81,13 @@ const defaultNavigation: SiteNavigationItem[] = [
     children: [
       { id: 'aspiration', label: 'Aspirasi', href: '/aspirasi', visible: true },
       { id: 'contact', label: 'Kontak', href: '/kontak', visible: true },
+    ],
+  },
+  {
+    id: 'archive', label: 'Arsip', href: '#', visible: true,
+    children: [
+      { id: 'archive-documents', label: 'Arsip Dokumen HMTE', href: '/arsip', visible: true },
+      { id: 'document-templates', label: 'Template Dokumen', href: '/template-dokumen', visible: true },
     ],
   },
 ]
@@ -98,6 +107,7 @@ const defaultFooterColumns: SiteFooterColumn[] = [
       { id: 'articles', label: 'Berita', href: '/berita', visible: true, channel: '', newTab: false },
       { id: 'agenda', label: 'Agenda', href: '/agenda', visible: true, channel: '', newTab: false },
       { id: 'announcements', label: 'Pengumuman', href: '/pengumuman', visible: true, channel: '', newTab: false },
+      { id: 'public-data', label: 'Data Publik', href: '/data', visible: true, channel: '', newTab: false },
       { id: 'gallery', label: 'Galeri', href: '/galeri', visible: true, channel: '', newTab: false },
     ],
   },
@@ -124,6 +134,7 @@ export const defaultSiteSettings: SiteSettings = {
   footerMastheadSubnote: 'Sekolah Vokasi, Universitas Gadjah Mada',
   headerCtaHref: '/kontak',
   headerCtaLabel: 'Hubungi',
+  headerCtaVisible: true,
   instagram: 'hmteugm',
   linkedin: '',
   locale: 'id_ID',
@@ -163,12 +174,22 @@ function normalizeId(value: unknown, fallback: string) {
   return id || fallback
 }
 
+function migrateKnownNavigationHref(label: string, href: string) {
+  if (href !== '#' && href !== '/#') return href
+  const normalizedLabel = label.trim().toLowerCase()
+  if (normalizedLabel === 'arsip dokumen hmte') return '/arsip'
+  if (normalizedLabel === 'template dokumen') return '/template-dokumen'
+  return href
+}
+
 function normalizeNavigationLink(raw: unknown, fallback: SiteNavigationLink, index: number): SiteNavigationLink {
   const record = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {}
+  const label = pickText(record.label, fallback.label)
+  const href = normalizeHref(record.href, fallback.href)
   return {
     id: normalizeId(record.id, `${fallback.id || 'link'}-${index + 1}`),
-    label: pickText(record.label, fallback.label),
-    href: normalizeHref(record.href, fallback.href),
+    label,
+    href: migrateKnownNavigationHref(label, href),
     visible: pickBoolean(record.visible, fallback.visible),
   }
 }
@@ -176,7 +197,7 @@ function normalizeNavigationLink(raw: unknown, fallback: SiteNavigationLink, ind
 function normalizeNavigation(value: unknown): SiteNavigationItem[] {
   if (!Array.isArray(value)) return defaultNavigation
 
-  return value.slice(0, 12).map((item, index) => {
+  const normalized = value.slice(0, 12).map((item, index) => {
     const record = item && typeof item === 'object' ? item as Record<string, unknown> : {}
     const fallback = defaultNavigation[index] ?? {
       id: `navigation-${index + 1}`, label: 'Menu', href: '/', visible: true, children: [],
@@ -191,6 +212,17 @@ function normalizeNavigation(value: unknown): SiteNavigationItem[] {
 
     return { ...normalizeNavigationLink(record, fallback, index), children }
   })
+
+  if (normalized.some((item) => item.href === '/data' || item.children.some((child) => child.href === '/data'))) {
+    return normalized
+  }
+
+  const newsIndex = normalized.findIndex((item) => item.id === 'news' || item.label.toLowerCase() === 'kabar')
+  if (newsIndex < 0) return [...normalized, { id: 'public-data', label: 'Data', href: '/data', visible: true, children: [] }]
+
+  return normalized.map((item, index) => index === newsIndex
+    ? { ...item, children: [...item.children, { id: 'public-data', label: 'Data Publik', href: '/data', visible: true }] }
+    : item)
 }
 
 function normalizeFooterLink(raw: unknown, fallback: SiteFooterLink, index: number): SiteFooterLink {
@@ -253,6 +285,7 @@ export function normalizeSiteSettings(raw: Record<string, unknown> | null | unde
     footerMastheadSubnote: pickText(raw.footerMastheadSubnote, defaultSiteSettings.footerMastheadSubnote),
     headerCtaHref: normalizeHref(raw.headerCtaHref, defaultSiteSettings.headerCtaHref),
     headerCtaLabel: pickText(raw.headerCtaLabel, defaultSiteSettings.headerCtaLabel),
+    headerCtaVisible: pickBoolean(raw.headerCtaVisible, defaultSiteSettings.headerCtaVisible),
     instagram: normalizeInstagramHandle(pickText(raw.instagram, defaultSiteSettings.instagram)),
     linkedin: normalizeHref(raw.linkedin, defaultSiteSettings.linkedin),
     locale: pickText(raw.locale, defaultSiteSettings.locale),

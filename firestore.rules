@@ -42,6 +42,31 @@ service cloud.firestore {
       return hasRole(['superadmin']);
     }
 
+    /* Role menentukan tingkat tindakan; permissions menentukan modulnya. */
+    function defaultAdminPermissions() {
+      return adminRole() == 'editor'
+        ? ['media', 'programs']
+        : [
+            'pages', 'announcements', 'articles', 'publicData', 'gallery',
+            'media', 'downloads', 'leaders', 'programs', 'divisions',
+            'aspirations', 'history'
+          ];
+    }
+
+    function adminPermissions() {
+      return isSignedIn()
+        ? request.auth.token.get('permissions', defaultAdminPermissions())
+        : [];
+    }
+
+    function hasAdminPermission(permission) {
+      return isSuperadmin() || adminPermissions().hasAny([permission]);
+    }
+
+    function canManage(permission) {
+      return isEditor() && hasAdminPermission(permission);
+    }
+
     /*
      * Bidang yang dipegang akun ini. Akun nonaktif tidak punya `role` sama
      * sekali di claims-nya, jadi ia sudah gugur di adminRole() sebelum sampai
@@ -175,6 +200,7 @@ service cloud.firestore {
         'mediaSlots',
         'pageContents',
         'pageContentDrafts',
+        'publicData',
         'partners',
         'programs',
         'settings',
@@ -214,23 +240,30 @@ service cloud.firestore {
 
     match /articles/{documentId} {
       allow read: if isPublished() || hasActiveAdminProfile();
-      allow create: if isEditor() && validPublishableWrite();
-      allow update: if isEditor() && validPublishableUpdate();
-      allow delete: if isEditor();
+      allow create: if canManage('articles') && validPublishableWrite();
+      allow update: if canManage('articles') && validPublishableUpdate();
+      allow delete: if canManage('articles');
     }
 
     match /announcements/{documentId} {
       allow read: if isPublished() || hasActiveAdminProfile();
-      allow create: if isEditor() && validPublishableWrite();
-      allow update: if isEditor() && validPublishableUpdate();
-      allow delete: if isEditor();
+      allow create: if canManage('announcements') && validPublishableWrite();
+      allow update: if canManage('announcements') && validPublishableUpdate();
+      allow delete: if canManage('announcements');
+    }
+
+    match /publicData/{documentId} {
+      allow read: if isPublished() || hasActiveAdminProfile();
+      allow create: if canManage('publicData') && validPublishableWrite();
+      allow update: if canManage('publicData') && validPublishableUpdate();
+      allow delete: if canManage('publicData');
     }
 
     match /gallery/{documentId} {
       allow read: if isPublished() || hasActiveAdminProfile();
-      allow create: if isEditor() && validPublishableWrite();
-      allow update: if isEditor() && validPublishableUpdate();
-      allow delete: if isEditor();
+      allow create: if canManage('gallery') && validPublishableWrite();
+      allow update: if canManage('gallery') && validPublishableUpdate();
+      allow delete: if canManage('gallery');
     }
 
     /*
@@ -239,8 +272,8 @@ service cloud.firestore {
      */
     match /media/{documentId} {
       allow read: if hasActiveAdminProfile();
-      allow create: if isEditor() && hasValidWriteTimestamps();
-      allow update: if isEditor() && keepsCreatedAt();
+      allow create: if canManage('media') && hasValidWriteTimestamps();
+      allow update: if canManage('media') && keepsCreatedAt();
       allow delete: if isSuperadmin();
     }
 
@@ -256,6 +289,7 @@ service cloud.firestore {
       allow update: if keepsCreatedAt() && (
         isSuperadmin()
         || (isEditor()
+          && (hasAdminPermission('media') || hasAdminPermission('pages'))
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'mediaUrl',
             'mediaAlt',
@@ -291,10 +325,11 @@ service cloud.firestore {
 
     match /leaders/{documentId} {
       allow read: if isActivePublicRecord() || hasActiveAdminProfile();
-      allow create: if canManageDivision(request.resource.data.get('divisionCode', ''))
+      allow create: if canManage('leaders')
+        && canManageDivision(request.resource.data.get('divisionCode', ''))
         && hasValidWriteTimestamps();
-      allow update: if ownsDivisionChange() && keepsCreatedAt();
-      allow delete: if ownsExistingDivision();
+      allow update: if canManage('leaders') && ownsDivisionChange() && keepsCreatedAt();
+      allow delete: if canManage('leaders') && ownsExistingDivision();
     }
 
     // Kontak pribadi pengurus. Tidak ada `allow read` untuk publik sama sekali,
@@ -303,10 +338,11 @@ service cloud.firestore {
     // dibaca publik, jadi field-nya yang harus pindah rumah.
     match /leaderContacts/{documentId} {
       allow read: if hasActiveAdminProfile();
-      allow create: if canManageDivision(request.resource.data.get('divisionCode', ''))
+      allow create: if canManage('leaders')
+        && canManageDivision(request.resource.data.get('divisionCode', ''))
         && hasValidWriteTimestamps();
-      allow update: if ownsDivisionChange() && keepsCreatedAt();
-      allow delete: if ownsExistingDivision();
+      allow update: if canManage('leaders') && ownsDivisionChange() && keepsCreatedAt();
+      allow delete: if canManage('leaders') && ownsExistingDivision();
     }
 
     // Superadmin saja. Daftar unsur organisasi adalah kerangka yang dipakai
@@ -322,23 +358,24 @@ service cloud.firestore {
 
     match /programs/{documentId} {
       allow read: if isActivePublicRecord() || hasActiveAdminProfile();
-      allow create: if canManageDivision(request.resource.data.get('divisionCode', ''))
+      allow create: if canManage('programs')
+        && canManageDivision(request.resource.data.get('divisionCode', ''))
         && hasValidWriteTimestamps();
-      allow update: if ownsDivisionChange() && keepsCreatedAt();
-      allow delete: if ownsExistingDivision();
+      allow update: if canManage('programs') && ownsDivisionChange() && keepsCreatedAt();
+      allow delete: if canManage('programs') && ownsExistingDivision();
     }
 
     match /partners/{documentId} {
       allow read: if isActivePublicRecord() || hasActiveAdminProfile();
-      allow create: if isEditor() && hasValidWriteTimestamps();
-      allow update: if isEditor() && keepsCreatedAt();
-      allow delete: if isEditor();
+      allow create: if canManage('pages') && hasValidWriteTimestamps();
+      allow update: if canManage('pages') && keepsCreatedAt();
+      allow delete: if canManage('pages');
     }
 
     match /aspirations/{documentId} {
-      allow create: if validPublicAspiration() || (isEditor() && hasValidWriteTimestamps());
+      allow create: if validPublicAspiration() || (canManage('aspirations') && hasValidWriteTimestamps());
       allow read: if hasActiveAdminProfile();
-      allow update: if isEditor() && validAspirationUpdate();
+      allow update: if canManage('aspirations') && validAspirationUpdate();
       allow delete: if isSuperadmin();
     }
 
@@ -381,8 +418,8 @@ service cloud.firestore {
     // `mediaSlots` serta divalidasi lagi oleh alur publish di panel.
     match /pageContents/{documentId} {
       allow read: if true;
-      allow create: if isEditor() && hasValidWriteTimestamps();
-      allow update: if isEditor() && keepsCreatedAt();
+      allow create: if canManage('pages') && hasValidWriteTimestamps();
+      allow update: if canManage('pages') && keepsCreatedAt();
       allow delete: if isSuperadmin();
     }
 
@@ -390,8 +427,24 @@ service cloud.firestore {
     // renderer publik.
     match /pageContentDrafts/{documentId} {
       allow read: if hasActiveAdminProfile();
-      allow create: if isEditor() && hasValidWriteTimestamps();
-      allow update: if isEditor() && keepsCreatedAt();
+      allow create: if canManage('pages') && hasValidWriteTimestamps();
+      allow update: if canManage('pages') && keepsCreatedAt();
+      allow delete: if isSuperadmin();
+    }
+
+    /*
+     * Daftar berkas unduhan. Terbaca publik karena /unduhan dirender server dan
+     * Firestore tidak bisa membedakan pembaca server dari pembaca browser.
+     *
+     * Tidak diaudit: isinya daftar tautan, bukan konten redaksional. Kalau audit
+     * kelak ditambahkan, `downloads` harus masuk auditedContentCollections DAN
+     * isAuditedEntityType() dalam satu perubahan — setengahnya membuat setiap
+     * simpan gagal karena batch audit ditolak.
+     */
+    match /downloads/{documentId} {
+      allow read: if true;
+      allow create: if canManage('downloads') && hasValidWriteTimestamps();
+      allow update: if canManage('downloads') && keepsCreatedAt();
       allow delete: if isSuperadmin();
     }
 

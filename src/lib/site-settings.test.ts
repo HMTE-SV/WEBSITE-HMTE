@@ -48,6 +48,23 @@ describe('normalizeSiteSettings', () => {
     expect(normalizeSiteSettings({ agendaYear: '2029' }).agendaYear).toBe(2029)
   })
 
+  it('mempertahankan pilihan visibilitas tombol navbar', () => {
+    expect(normalizeSiteSettings({ headerCtaVisible: false }).headerCtaVisible).toBe(false)
+    expect(normalizeSiteSettings({}).headerCtaVisible).toBe(true)
+  })
+
+  it('memigrasikan placeholder submenu arsip ke halaman yang sudah tersedia', () => {
+    const settings = normalizeSiteSettings({ navigation: [{
+      id: 'archive', label: 'Arsip', href: '#', visible: true,
+      children: [
+        { id: 'docs', label: 'Arsip Dokumen HMTE', href: '/#', visible: true },
+        { id: 'templates', label: 'Template Dokumen', href: '/#', visible: true },
+      ],
+    }] })
+
+    expect(settings.navigation[0].children.map((item) => item.href)).toEqual(['/arsip', '/template-dokumen'])
+  })
+
   it('menormalkan menu bertingkat dan menolak protokol URL berbahaya', () => {
     const settings = normalizeSiteSettings({
       navigation: [{

@@ -52,7 +52,6 @@ export default async function GalleryPage() {
           <div className="gallery-archive-heading">
             <span>Dokumentasi 2026/2027</span>
             <h2 id="gallery-archive-title">Sorotan galeri</h2>
-            <p>Urutannya ditentukan pengurus lewat panel, bukan oleh tanggal unggah.</p>
           </div>
 
           {galleryItems.length > 0 ? (

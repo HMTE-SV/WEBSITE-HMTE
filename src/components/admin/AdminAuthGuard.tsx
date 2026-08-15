@@ -62,7 +62,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
               return
             }
 
-            if (!canAccessAdminPath(profile.role, pathname)) {
+            if (!canAccessAdminPath(profile.role, pathname, profile.permissions)) {
               setSession(profile)
               setError('Role akun ini tidak memiliki akses ke halaman tersebut.')
               setState('forbidden')

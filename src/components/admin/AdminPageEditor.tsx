@@ -287,7 +287,7 @@ export function AdminPageEditor({ pageKey }: { pageKey: PageKey }) {
                           </article>
                         })}
                       </div>
-                      {mediaPicker.items.length < mediaPicker.total ? <button className="admin-secondary-button admin-page-media-more" type="button" onClick={() => setMediaLimit((current) => current + DEFAULT_MEDIA_PICKER_LIMIT)}>Tampilkan {Math.min(DEFAULT_MEDIA_PICKER_LIMIT, mediaPicker.total - mediaPicker.items.length)} gambar lagi</button> : null}
+                      {mediaPicker.items.length < mediaPicker.total ? <button className="adm-btn adm-btn--ghost admin-page-media-more" type="button" onClick={() => setMediaLimit((current) => current + DEFAULT_MEDIA_PICKER_LIMIT)}>Tampilkan {Math.min(DEFAULT_MEDIA_PICKER_LIMIT, mediaPicker.total - mediaPicker.items.length)} gambar lagi</button> : null}
                     </div>
                   ) : null}
                   <div className="admin-page-copy-preview"><small>Pratinjau isi section</small><strong>{activeSection.label}</strong>{Object.values(activeSection.fields).slice(0, 4).map((value, index) => <p key={index}>{value}</p>)}</div>
@@ -299,9 +299,9 @@ export function AdminPageEditor({ pageKey }: { pageKey: PageKey }) {
               {feedback ? <p className="admin-form-success" role="status">{feedback}</p> : null}
               <footer className="admin-settings-actions">
                 <div><strong>{hasLocalChanges ? 'Ada perubahan lokal' : differsFromPublished ? 'Draft siap diterbitkan' : 'Tidak ada perubahan'}</strong><span>Publish dan restore tercatat di Riwayat Perubahan.</span></div>
-                <Link className="admin-secondary-button" href={definition.path} target="_blank">Lihat versi terbit ↗</Link>
-                <button className="admin-secondary-button" type="button" disabled={!canWrite || busyAction !== null || !hasLocalChanges} onClick={() => void saveDraft()}>{busyAction === 'save' ? 'Menyimpan...' : 'Simpan draft'}</button>
-                <button className="admin-primary-button" type="button" disabled={!canWrite || busyAction !== null || (!differsFromPublished && !hasLocalChanges)} onClick={() => void publish()}>{busyAction === 'publish' ? 'Menerbitkan...' : 'Terbitkan'}</button>
+                <Link className="adm-btn adm-btn--ghost" href={definition.path} target="_blank">Lihat versi terbit ↗</Link>
+                <button className="adm-btn adm-btn--ghost" type="button" disabled={!canWrite || busyAction !== null || !hasLocalChanges} onClick={() => void saveDraft()}>{busyAction === 'save' ? 'Menyimpan...' : 'Simpan draft'}</button>
+                <button className="adm-btn" type="button" disabled={!canWrite || busyAction !== null || (!differsFromPublished && !hasLocalChanges)} onClick={() => void publish()}>{busyAction === 'publish' ? 'Menerbitkan...' : 'Terbitkan'}</button>
               </footer>
             </form>
           </div>

@@ -4,6 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin-app'
 import { requireSuperadmin } from '@/lib/firebase/require-superadmin'
 import { buildAdminClaims, claimsAreEqual, readAdminClaims } from '@/lib/admin/claims'
+import { normalizeAdminPermissions, type AdminPermission } from '@/lib/admin/permissions'
 import { isAdminRole, type AdminRole } from '@/types/admin'
 
 /*
@@ -30,6 +31,7 @@ type AccountPayload = {
   divisionCode?: unknown
   uid?: unknown
   active?: unknown
+  permissions?: unknown
 }
 
 function badRequest(error: string) {
@@ -59,18 +61,24 @@ async function applyAssignment(params: {
   role: AdminRole
   divisionCode: string
   active: boolean
+  permissions: AdminPermission[]
   isNew: boolean
 }) {
   const nextClaims = buildAdminClaims({
     active: params.active,
     divisionCode: params.divisionCode,
+    permissions: params.permissions,
     role: params.role,
   })
 
   const account = await getAdminAuth().getUser(params.uid)
   const currentClaims = readAdminClaims(account.customClaims || {})
 
-  if (!claimsAreEqual({ divisionCode: currentClaims.divisionCode, role: currentClaims.role ?? undefined }, nextClaims)) {
+  if (!claimsAreEqual({
+    divisionCode: currentClaims.divisionCode,
+    permissions: currentClaims.permissions,
+    role: currentClaims.role ?? undefined,
+  }, nextClaims)) {
     await getAdminAuth().setCustomUserClaims(params.uid, nextClaims)
   }
 
@@ -81,6 +89,7 @@ async function applyAssignment(params: {
       divisionCode: params.role === 'editor' ? params.divisionCode : FieldValue.delete(),
       email: params.email,
       role: params.role,
+      permissions: params.role === 'superadmin' ? FieldValue.delete() : params.permissions,
       uid: params.uid,
       updatedAt: FieldValue.serverTimestamp(),
       ...(params.isNew ? { createdAt: FieldValue.serverTimestamp() } : {}),
@@ -111,8 +120,10 @@ export async function POST(request: Request) {
   }
 
   if (role === 'editor' && !divisionCode) {
-    return badRequest('Editor wajib punya bidang. Tanpa bidang, akunnya tidak bisa mengubah apa pun.')
+    return badRequest('Operator wajib punya bidang. Tanpa bidang, akunnya tidak bisa mengubah apa pun.')
   }
+
+  const permissions = normalizeAdminPermissions(role, body.permissions)
 
   try {
     const auth = getAdminAuth()
@@ -135,6 +146,7 @@ export async function POST(request: Request) {
       divisionCode,
       email,
       isNew: !existing,
+      permissions,
       role,
       uid: account.uid,
     })
@@ -195,6 +207,15 @@ export async function PATCH(request: Request) {
       return badRequest('Role harus superadmin, editor, atau viewer.')
     }
 
+    if (role === 'editor' && !divisionCode) {
+      return badRequest('Operator wajib punya bidang sebelum akses modul dapat diberikan.')
+    }
+
+    const permissions = normalizeAdminPermissions(
+      role,
+      body.permissions === undefined ? current.permissions : body.permissions,
+    )
+
     const account = await getAdminAuth().getUser(uid)
 
     await applyAssignment({
@@ -203,6 +224,7 @@ export async function PATCH(request: Request) {
       divisionCode,
       email: account.email || (typeof current.email === 'string' ? current.email : ''),
       isNew: !snapshot.exists,
+      permissions,
       role,
       uid,
     })

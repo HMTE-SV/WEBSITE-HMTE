@@ -69,6 +69,7 @@ const collectionLabels: Record<AuditedContentCollectionName, string> = {
   mediaSlots: 'slot media',
   pageContents: 'halaman',
   pageContentDrafts: 'draf halaman',
+  publicData: 'data publik',
   partners: 'mitra',
   programs: 'program kerja',
   settings: 'pengaturan',

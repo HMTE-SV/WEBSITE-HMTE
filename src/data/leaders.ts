@@ -86,6 +86,9 @@ export function parseMemberRoster(source: string) {
 }
 
 const rosterPath = path.join(process.cwd(), 'ASSET', 'anggota-hmte.md')
-const rosterSource = fs.readFileSync(rosterPath, 'utf8')
+// The private roster is a local-only enrichment source. Production receives
+// organization data from Firestore, so a deployment must not require or ship
+// the roster file (which also contains NIM values).
+const rosterSource = fs.existsSync(rosterPath) ? fs.readFileSync(rosterPath, 'utf8') : ''
 
 export const leadersByDivision = parseMemberRoster(rosterSource)

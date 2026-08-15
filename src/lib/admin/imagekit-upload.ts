@@ -13,6 +13,7 @@ import { slugify } from '@/lib/slug'
 const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload'
 
 export type ImageKitFolder = 'pengurus' | 'berita' | 'galeri' | 'situs'
+export type ImageKitUploadFolder = ImageKitFolder | 'data'
 
 export type ImageKitUploadResult = {
   fileId: string
@@ -68,12 +69,13 @@ export function buildUploadFileName(originalName: string, now: Date = new Date()
 export function normalizeImageKitUploadResult(
   result: ImageKitApiUploadResult,
   fallbackFile: Pick<File, 'size' | 'type'>,
-  folder: ImageKitFolder,
+  folder: ImageKitUploadFolder,
 ): ImageKitUploadResult {
   const fileName = result.name || result.fileName
 
   if (!result.url || !result.fileId || !fileName) {
-    throw new Error('ImageKit tidak mengembalikan identitas gambar yang lengkap.')
+    const assetLabel = folder === 'data' ? 'berkas' : 'gambar'
+    throw new Error(`ImageKit tidak mengembalikan identitas ${assetLabel} yang lengkap.`)
   }
 
   return {
@@ -91,7 +93,7 @@ export function normalizeImageKitUploadResult(
 
 export async function uploadImageToImageKit(
   file: File,
-  folder: ImageKitFolder,
+  folder: ImageKitUploadFolder,
   getIdToken: () => Promise<string>,
 ): Promise<ImageKitUploadResult> {
   const idToken = await getIdToken()

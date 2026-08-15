@@ -1,8 +1,11 @@
 import type { Timestamp } from 'firebase/firestore'
+import type { DownloadProject } from '@/lib/downloads'
+import type { PublicDataCategory, PublicDataResource } from '@/lib/public-data'
 import type { ProgramResource, ProgramTimelineEntry } from '@/lib/program-detail'
 import type { SiteSettings } from '@/lib/site-settings'
 import type { PageContent } from '@/lib/page-content'
 import type { AdminRole } from './admin'
+import type { AdminPermission } from '@/lib/admin/permissions'
 import type { ArticleCategoryKey, ContentStatus, DivisionCode, ProgramStatus } from './content'
 
 export const firestoreCollections = {
@@ -10,16 +13,18 @@ export const firestoreCollections = {
   articles: 'articles',
   auditLogs: 'auditLogs',
   contentRevisions: 'contentRevisions',
+  divisions: 'divisions',
+  downloads: 'downloads',
   gallery: 'gallery',
   leaders: 'leaders',
   leaderContacts: 'leaderContacts',
-  divisions: 'divisions',
   media: 'media',
   mediaSlots: 'mediaSlots',
   programs: 'programs',
   partners: 'partners',
   pageContents: 'pageContents',
   pageContentDrafts: 'pageContentDrafts',
+  publicData: 'publicData',
   aspirations: 'aspirations',
   adminUsers: 'adminUsers',
   settings: 'settings',
@@ -45,6 +50,7 @@ export const auditedContentCollections = [
   'partners',
   'pageContents',
   'pageContentDrafts',
+  'publicData',
   'programs',
   'settings',
   'siteSettingsDrafts',
@@ -139,6 +145,13 @@ export type ArticleDocument = PublishableDocument & {
   category: ArticleCategoryKey
   coverImage?: string
   publisher?: string
+  /**
+   * Nama program kerja yang berkaitan. Opsional agar seluruh artikel lama
+   * tetap sah; pola berbasis nama ini sama dengan `ProgramDocument.coordinators`.
+   */
+  relatedProgram?: string
+  /** Panel metadata di sisi artikel. Dokumen lama dianggap `true`. */
+  showArticleMeta?: boolean
   readTime?: string
 }
 
@@ -274,7 +287,33 @@ export type AdminUserDocument = FirestoreDocument & {
   email: string
   displayName?: string | null
   role: AdminRole
+  permissions?: AdminPermission[]
   active: boolean
+}
+
+/**
+ * Dokumen tunggal `downloads/index`. Satu dokumen berisi seluruh daftar,
+ * sama seperti `settings/site` — daftarnya pendek, selalu dibaca utuh, dan
+ * urutannya ditentukan manual lewat `order` tiap item.
+ *
+ * Sengaja TIDAK masuk `auditedContentCollections` (lihat komentar di sana):
+ * isinya daftar tautan, bukan konten redaksional.
+ */
+export type DownloadsDocument = FirestoreDocument & {
+  projects: DownloadProject[]
+  updatedBy: string
+}
+
+export type PublicDataDocument = PublishableDocument & {
+  title: string
+  slug: string
+  excerpt: string
+  content: string
+  category: PublicDataCategory
+  period: string
+  resources: PublicDataResource[]
+  /** Panel ringkasan di sisi halaman data. Dokumen lama dianggap `true`. */
+  showDataMeta?: boolean
 }
 
 /**

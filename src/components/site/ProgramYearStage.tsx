@@ -203,7 +203,7 @@ export function ProgramYearStage({ divisions, programsByDivision, year }: Progra
         {ambientCount > 0 ? (
           <StageChips
             label={`Berjalan tiap bulan · ${ambientCount}`}
-            note="Tidak digambar di papan karena tempatnya bukan satu bulan, melainkan semua."
+            note="Berjalan sepanjang tahun, jadi tidak menempati satu bulan tertentu."
             items={rows.flatMap((row) =>
               row.ambient.map((item) => ({ ...item, code: row.division.code })),
             )}
@@ -213,7 +213,7 @@ export function ProgramYearStage({ divisions, programsByDivision, year }: Progra
         {deferredCount > 0 ? (
           <StageChips
             label={`Belum punya bulan · ${deferredCount}`}
-            note="Menunggu pengurus bidangnya menetapkan jadwal lewat panel."
+            note="Jadwalnya belum ditetapkan."
             items={rows.flatMap((row) =>
               row.deferred.map((item) => ({ ...item, code: row.division.code })),
             )}

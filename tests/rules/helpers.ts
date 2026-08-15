@@ -4,6 +4,12 @@ import {
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing'
 import { doc, setDoc, Timestamp, type Firestore } from 'firebase/firestore'
+import type { AdminPermission } from '../../src/lib/admin/permissions'
+
+const allAdminPermissions: AdminPermission[] = [
+  'pages', 'announcements', 'articles', 'publicData', 'gallery', 'media',
+  'downloads', 'leaders', 'programs', 'divisions', 'aspirations', 'history',
+]
 
 export const PROJECT_ID = 'hmte-rules-test'
 
@@ -18,7 +24,7 @@ const EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080'
  * `seedAdmin()` dengan `signedInAs()`, jadi satu penyebutan role di tes tetap
  * cukup untuk keduanya.
  */
-const claimsByUid = new Map<string, Record<string, string>>()
+const claimsByUid = new Map<string, Record<string, unknown>>()
 
 export async function createTestEnvironment(): Promise<RulesTestEnvironment> {
   const [host, port] = EMULATOR_HOST.split(':')
@@ -53,9 +59,10 @@ export async function seedAdmin(
   testEnv: RulesTestEnvironment,
   uid: string,
   role: 'superadmin' | 'editor' | 'viewer',
-  options: { active?: boolean; email?: string; divisionCode?: string } = {},
+  options: { active?: boolean; email?: string; divisionCode?: string; permissions?: AdminPermission[] } = {},
 ) {
   const active = options.active ?? true
+  const permissions = options.permissions ?? [...allAdminPermissions]
 
   // Akun nonaktif tidak dapat `role` sama sekali. Ini persis yang dilakukan
   // `buildAdminClaims()` di aplikasi, dan tesnya harus meniru itu, bukan
@@ -63,7 +70,11 @@ export async function seedAdmin(
   claimsByUid.set(
     uid,
     active
-      ? { role, ...(role === 'editor' && options.divisionCode ? { divisionCode: options.divisionCode } : {}) }
+      ? {
+          role,
+          ...(role === 'superadmin' ? {} : { permissions }),
+          ...(role === 'editor' && options.divisionCode ? { divisionCode: options.divisionCode } : {}),
+        }
       : {},
   )
 
@@ -72,6 +83,7 @@ export async function seedAdmin(
       uid,
       email: options.email ?? `${uid}@hmte.test`,
       role,
+      ...(role === 'superadmin' ? {} : { permissions }),
       ...(options.divisionCode ? { divisionCode: options.divisionCode } : {}),
       active,
       createdAt: now(),

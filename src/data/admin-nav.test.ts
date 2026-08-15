@@ -8,18 +8,18 @@ describe('admin access control', () => {
     expect(getAdminNavItemsForRole('viewer').some((item) => item.href === '/admin/settings')).toBe(false)
   })
 
-  it('shows media and history to every active admin role', () => {
-    for (const role of ['superadmin', 'editor', 'viewer'] as const) {
-      const hrefs = getAdminNavItemsForRole(role).map((item) => item.href)
-      expect(hrefs).toContain('/admin/media')
-      expect(hrefs).toContain('/admin/history')
-      expect(hrefs).toContain('/admin/pages')
-    }
+  it('gives a new operator only the two baseline modules', () => {
+    const hrefs = getAdminNavItemsForRole('editor').map((item) => item.href)
+    expect(hrefs).toContain('/admin/media')
+    expect(hrefs).toContain('/admin/programs')
+    expect(hrefs).not.toContain('/admin/data')
+    expect(hrefs).not.toContain('/admin/downloads')
   })
 
-  it('allows editors to open content forms but keeps settings private', () => {
-    expect(canAccessAdminPath('editor', '/admin/articles/new')).toBe(true)
-    expect(canAccessAdminPath('editor', '/admin/articles/document-id')).toBe(true)
+  it('opens a module only after it is assigned', () => {
+    expect(canAccessAdminPath('editor', '/admin/data/new')).toBe(false)
+    expect(canAccessAdminPath('editor', '/admin/data/new', ['publicData'])).toBe(true)
+    expect(canAccessAdminPath('editor', '/admin/downloads', ['publicData'])).toBe(false)
     expect(canAccessAdminPath('editor', '/admin/settings')).toBe(false)
   })
 
@@ -27,6 +27,7 @@ describe('admin access control', () => {
     expect(canAccessAdminPath('viewer', '/admin/articles')).toBe(true)
     expect(canAccessAdminPath('viewer', '/admin/articles/new')).toBe(false)
     expect(canAccessAdminPath('viewer', '/admin/articles/document-id')).toBe(false)
+    expect(canAccessAdminPath('viewer', '/admin/data/document-id')).toBe(false)
     expect(canAccessAdminPath('viewer', '/admin/pages/home')).toBe(true)
     expect(canAdminWrite('viewer')).toBe(false)
   })

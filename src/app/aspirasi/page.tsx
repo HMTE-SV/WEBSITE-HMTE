@@ -37,7 +37,6 @@ export default function AspirationsPage() {
       <section className="aspiration-compose" aria-labelledby="aspiration-form-title">
         <div className="public-shell aspiration-compose-grid">
           <div className="aspiration-compose-intro">
-            <span className="public-label gold">Ruang aspirasi</span>
             <h2 id="aspiration-form-title">Ceritakan dengan jelas.</h2>
             <p>
               Informasi yang runtut membantu aspirasi dibaca sesuai konteksnya. Kolom nama akan

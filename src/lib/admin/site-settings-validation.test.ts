@@ -31,4 +31,15 @@ describe('validateSiteSettings', () => {
 
     expect(result.success).toBe(true)
   })
+
+  it('tombol navbar yang disembunyikan tidak menahan publish walau URL-nya kosong', () => {
+    const result = validateSiteSettings({
+      ...defaultSiteSettings,
+      headerCtaVisible: false,
+      headerCtaLabel: '',
+      headerCtaHref: '',
+    })
+
+    expect(result.success).toBe(true)
+  })
 })

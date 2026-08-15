@@ -1,0 +1,1240 @@
+/* ============================================================================
+   Panel Admin HMTE — sistem desain
+   Spesifikasi: docs/DESIGN_ADMIN.md
+
+   Seluruh isinya dilingkupi `.adm` supaya bisa hidup berdampingan dengan
+   admin-panel.css lama selama halaman dipindahkan satu per satu. Begitu semua
+   halaman memakai sistem ini, admin-panel.css dibuang.
+
+   Latar di sini adalah WARNA PEJAL. Kerangka lama memakai garis grid 32px di
+   area kerja dan mesh 28px di rel; keduanya sengaja tidak punya pengganti yang
+   "lebih halus" — grid dekoratif adalah penanda paling dikenali dari antarmuka
+   buatan mesin, dan ia tidak pernah membantu pengurus menyelesaikan tugas.
+   ========================================================================== */
+
+.adm {
+  /* Permukaan — tiga tingkat, tidak lebih. Tingkat keempat selalu berakhir
+     sebagai kartu bersarang. */
+  --adm-canvas: #f7f6f3;
+  --adm-surface: #ffffff;
+  --adm-sunken: #f0eee9;
+
+  --adm-rail: #011f4b;
+  --adm-rail-deep: #001333;
+  --adm-rail-ink: #eef2f7;
+  --adm-rail-muted: #93a7c2;
+
+  /* Dua tingkat teks. Tingkat ketiga membuat orang ragu mana yang penting.
+     --adm-muted dihitung agar lolos 4.5:1 di atas --adm-surface; menerangkannya
+     "supaya halus" adalah cara tercepat membuat panel ini sulit dibaca. */
+  --adm-ink: #10233a;
+  --adm-muted: #5a6b80;
+
+  --adm-line: #e3e0d9;
+  --adm-line-strong: #cfcbc2;
+
+  --adm-accent: #01356f;
+  --adm-accent-ink: #ffffff;
+  --adm-focus: #2b6cb0;
+  --adm-ok: #1f6b45;
+  --adm-warn: #8a5a10;
+  --adm-danger: #a32c2c;
+
+  --adm-r-sm: 6px;
+  --adm-r-md: 10px;
+  --adm-r-lg: 14px;
+
+  --adm-shadow-1: 0 1px 2px rgba(16, 35, 58, 0.06);
+  --adm-shadow-2: 0 8px 24px rgba(16, 35, 58, 0.1);
+
+  --adm-z-sticky: 10;
+  --adm-z-rail: 20;
+  --adm-z-scrim: 30;
+  --adm-z-drawer: 40;
+  --adm-z-toast: 50;
+
+  --adm-rail-w: 240px;
+  --adm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: var(--adm-rail-w) minmax(0, 1fr);
+  background: var(--adm-canvas);
+  color: var(--adm-ink);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.adm.is-rail-collapsed {
+  --adm-rail-w: 64px;
+}
+
+/* ---------------------------------------------------------------- rel ---- */
+
+.adm-rail {
+  position: sticky;
+  top: 0;
+  z-index: var(--adm-z-rail);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 12px;
+  background: var(--adm-rail);
+  color: var(--adm-rail-ink);
+  overflow: hidden;
+}
+
+.adm-rail-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.adm-rail-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--adm-r-sm);
+  background: var(--hmte-gold);
+  color: var(--adm-rail-deep);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.adm-rail-brand strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.adm-rail-brand small {
+  display: block;
+  color: var(--adm-rail-muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adm-rail-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--adm-r-sm);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--adm-rail-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms var(--adm-ease), border-color 160ms var(--adm-ease);
+}
+
+.adm-rail-search:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.adm-rail-search span {
+  flex: 1;
+}
+
+.adm-rail-search kbd {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.adm-rail-nav {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.adm-rail-group + .adm-rail-group {
+  margin-top: 14px;
+}
+
+.adm-rail-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: var(--adm-rail-muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.adm-rail-group-head svg {
+  width: 12px;
+  height: 12px;
+  transition: transform 160ms var(--adm-ease);
+}
+
+.adm-rail-group.is-closed .adm-rail-group-head svg {
+  transform: rotate(-90deg);
+}
+
+/* Kelompok yang dilipat TETAP terlipat walau memuat halaman aktif — memaksanya
+   terbuka membuat satu klik pengurus tidak menghasilkan apa-apa. Titik emas ini
+   yang memberi tahu bahwa halaman aktif ada di dalamnya. */
+.adm-rail-group.is-closed.holds-active .adm-rail-group-head::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--hmte-gold);
+}
+
+.adm-rail-group.is-closed .adm-rail-list {
+  display: none;
+}
+
+.adm-rail-list a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--adm-r-sm);
+  color: var(--adm-rail-ink);
+  font-size: 0.8125rem;
+  text-decoration: none;
+  transition: background 140ms var(--adm-ease);
+}
+
+.adm-rail-list a:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.adm-rail-list a[aria-current='page'] {
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 600;
+}
+
+.adm-rail-list svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  opacity: 0.75;
+}
+
+.adm-rail-count {
+  margin-left: auto;
+  color: var(--adm-rail-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.adm-rail-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 8px 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.adm-rail-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.adm-rail-user strong {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.adm-rail-user small {
+  display: block;
+  color: var(--adm-rail-muted);
+  font-size: 0.6875rem;
+  text-transform: capitalize;
+}
+
+/* Saat rel diciut, hanya ikon yang tersisa. */
+.adm.is-rail-collapsed .adm-rail-brand > span:last-child,
+.adm.is-rail-collapsed .adm-rail-search span,
+.adm.is-rail-collapsed .adm-rail-search kbd,
+.adm.is-rail-collapsed .adm-rail-group-head,
+.adm.is-rail-collapsed .adm-rail-list a > span,
+.adm.is-rail-collapsed .adm-rail-count,
+.adm.is-rail-collapsed .adm-rail-user > div {
+  display: none;
+}
+
+.adm.is-rail-collapsed .adm-rail-list a {
+  justify-content: center;
+}
+
+/* ----------------------------------------------------------- bar atas ---- */
+
+.adm-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.adm-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--adm-z-sticky);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--adm-line);
+  background: var(--adm-surface);
+}
+
+/* Jejak lokasi satu baris menggantikan blok judul 168px milik kerangka lama.
+   Yang pertama dilihat pengurus saat berpindah menu tidak boleh berupa nama
+   menu yang baru saja ia klik sendiri. */
+.adm-crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--adm-muted);
+  font-size: 0.8125rem;
+}
+
+.adm-crumb strong {
+  color: var(--adm-ink);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.adm-work {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+}
+
+.adm-work > * + * {
+  margin-top: 16px;
+}
+
+/* ------------------------------------------------------------ tombol ---- */
+
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-accent);
+  color: var(--adm-accent-ink);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 140ms var(--adm-ease), opacity 140ms var(--adm-ease);
+}
+
+.adm-btn:hover { background: #012a5a; }
+.adm-btn:active { background: #011f45; }
+
+.adm-btn:disabled,
+.adm-btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.adm-btn--ghost {
+  background: var(--adm-surface);
+  border-color: var(--adm-line-strong);
+  color: var(--adm-ink);
+}
+
+.adm-btn--ghost:hover { background: var(--adm-sunken); }
+.adm-btn--ghost:active { background: var(--adm-sunken); }
+
+.adm-btn--danger { background: var(--adm-danger); }
+.adm-btn--danger:hover { background: #8d2424; }
+
+.adm-btn--icon {
+  min-width: 34px;
+  padding: 0;
+}
+
+.adm-btn.is-loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.adm-btn.is-loading::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--adm-accent-ink);
+  animation: adm-spin 700ms linear infinite;
+}
+
+@keyframes adm-spin { to { transform: rotate(360deg); } }
+
+/* ------------------------------------------------------------- fokus ---- */
+
+.adm :focus-visible {
+  outline: 2px solid var(--adm-focus);
+  outline-offset: 2px;
+  border-radius: var(--adm-r-sm);
+}
+
+/* -------------------------------------------------------------- baris ---- */
+
+.adm-panel {
+  border: 1px solid var(--adm-line);
+  border-radius: var(--adm-r-lg);
+  background: var(--adm-surface);
+  box-shadow: var(--adm-shadow-1);
+  overflow: hidden;
+}
+
+.adm-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--adm-line);
+}
+
+.adm-panel-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.adm-panel-head p {
+  margin: 2px 0 0;
+  color: var(--adm-muted);
+  font-size: 0.8125rem;
+}
+
+/* Daftar memakai BARIS, bukan kartu. Pengurus mengelola 71 nama; kartu longgar
+   memaksa menggulir untuk pekerjaan yang seharusnya satu pandang. */
+.adm-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--adm-line);
+  background: var(--adm-surface);
+  text-align: left;
+  transition: background 120ms var(--adm-ease);
+}
+
+.adm-row:first-child { border-top: 0; }
+.adm-row:hover { background: var(--adm-sunken); }
+
+.adm-row-main { flex: 1; min-width: 0; }
+
+.adm-row-main strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-row-main small {
+  display: block;
+  margin-top: 1px;
+  color: var(--adm-muted);
+  font-size: 0.8125rem;
+}
+
+.adm-row-actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+/* --------------------------------------------------------------- chip ---- */
+
+.adm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--adm-sunken);
+  color: var(--adm-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.adm-chip--ok { background: #e4f0e9; color: var(--adm-ok); }
+.adm-chip--warn { background: #f6eddb; color: var(--adm-warn); }
+.adm-chip--danger { background: #f6e3e3; color: var(--adm-danger); }
+
+/* ------------------------------------------------------------- isian ---- */
+
+.adm-field { display: block; }
+
+.adm-field + .adm-field { margin-top: 14px; }
+
+.adm-field > label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.adm-field input,
+.adm-field select,
+.adm-field textarea {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--adm-line-strong);
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-surface);
+  color: var(--adm-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  transition: border-color 140ms var(--adm-ease);
+}
+
+.adm-field input:hover,
+.adm-field select:hover,
+.adm-field textarea:hover { border-color: var(--adm-muted); }
+
+.adm-field input:disabled,
+.adm-field textarea:disabled,
+.adm-field select:disabled {
+  background: var(--adm-sunken);
+  color: var(--adm-muted);
+  cursor: not-allowed;
+}
+
+/* Placeholder wajib lolos kontras yang sama dengan teks badan. Abu default
+   peramban tidak lolos. */
+.adm-field ::placeholder { color: var(--adm-muted); opacity: 1; }
+
+.adm-field small {
+  display: block;
+  margin-top: 4px;
+  color: var(--adm-muted);
+  font-size: 0.75rem;
+}
+
+/* Galat MENGGANTIKAN teks bantuan, bukan menumpuk di bawahnya — dua baris kecil
+   berbeda warna di bawah satu isian membuat orang membaca keduanya dua kali. */
+.adm-field.is-invalid input,
+.adm-field.is-invalid select,
+.adm-field.is-invalid textarea { border-color: var(--adm-danger); }
+
+.adm-field.is-invalid small { color: var(--adm-danger); font-weight: 500; }
+
+/* -------------------------------------------------------------- laci ---- */
+
+.adm-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--adm-z-scrim);
+  border: 0;
+  background: rgba(16, 35, 58, 0.28);
+  animation: adm-fade 160ms var(--adm-ease);
+}
+
+.adm-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: var(--adm-z-drawer);
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100vw);
+  height: 100dvh;
+  background: var(--adm-surface);
+  box-shadow: var(--adm-shadow-2);
+  animation: adm-slide-in 200ms var(--adm-ease);
+}
+
+.adm-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--adm-line);
+}
+
+.adm-drawer-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.adm-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Tombol simpan menempel di dasar laci: isian yang panjang tidak boleh membuat
+   tombolnya hilang di bawah lipatan. */
+.adm-drawer-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--adm-line);
+  background: var(--adm-surface);
+}
+
+.adm-drawer-foot > :last-child { margin-left: auto; }
+
+@keyframes adm-slide-in { from { transform: translateX(16px); opacity: 0; } }
+@keyframes adm-fade { from { opacity: 0; } }
+
+/* ------------------------------------------------ modal konfirmasi ---- */
+
+/*
+ * Satu-satunya modal tengah yang sah (Larangan 6). Menyunting terjadi di laci;
+ * modal dipakai justru karena ia menutupi segalanya — itu gunanya saat sesuatu
+ * yang tidak bisa dibatalkan hendak terjadi.
+ *
+ * Tinggal di sini, bukan di berkas per-area, karena konfirmasi merusak muncul
+ * di banyak halaman dan harus terlihat sama di semuanya. Komponennya:
+ * src/components/admin/AdminConfirmDialog.tsx
+ */
+.adm-confirm {
+  position: fixed;
+  top: 30vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--adm-z-drawer);
+  width: min(380px, calc(100vw - 32px));
+  padding: 18px;
+  border: 1px solid var(--adm-line);
+  border-radius: var(--adm-r-lg);
+  background: var(--adm-surface);
+  box-shadow: var(--adm-shadow-2);
+  animation: adm-rise 180ms var(--adm-ease);
+}
+
+.adm-confirm h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.adm-confirm p {
+  margin: 0;
+  color: var(--adm-muted);
+  font-size: 0.8125rem;
+}
+
+.adm-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-confirm { animation: adm-fade 0.01ms; }
+}
+
+/* ------------------------------------------------------------- palet ---- */
+
+.adm-palette {
+  position: fixed;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--adm-z-drawer);
+  width: min(460px, calc(100vw - 32px));
+  border: 1px solid var(--adm-line);
+  border-radius: var(--adm-r-lg);
+  background: var(--adm-surface);
+  box-shadow: var(--adm-shadow-2);
+  overflow: hidden;
+  animation: adm-rise 180ms var(--adm-ease);
+}
+
+.adm-palette input {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--adm-line);
+  background: none;
+  color: var(--adm-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+
+.adm-palette input:focus { outline: none; }
+.adm-palette input::placeholder { color: var(--adm-muted); opacity: 1; }
+
+.adm-palette-list {
+  max-height: 46vh;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.adm-palette-list a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--adm-r-sm);
+  color: var(--adm-ink);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.adm-palette-list a:hover { background: var(--adm-sunken); }
+
+.adm-palette-list svg { width: 16px; height: 16px; opacity: 0.7; }
+
+.adm-palette-empty {
+  margin: 0;
+  padding: 18px 12px;
+  color: var(--adm-muted);
+  text-align: center;
+}
+
+/* ------------------------------------------------- kosong & memuat ---- */
+
+/* Bidang kosong MENGAJARI. "Belum ada data" tidak memberi tahu apa pun tentang
+   apa yang seharusnya ada di sini atau bagaimana membuatnya. */
+.adm-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.adm-empty h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.adm-empty p {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--adm-muted);
+}
+
+.adm-skeleton {
+  border-radius: var(--adm-r-sm);
+  background: linear-gradient(90deg, var(--adm-sunken) 25%, #e8e5df 37%, var(--adm-sunken) 63%);
+  background-size: 400% 100%;
+  animation: adm-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes adm-shimmer { to { background-position: -135% 0; } }
+
+/* ------------------------------------------------------- roti panggang ---- */
+
+.adm-toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: var(--adm-z-toast);
+  display: grid;
+  gap: 8px;
+}
+
+.adm-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--adm-r-md);
+  background: var(--adm-ink);
+  color: #fff;
+  font-size: 0.8125rem;
+  box-shadow: var(--adm-shadow-2);
+  animation: adm-rise 200ms var(--adm-ease);
+}
+
+.adm-toast--danger { background: var(--adm-danger); }
+
+@keyframes adm-rise { from { transform: translateY(8px); opacity: 0; } }
+
+/* -------------------------------------------------------------- layar ---- */
+
+.adm-rail-toggle,
+.adm-rail-close { display: none; }
+
+@media (max-width: 900px) {
+  .adm { grid-template-columns: minmax(0, 1fr); }
+
+  .adm-rail {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 200ms var(--adm-ease);
+  }
+
+  .adm.is-nav-open .adm-rail { transform: none; }
+
+  .adm-rail-toggle { display: inline-flex; }
+  .adm-rail-close { display: inline-flex; }
+
+  .adm-work { padding: 16px; }
+}
+
+@media (max-width: 560px) {
+  .adm-drawer { width: 100vw; }
+  .adm-row { flex-wrap: wrap; }
+}
+
+/* Gerak yang dikurangi bukan pilihan tambahan. Setiap animasi di atas punya
+   padanan diam di sini. */
+@media (prefers-reduced-motion: reduce) {
+  .adm *,
+  .adm *::before,
+  .adm *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .adm-drawer { animation: adm-fade 0.01ms; }
+}
+
+/* ==========================================================================
+   Control Room V7 — arah visual referensi final
+
+   Lapisan ini sengaja berada paling akhir: seluruh route admin sudah memakai
+   kosakata `.adm-*`, jadi satu sistem permukaan dapat diterapkan tanpa
+   memecah perilaku CRUD masing-masing manager.
+   ========================================================================== */
+
+.adm {
+  --adm-canvas: #f1f5fb;
+  --adm-surface: #ffffff;
+  --adm-sunken: #f5f8fc;
+  --adm-rail: #ffffff;
+  --adm-rail-deep: #082653;
+  --adm-rail-ink: #173455;
+  --adm-rail-muted: #71839d;
+  --adm-ink: #081b33;
+  --adm-muted: #61738f;
+  --adm-line: #dce5f0;
+  --adm-line-strong: #cbd8e7;
+  --adm-accent: #0a3877;
+  --adm-accent-ink: #ffffff;
+  --adm-focus: #1872d5;
+  --adm-ok: #098b68;
+  --adm-warn: #b76b10;
+  --adm-danger: #b83b45;
+  --adm-r-sm: 9px;
+  --adm-r-md: 12px;
+  --adm-r-lg: 17px;
+  --adm-shadow-1: 0 1px 2px rgba(8, 35, 73, 0.04), 0 8px 24px rgba(8, 35, 73, 0.035);
+  --adm-shadow-2: 0 22px 70px rgba(5, 31, 70, 0.2);
+  --adm-rail-w: 246px;
+  letter-spacing: -0.01em;
+}
+
+.adm-rail {
+  gap: 8px;
+  padding: 14px;
+  border-right: 1px solid var(--adm-line);
+  background: var(--adm-rail);
+  color: var(--adm-rail-ink);
+}
+
+.adm-rail-brand {
+  display: flex;
+  min-height: 114px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #0b397a 0%, #1262bd 58%, #2386d3 100%);
+  color: #ffffff;
+  box-shadow: 0 12px 25px rgba(12, 73, 149, 0.18);
+}
+
+.adm-rail-brand-main,
+.adm-rail-cabinet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-rail-brand-main > span:last-child { min-width: 0; }
+
+.adm-rail-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0b397a;
+}
+
+.adm-rail-brand strong { color: #ffffff; }
+.adm-rail-brand-main small { color: #dbeaff; }
+
+.adm-rail-cabinet {
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.adm-rail-cabinet > span { min-width: 0; }
+
+.adm-rail-cabinet small {
+  display: block;
+  color: #dbeaff;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adm-rail-cabinet strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 1px;
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-rail-cabinet b {
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.adm-rail-search {
+  min-height: 38px;
+  margin: 4px 0 2px;
+  border-color: var(--adm-line);
+  background: #f8faff;
+  color: var(--adm-muted);
+}
+
+.adm-rail-search:hover {
+  border-color: #b8cae0;
+  background: #f1f6fd;
+}
+
+.adm-rail-search kbd {
+  border: 1px solid var(--adm-line);
+  background: #ffffff;
+  color: var(--adm-muted);
+}
+
+.adm-rail-group + .adm-rail-group { margin-top: 11px; }
+
+.adm-rail-group-head {
+  color: #657b99;
+  font-size: 0.625rem;
+}
+
+.adm-rail-list { display: grid; gap: 2px; }
+
+.adm-rail-list a {
+  min-height: 36px;
+  padding: 8px 10px;
+  color: #284665;
+}
+
+.adm-rail-list a:hover { background: #f1f6fd; }
+
+.adm-rail-list a[aria-current='page'] {
+  background: #e8f1ff;
+  color: #0b5cc4;
+  font-weight: 650;
+}
+
+.adm-rail-list a[aria-current='page'] svg { opacity: 1; }
+.adm-rail-count { color: #607895; }
+
+.adm-rail-user {
+  margin-top: auto;
+  padding: 9px;
+  border: 0;
+  border-radius: 12px;
+  background: #f2f6fc;
+}
+
+.adm-rail-avatar {
+  border-radius: 9px;
+  background: #0c4ca0;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.adm-rail-user small { color: var(--adm-muted); }
+
+.adm.is-rail-collapsed .adm-rail-brand {
+  min-height: 52px;
+  padding: 10px;
+  align-items: center;
+}
+
+.adm.is-rail-collapsed .adm-rail-brand-main > span:last-child,
+.adm.is-rail-collapsed .adm-rail-cabinet { display: none; }
+
+.adm-main { background: var(--adm-canvas); }
+
+.adm-topbar {
+  height: 60px;
+  padding: 0 26px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 1px 0 rgba(8, 35, 73, 0.02);
+  backdrop-filter: blur(12px);
+}
+
+.adm-crumb a { color: #71839d; text-decoration: none; }
+.adm-crumb strong { color: #1b3454; }
+
+.adm-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding-left: 8px;
+  border-left: 1px solid var(--adm-line);
+}
+
+.adm-topbar-user > span:nth-child(2) { min-width: 0; }
+.adm-topbar-user strong,
+.adm-topbar-user small { display: block; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-topbar-user strong { color: var(--adm-ink); font-size: 0.75rem; font-weight: 650; }
+.adm-topbar-user small { color: var(--adm-muted); font-size: 0.625rem; text-transform: capitalize; }
+.adm-topbar-user .adm-rail-avatar { width: 32px; height: 32px; }
+
+.adm-work {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+.adm-btn {
+  min-height: 38px;
+  padding: 0 15px;
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(10, 56, 119, 0.12);
+}
+
+.adm-btn:hover { background: #082e63; }
+.adm-btn--ghost { box-shadow: none; }
+.adm-btn--ghost:hover { background: #f1f6fd; }
+.adm-btn--danger { box-shadow: none; }
+
+.adm-panel {
+  border-color: var(--adm-line);
+  border-radius: var(--adm-r-lg);
+  box-shadow: var(--adm-shadow-1);
+}
+
+.adm-panel-head { padding: 16px 18px; }
+.adm-row { min-height: 58px; padding: 10px 18px; }
+.adm-row:hover { background: #f7faff; }
+.adm-chip { background: #edf3fa; color: #526985; }
+.adm-chip--ok { background: #e2f5ef; color: #087658; }
+.adm-chip--warn { background: #fff0da; color: #9c5b0d; }
+.adm-chip--danger { background: #fde8eb; color: #a62d39; }
+
+.adm-field input,
+.adm-field select,
+.adm-field textarea {
+  min-height: 40px;
+  border-color: var(--adm-line-strong);
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.adm-field textarea { min-height: 96px; resize: vertical; }
+.adm-field input:focus,
+.adm-field select:focus,
+.adm-field textarea:focus { border-color: var(--adm-focus); background: #ffffff; }
+
+/* Editor record dipusatkan. Daftar di belakang tetap memberi konteks visual,
+   tetapi perhatian, fokus keyboard, dan aksi simpan berada di satu tempat. */
+.adm-editor-dialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  z-index: var(--adm-z-drawer);
+  display: flex;
+  width: min(760px, calc(100vw - 40px));
+  max-height: min(86dvh, 900px);
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--adm-line);
+  border-radius: 20px;
+  background: var(--adm-surface);
+  box-shadow: var(--adm-shadow-2);
+  animation: adm-dialog-in 190ms var(--adm-ease);
+}
+
+.adm-editor-dialog--wide {
+  width: min(1120px, calc(100vw - 56px));
+  max-height: min(92dvh, 980px);
+}
+
+.adm-editor-dialog .adm-drawer-head {
+  align-items: center;
+  padding: 18px 22px;
+  background: #ffffff;
+}
+
+.adm-drawer-heading { min-width: 0; }
+
+.adm-drawer-heading > span {
+  display: block;
+  margin-bottom: 3px;
+  color: #3a6fa8;
+  font: 700 0.625rem var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adm-editor-dialog .adm-drawer-heading h2 {
+  font-size: 1.125rem;
+  letter-spacing: -0.015em;
+}
+
+.adm-drawer-heading p {
+  max-width: 68ch;
+  margin: 4px 0 0;
+  color: var(--adm-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.adm-editor-dialog .adm-drawer-body {
+  padding: 22px;
+  background: #f4f7fb;
+  scrollbar-gutter: stable;
+}
+
+.adm-editor-dialog .adm-drawer-foot {
+  padding: 14px 22px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -10px 28px rgba(16, 54, 95, 0.06);
+}
+
+.adm-danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid #efc6ca;
+  border-radius: 14px;
+  background: #fff7f7;
+}
+
+.adm-danger-zone strong { display: block; color: #852631; font-size: 0.8125rem; }
+.adm-danger-zone p { max-width: 52ch; margin: 4px 0 0; color: #8f5960; font-size: 0.75rem; line-height: 1.55; }
+.adm-danger-zone .adm-btn { flex: 0 0 auto; }
+
+@keyframes adm-dialog-in {
+  from { transform: translate(-50%, calc(-50% + 12px)) scale(0.985); opacity: 0; }
+}
+
+.adm-scrim { background: rgba(8, 27, 51, 0.42); backdrop-filter: blur(2px); }
+
+@media (max-width: 900px) {
+  .adm-work { padding: 22px; }
+  .adm-topbar-user > span:nth-child(2) { display: none; }
+}
+
+@media (max-width: 620px) {
+  .adm-topbar { padding: 0 12px; }
+  .adm-topbar-actions { gap: 5px; }
+  .adm-topbar-actions > .adm-btn:not(.adm-btn--icon) { padding: 0 10px; }
+  .adm-topbar-user { padding-left: 5px; }
+  .adm-topbar-user > .adm-rail-avatar { display: none; }
+  .adm-work { padding: 16px 12px 24px; }
+  .adm-editor-dialog {
+    inset: auto 8px 8px;
+    width: auto;
+    max-height: calc(100dvh - 16px);
+    transform: none;
+    border-radius: 18px;
+    animation-name: adm-dialog-mobile-in;
+  }
+  .adm-editor-dialog--wide { width: auto; }
+  .adm-editor-dialog .adm-drawer-head,
+  .adm-editor-dialog .adm-drawer-foot { padding-right: 16px; padding-left: 16px; }
+  .adm-editor-dialog .adm-drawer-body { padding: 14px; }
+  .adm-danger-zone { align-items: stretch; flex-direction: column; }
+}
+
+@keyframes adm-dialog-mobile-in { from { transform: translateY(18px); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-editor-dialog { animation: adm-fade 0.01ms; }
+}

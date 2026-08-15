@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
 import { AdminShell } from '@/components/admin/AdminShell'
 
@@ -11,9 +12,8 @@ export default function AdminPage() {
   return (
     <AdminShell
       activeHref="/admin"
-      description="Ringkasan status pengelolaan konten dan fondasi admin website."
-      kicker="Dashboard"
-      title="Panel pengelolaan website"
+      title="Dashboard"
+      actions={<Link className="adm-btn" href="/admin/articles/new"><span aria-hidden="true">+</span> Buat publikasi</Link>}
     >
       <AdminDashboard />
     </AdminShell>

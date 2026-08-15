@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next'
+import '@blocknote/core/fonts/inter.css'
+import '@blocknote/mantine/style.css'
 import { MediaSlotProvider } from '@/components/site/MediaSlotProvider'
 import { SiteSettingsProvider } from '@/components/site/SiteSettingsProvider'
 import { getPublicMediaSlots } from '@/lib/media-slot-data'
@@ -12,6 +14,17 @@ import '../../css/contact-postal.css'
 import '../../css/org-pages.css'
 import '../../css/hero-backdrop.css'
 import '../../css/ui-soft.css'
+import '../../css/downloads.css'
+import '../../css/data-library.css'
+/*
+ * Sistem desain panel admin (docs/DESIGN_ADMIN.md). Dilingkupi `.adm`, jadi ia
+ * hidup berdampingan dengan admin-panel.css lama selama halaman dipindahkan
+ * satu per satu. Berkas lama dibuang begitu tidak ada lagi yang memakainya.
+ */
+import '../../css/admin.css'
+import '../../css/admin-dashboard.css'
+import '../../css/admin-publikasi.css'
+import '../../css/admin-organisasi.css'
 /*
  * Diimpor PALING AKHIR, dan itu disengaja.
  *

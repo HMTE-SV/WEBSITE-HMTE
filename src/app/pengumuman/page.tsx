@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
 import { getPublishedAnnouncements, type PublicAnnouncement } from '@/lib/announcement-data'
+import { sanitizeArticleContent } from '@/lib/article-content'
 
 /*
  * Jaring pengaman, bukan jalur utama. Lihat komentar `revalidate` di
@@ -61,13 +62,6 @@ function todayIso() {
 }
 
 /** Baris kosong memisahkan paragraf, seperti yang diketik pengurus di panel. */
-function toParagraphs(value: string) {
-  return value
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
-}
-
 function Notice({
   announcement,
   state,
@@ -75,7 +69,7 @@ function Notice({
   announcement: PublicAnnouncement
   state: BoardState
 }) {
-  const paragraphs = toParagraphs(announcement.body)
+  const bodyHtml = announcement.body.trim() ? sanitizeArticleContent(announcement.body) : ''
 
   return (
     <article className="pgm-notice" data-state={state}>
@@ -99,17 +93,13 @@ function Notice({
           {state === 'archive' ? <span>Sudah lewat</span> : null}
         </p>
 
-        {paragraphs.length > 0 ? (
+        {bodyHtml ? (
           <details className="pgm-detail">
             <summary>
               Isi lengkap
               <b aria-hidden="true">+</b>
             </summary>
-            <div>
-              {paragraphs.map((paragraph) => (
-                <p key={paragraph.slice(0, 48)}>{paragraph}</p>
-              ))}
-            </div>
+            <div className="article-rich-content" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
           </details>
         ) : null}
       </div>
@@ -155,8 +145,6 @@ export default async function AnnouncementsPage() {
           </h1>
           <p className="pgm-hero-lead">
             Kabar administrasi, pendaftaran, dan hal yang perlu ditindaklanjuti mahasiswa TRE.
-            Papan ini memisahkan yang masih berlaku dari yang sudah lewat, jadi kamu tidak perlu
-            menebak sendiri dari tanggalnya.
           </p>
 
           <dl className="pgm-hero-facts" aria-label="Ringkasan papan pengumuman">
@@ -193,9 +181,6 @@ export default async function AnnouncementsPage() {
                 <div className="soft-head">
                   <div>
                     <h2 id="active-title">Masih berlaku.</h2>
-                    <p className="pgm-subhead">
-                      Disusun dari tanggal terdekat, bukan dari yang paling baru diterbitkan.
-                    </p>
                   </div>
                 </div>
 

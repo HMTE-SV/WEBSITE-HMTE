@@ -120,23 +120,23 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
   }
 
   return (
-    <div className="admin-field admin-image-field">
+    <div className="adm-field adp-image-field">
       <label htmlFor={fieldId}>{label}</label>
 
-      <div className="admin-image-field-row">
+      <div className="adp-image-field-row">
         {value ? (
           // Sengaja <img>, bukan next/image. Nilainya bisa berupa URL apa pun
           // yang baru saja diketik pengurus, dan next/image menolak host yang
           // tidak terdaftar dengan melempar error yang merusak seluruh form.
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="admin-image-field-preview" src={value} alt="" />
+          <img className="adp-image-field-preview" src={value} alt="" />
         ) : (
-          <div className="admin-image-field-preview is-empty" aria-hidden="true">
+          <div className="adp-image-field-preview is-empty" aria-hidden="true">
             <span>Belum ada</span>
           </div>
         )}
 
-        <div className="admin-image-field-controls">
+        <div className="adp-image-field-controls">
           <input
             id={fieldId}
             type="url"
@@ -144,9 +144,9 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
             onChange={(event) => onChange(event.target.value)}
             placeholder="https://ik.imagekit.io/..."
           />
-          <div className="admin-image-field-actions">
+          <div className="adp-image-field-actions">
             <button
-              className="admin-secondary-button"
+              className="adm-btn adm-btn--ghost"
               type="button"
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
@@ -154,7 +154,7 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
               {isUploading ? 'Mengunggah...' : 'Unggah gambar'}
             </button>
             <button
-              className="admin-secondary-button"
+              className="adm-btn adm-btn--ghost"
               type="button"
               disabled={isUploading}
               onClick={() => void openLibrary()}
@@ -162,13 +162,13 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
               Pilih dari pustaka
             </button>
             {value ? (
-              <button className="admin-secondary-button" type="button" onClick={() => onChange('')}>
+              <button className="adm-btn adm-btn--ghost" type="button" onClick={() => onChange('')}>
                 Hapus
               </button>
             ) : null}
           </div>
           <input
-            className="admin-visually-hidden"
+            className="adp-visually-hidden"
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -179,19 +179,19 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
       </div>
 
       {uploadError ? (
-        <p className="admin-form-error" role="alert">
+        <p className="adp-inline-error" role="alert">
           {uploadError}
         </p>
       ) : null}
       {isLibraryOpen ? (
-        <div className="admin-image-library-picker">
-          <div>
+        <div className="adp-image-library">
+          <div className="adp-image-library-head">
             <strong>Pustaka media</strong>
-            <button type="button" onClick={() => setIsLibraryOpen(false)} aria-label="Tutup pustaka">
+            <button className="adm-btn adm-btn--ghost adm-btn--icon" type="button" onClick={() => setIsLibraryOpen(false)} aria-label="Tutup pustaka">
               ×
             </button>
           </div>
-          <div className="admin-image-library-filters">
+          <div className="adp-image-library-filters">
             <label>
               <span>Cari gambar</span>
               <input
@@ -217,8 +217,8 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
             <p>{libraryItems.length === 0 ? 'Belum ada media aktif. Unggah gambar untuk mendaftarkannya.' : 'Tidak ada gambar yang cocok dengan filter ini.'}</p>
           ) : (
             <>
-              <p className="admin-image-library-count">Menampilkan {pickerResult.items.length} dari {pickerResult.total} gambar</p>
-              <div className="admin-image-library-grid">
+              <p className="adp-image-library-count">Menampilkan {pickerResult.items.length} dari {pickerResult.total} gambar</p>
+              <div className="adp-image-library-grid">
                 {pickerResult.items.map((item) => (
                   <button
                     type="button"
@@ -237,7 +237,7 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
               </div>
               {pickerResult.items.length < pickerResult.total ? (
                 <button
-                  className="admin-image-library-more"
+                  className="adm-btn adm-btn--ghost"
                   type="button"
                   onClick={() => setLibraryLimit((current) => current + DEFAULT_MEDIA_PICKER_LIMIT)}
                 >
@@ -248,7 +248,7 @@ export function AdminImageField({ folder, hint, label, onChange, value }: AdminI
           )}
         </div>
       ) : null}
-      {hint ? <p className="admin-field-hint">{hint}</p> : null}
+      {hint ? <small>{hint}</small> : null}
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
+import { AdminConfirmDialog } from './AdminConfirmDialog'
 import { AdminEmptyState } from './AdminEmptyState'
 import { useAdminSession } from './AdminSessionContext'
 import { AdminShell } from './AdminShell'
@@ -22,6 +23,11 @@ import {
 } from '@/lib/admin/content-crud'
 import type { ContentStatus } from '@/types/content'
 
+/*
+ * Pengumuman dan berita sama-sama memakai halaman editor penuh. Keduanya kini
+ * dapat memuat blok kaya dan iframe, sehingga laci singkat tidak lagi cukup.
+ */
+
 type AdminContentListPageProps = {
   kind: ContentKind
 }
@@ -34,8 +40,19 @@ const statusLabels: Record<ContentStatus, string> = {
   published: 'Terbit',
 }
 
+const statusChipVariant: Record<ContentStatus, string> = {
+  archived: '',
+  draft: 'adm-chip--warn',
+  published: 'adm-chip--ok',
+}
+
 function getDocumentMeta(document: ManagedContentDocument) {
   return 'slug' in document ? `/${document.slug}` : document.date
+}
+
+function getPublicContentPath(kind: ContentKind, document: ManagedContentDocument) {
+  if (!('slug' in document)) return ''
+  return kind === 'publicData' ? `/data/${document.slug}` : `/berita/${document.slug}`
 }
 
 function getDocumentTimestamp(document: ManagedContentDocument) {
@@ -65,6 +82,7 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
   const [busyId, setBusyId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [deleteTarget, setDeleteTarget] = useState<ManagedContentDocument | null>(null)
 
   /*
    * Langganan, bukan sekali ambil. Redaksi sering bekerja berbarengan, dan
@@ -117,7 +135,6 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
       setFeedback(nextStatus === 'published' ? 'Konten berhasil diterbitkan.' : 'Konten dikembalikan ke draft.')
 
       await requestRevalidation(kind)
-
     } catch (statusError) {
       setError(statusError instanceof Error ? statusError.message : 'Gagal memperbarui status.')
     } finally {
@@ -125,11 +142,9 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
     }
   }
 
-  async function handleDelete(document: ManagedContentDocument) {
-    const confirmed = window.confirm(`Hapus "${document.title}"? Tindakan ini tidak bisa dibatalkan.`)
-
-    if (!confirmed) return
-
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    const document = deleteTarget
     setBusyId(document.id)
     setError('')
     setFeedback('')
@@ -137,9 +152,9 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
     try {
       await deleteContentDocument(config.collectionName, document.id)
       setFeedback('Konten berhasil dihapus.')
+      setDeleteTarget(null)
 
       await requestRevalidation(kind)
-
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus konten.')
     } finally {
@@ -154,70 +169,97 @@ export function AdminContentListPage({ kind }: AdminContentListPageProps) {
     published: documents.filter((document) => document.status === 'published').length,
   }
 
-  return (
-    <AdminShell activeHref={config.basePath} description={config.description} kicker={config.kicker} title={config.title}>
-      <section className="admin-content-overview">
-        <div className="admin-content-counts" aria-label="Ringkasan status">
-          <span><strong>{counts.all}</strong>Total</span>
-          <span><strong>{counts.published}</strong>Terbit</span>
-          <span><strong>{counts.draft}</strong>Draft</span>
-          <span><strong>{counts.archived}</strong>Arsip</span>
-        </div>
-        {canWrite ? <Link className="admin-primary-button" href={config.newPath}>+ Tambah {config.label.toLowerCase()}</Link> : null}
-      </section>
+  const primaryAction = !canWrite ? null : (
+    <Link className="adm-btn" href={config.newPath}>+ Tambah {config.label.toLowerCase()}</Link>
+  )
 
-      <section className="admin-content-controls" aria-label="Filter konten">
-        <label className="admin-search-field">
+  return (
+    <AdminShell activeHref={config.basePath} title={config.title} actions={primaryAction}>
+      <p className="adp-summary">
+        <strong>{counts.all}</strong> total · <strong>{counts.published}</strong> terbit · <strong>{counts.draft}</strong> draft · <strong>{counts.archived}</strong> arsip
+      </p>
+
+      <div className="adp-toolbar">
+        <label className="adp-search">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m16 16 4 4" /></svg>
           <span className="sr-only">Cari konten</span>
-          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m16 16 4 4" /></svg>
           <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={`Cari ${config.label.toLowerCase()}...`} />
         </label>
-        <div className="admin-filter-tabs">
+        <div className="adp-filters" role="group" aria-label="Saring status">
           {(['all', 'published', 'draft', 'archived'] as const).map((status) => (
             <button type="button" aria-pressed={statusFilter === status} onClick={() => setStatusFilter(status)} key={status}>
               {status === 'all' ? 'Semua' : statusLabels[status]}
             </button>
           ))}
         </div>
-      </section>
+      </div>
 
-      {error ? <p className="admin-form-error" role="alert">{error}</p> : null}
-      {feedback ? <p className="admin-form-success" role="status">{feedback}</p> : null}
+      {error ? <p className="adp-inline-error" role="alert">{error}</p> : null}
+      {feedback ? <p className="adp-inline-success" role="status">{feedback}</p> : null}
 
       {!hasFirebaseConfig() ? (
-        <AdminEmptyState body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat membaca dan mengelola konten." kicker="Konfigurasi" title="Firebase belum siap." />
+        <AdminEmptyState title="Firebase belum siap." body="Isi .env.local sesuai FIREBASE_SETUP.md agar admin dapat membaca dan mengelola konten." />
       ) : isLoading ? (
-        <AdminEmptyState body="Mohon tunggu sebentar." kicker="Memuat" title="Mengambil data Firestore..." />
+        <div className="adp-skeleton-list" aria-hidden="true">
+          {Array.from({ length: 5 }).map((_, index) => <div className="adm-skeleton adp-skeleton-row" key={index} />)}
+        </div>
       ) : documents.length === 0 ? (
-        <AdminEmptyState body={config.emptyBody} title={config.emptyTitle} />
+        <AdminEmptyState
+          title={config.emptyTitle}
+          body={config.emptyBody}
+          action={primaryAction}
+        />
       ) : filteredDocuments.length === 0 ? (
-        <AdminEmptyState body="Ubah kata pencarian atau filter status untuk melihat konten lain." kicker="Filter" title="Tidak ada hasil yang cocok." />
+        <AdminEmptyState title="Tidak ada hasil yang cocok." body="Ubah kata pencarian atau filter status untuk melihat konten lain." />
       ) : (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead><tr><th scope="col">Konten</th><th scope="col">Status</th><th scope="col">Diperbarui</th><th scope="col">Aksi</th></tr></thead>
-            <tbody>
-              {filteredDocuments.map((document) => (
-                <tr key={document.id}>
-                  <td className="admin-content-cell"><small>{getDocumentMeta(document)}</small><strong>{document.title}</strong><p>{document.excerpt}</p></td>
-                  <td><span className={`admin-status-badge ${document.status}`}>{statusLabels[document.status]}</span></td>
-                  <td><time>{formatDocumentTimestamp(document)}</time></td>
-                  <td>
-                    {canWrite ? (
-                      <div className="admin-table-actions">
-                        <Link href={getContentEditPath(kind, document.id)}>Edit</Link>
-                        {'slug' in document && document.status === 'published' ? <Link href={`/berita/${document.slug}`} target="_blank" rel="noopener noreferrer">Lihat ↗</Link> : null}
-                        <button type="button" onClick={() => void handleToggleStatus(document)} disabled={busyId === document.id}>{document.status === 'published' ? 'Jadikan draft' : 'Terbitkan'}</button>
-                        <button className="is-danger" type="button" onClick={() => void handleDelete(document)} disabled={busyId === document.id}>Hapus</button>
-                      </div>
-                    ) : <span className="admin-readonly-label">Lihat saja</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="adm-panel">
+          {filteredDocuments.map((document) => (
+            <div className="adm-row" key={document.id}>
+              <div className="adm-row-main">
+                <strong>{document.title}</strong>
+                <small>{getDocumentMeta(document)} · Diperbarui {formatDocumentTimestamp(document)}</small>
+              </div>
+              <span className={`adm-chip ${statusChipVariant[document.status]}`.trim()}>{statusLabels[document.status]}</span>
+              <div className="adm-row-actions">
+                {canWrite ? <Link className="adm-btn adm-btn--ghost" href={getContentEditPath(kind, document.id)}>Edit</Link> : null}
+                {'slug' in document && document.status === 'published' ? (
+                  <Link className="adm-btn adm-btn--ghost" href={getPublicContentPath(kind, document)} target="_blank" rel="noopener noreferrer">Lihat ↗</Link>
+                ) : null}
+                {canWrite ? (
+                  <button
+                    className="adm-btn adm-btn--ghost"
+                    type="button"
+                    onClick={() => void handleToggleStatus(document)}
+                    disabled={busyId === document.id}
+                  >
+                    {document.status === 'published' ? 'Jadikan draft' : 'Terbitkan'}
+                  </button>
+                ) : null}
+                {canWrite ? (
+                  <button
+                    className="adm-btn adm-btn--danger"
+                    type="button"
+                    onClick={() => setDeleteTarget(document)}
+                    disabled={busyId === document.id}
+                  >
+                    Hapus
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ))}
         </div>
       )}
+
+      {deleteTarget ? (
+        <AdminConfirmDialog
+          title="Hapus konten?"
+          body={`"${deleteTarget.title}" akan dihapus permanen dan tidak bisa dibatalkan.`}
+          isBusy={busyId === deleteTarget.id}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => void confirmDelete()}
+        />
+      ) : null}
     </AdminShell>
   )
 }

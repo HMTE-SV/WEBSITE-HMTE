@@ -20,19 +20,6 @@
     linear-gradient(135deg, var(--hmte-navy-deep), var(--hmte-navy) 62%, #062c5c);
 }
 
-/* Ruled mesh, faded out toward the foot so copy never sits on a hard grid. */
-.hero-backdrop[data-mesh='on']::before {
-  position: absolute;
-  inset: 0;
-  content: '';
-  opacity: 0.2;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 88px 88px;
-  mask-image: linear-gradient(to bottom, #000, transparent 80%);
-}
-
 .hero-backdrop-figure {
   position: absolute;
   inset: 0;

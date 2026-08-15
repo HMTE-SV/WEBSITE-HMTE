@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getPublishedArticleFeed } from '@/lib/article-data'
 import { getOrganizationData } from '@/lib/organization-data'
 import { getDivisionHref, getLeaderHref, getProgramHref } from '@/lib/organization-slugs'
+import { getPublishedPublicData } from '@/lib/public-data-data'
 
 const siteUrl = 'https://website-hmte.vercel.app'
 
@@ -15,6 +16,9 @@ const staticRoutes = [
   '/galeri',
   '/aspirasi',
   '/kontak',
+  '/arsip',
+  '/template-dokumen',
+  '/data',
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -24,9 +28,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    * diterbitkan pengurus tidak pernah sekali pun didaftarkan ke mesin pencari.
    * Sitemap-nya lulus semua tes dan tetap salah, karena kosong bukan error.
    */
-  const [organization, publishedArticles] = await Promise.all([
+  const [organization, publishedArticles, publicData] = await Promise.all([
     getOrganizationData(),
     getPublishedArticleFeed().catch(() => []),
+    getPublishedPublicData().catch(() => []),
   ])
   const now = new Date()
 
@@ -42,6 +47,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: article.dateIso ? new Date(article.dateIso) : now,
     changeFrequency: 'monthly',
     priority: 0.5,
+  }))
+
+  const dataPages: MetadataRoute.Sitemap = publicData.map((entry) => ({
+    url: `${siteUrl}/data/${entry.slug}`,
+    lastModified: entry.updatedIso ? new Date(entry.updatedIso) : now,
+    changeFrequency: 'weekly',
+    priority: 0.6,
   }))
 
   const divisions: MetadataRoute.Sitemap = organization.divisions.map((division) => ({
@@ -80,5 +92,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   )
 
-  return [...pages, ...divisions, ...leaders, ...programs, ...articles]
+  return [...pages, ...divisions, ...leaders, ...programs, ...articles, ...dataPages]
 }

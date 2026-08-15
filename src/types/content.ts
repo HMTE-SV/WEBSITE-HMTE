@@ -31,6 +31,8 @@ export type ArticleSummary = {
   image: string
   publisher: string
   publisherIcon: string
+  relatedProgram?: string
+  showArticleMeta?: boolean
   timeAgo: string
   title: string
   excerpt: string

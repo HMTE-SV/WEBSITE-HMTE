@@ -1,0 +1,8 @@
+{
+  "/admin/login/page": "app/admin/login/page.js",
+  "/arsip/page": "app/arsip/page.js",
+  "/program-kerja/page": "app/program-kerja/page.js",
+  "/admin/(protected)/downloads/page": "app/admin/(protected)/downloads/page.js",
+  "/admin/(protected)/history/page": "app/admin/(protected)/history/page.js",
+  "/admin/(protected)/pages/page": "app/admin/(protected)/pages/page.js"
+}

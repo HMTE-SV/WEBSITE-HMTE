@@ -1,29 +1,39 @@
 import { slugify } from '../slug'
 import type { ArticleCategoryKey, ContentStatus } from '@/types/content'
+import type { PublicDataCategory, PublicDataResource } from '@/lib/public-data'
 import type {
   AnnouncementDocument,
   ArticleDocument,
   FirestoreCollectionName,
+  PublicDataDocument,
 } from '@/types/firestore'
 
-export type ContentKind = 'announcements' | 'articles'
+export type ContentKind = 'announcements' | 'articles' | 'publicData'
 
 export type ContentFormValues = {
   body: string
   category: ArticleCategoryKey | ''
   content: string
   coverImage: string
+  dataCategory: PublicDataCategory
   date: string
   excerpt: string
   slug: string
   status: ContentStatus
   title: string
+  period: string
+  publisher: string
+  relatedProgram: string
+  showArticleMeta: boolean
+  showDataMeta: boolean
+  resources: PublicDataResource[]
 }
 
-export type ManagedContentDocument = AnnouncementDocument | ArticleDocument
+export type ManagedContentDocument = AnnouncementDocument | ArticleDocument | PublicDataDocument
 
 type AnnouncementPayload = Omit<AnnouncementDocument, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'>
 type ArticlePayload = Omit<ArticleDocument, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'>
+type PublicDataPayload = Omit<PublicDataDocument, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'>
 
 type ContentCrudConfig = {
   basePath: string
@@ -63,6 +73,18 @@ export const contentCrudConfigs = {
     newPath: '/admin/articles/new',
     title: 'Kelola berita',
   },
+  publicData: {
+    basePath: '/admin/data',
+    collectionName: 'publicData',
+    description: 'Terbitkan data mahasiswa, penugasan, spreadsheet, dan berkas publik.',
+    emptyBody: 'Buat halaman data pertama untuk mulai membangun pusat informasi bersama.',
+    emptyTitle: 'Belum ada data publik.',
+    kind: 'publicData',
+    kicker: 'Data',
+    label: 'Data',
+    newPath: '/admin/data/new',
+    title: 'Kelola data publik',
+  },
 } as const satisfies Record<ContentKind, ContentCrudConfig>
 
 export function getEmptyContentFormValues(kind: ContentKind): ContentFormValues {
@@ -71,11 +93,18 @@ export function getEmptyContentFormValues(kind: ContentKind): ContentFormValues 
     category: kind === 'articles' ? 'berita-utama' : '',
     content: '',
     coverImage: '',
+    dataCategory: 'kemahasiswaan',
     date: '',
     excerpt: '',
     slug: '',
     status: 'draft',
     title: '',
+    period: '',
+    publisher: kind === 'articles' ? 'HMTE TRE SV UGM' : '',
+    relatedProgram: '',
+    showArticleMeta: true,
+    showDataMeta: true,
+    resources: [],
   }
 }
 
@@ -99,13 +128,26 @@ export function buildContentPayload(kind: ContentKind, values: ContentFormValues
     } satisfies AnnouncementPayload
   }
 
-  return {
+  if (kind === 'articles') return {
     ...basePayload,
     category: values.category || 'berita-utama',
     content: values.content.trim(),
     coverImage: values.coverImage.trim(),
+    publisher: values.publisher.trim(),
+    relatedProgram: values.relatedProgram.trim(),
+    showArticleMeta: values.showArticleMeta,
     slug: slugify(values.slug || title),
   } satisfies ArticlePayload
+
+  return {
+    ...basePayload,
+    category: values.dataCategory,
+    content: values.content.trim(),
+    period: values.period.trim(),
+    resources: values.resources,
+    showDataMeta: values.showDataMeta,
+    slug: slugify(values.slug || title),
+  } satisfies PublicDataPayload
 }
 
 export function getContentEditPath(kind: ContentKind, id: string) {
@@ -127,15 +169,34 @@ export function documentToContentFormValues(kind: ContentKind, document: Managed
     }
   }
 
-  const article = document as ArticleDocument
+  if (kind === 'articles') {
+    const article = document as ArticleDocument
+    return {
+      ...values,
+      category: article.category,
+      content: article.content,
+      coverImage: article.coverImage || '',
+      excerpt: article.excerpt,
+      publisher: article.publisher || 'HMTE TRE SV UGM',
+      relatedProgram: article.relatedProgram || '',
+      showArticleMeta: article.showArticleMeta !== false,
+      slug: article.slug,
+      status: article.status,
+      title: article.title,
+    }
+  }
+
+  const data = document as PublicDataDocument
   return {
     ...values,
-    category: article.category,
-    content: article.content,
-    coverImage: article.coverImage || '',
-    excerpt: article.excerpt,
-    slug: article.slug,
-    status: article.status,
-    title: article.title,
+    content: data.content || '',
+    dataCategory: data.category || 'kemahasiswaan',
+    excerpt: data.excerpt,
+    period: data.period || '',
+    resources: data.resources || [],
+    showDataMeta: data.showDataMeta !== false,
+    slug: data.slug,
+    status: data.status,
+    title: data.title,
   }
 }

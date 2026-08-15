@@ -252,18 +252,15 @@ const figures: Record<HeroBackdropVariant, () => ReactNode> = {
 
 type HeroBackdropProps = {
   variant?: HeroBackdropVariant
-  /** Drops the ruled mesh for heroes that already carry their own texture. */
-  mesh?: boolean
 }
 
-export function HeroBackdrop({ variant = 'arc', mesh = true }: HeroBackdropProps) {
+export function HeroBackdrop({ variant = 'arc' }: HeroBackdropProps) {
   const Figure = figures[variant]
 
   return (
     <div
       className="hero-backdrop"
       data-variant={variant}
-      data-mesh={mesh ? 'on' : 'off'}
       aria-hidden="true"
     >
       <svg

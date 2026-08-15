@@ -1,6 +1,8 @@
 import { createHmac, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { verifyFirebaseIdToken } from '@/lib/firebase/verify-id-token'
+import { readAdminClaims } from '@/lib/admin/claims'
+import { hasAdminPermission } from '@/lib/admin/permissions'
 
 /*
  * Menerbitkan tanda tangan unggah ImageKit untuk satu berkas.
@@ -39,6 +41,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: 'Sesi admin tidak sah. Masuk ulang lalu coba lagi.' },
       { status: 401 },
+    )
+  }
+
+  const { role, permissions } = readAdminClaims(user.claims)
+  if (!role || role === 'viewer' || !hasAdminPermission({ role, permissions }, 'media')) {
+    return NextResponse.json(
+      { error: 'Akun ini tidak diberi akses untuk mengunggah ke Pustaka Media.' },
+      { status: 403 },
     )
   }
 
