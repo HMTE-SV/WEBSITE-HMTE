@@ -114,9 +114,7 @@ export function ProgramYearStage({ divisions, programsByDivision, year }: Progra
             delapan bidang.
           </h1>
           <p className="stg-lead">
-            Sumbu mendatar adalah waktu, tiap pita adalah satu bidang, tiap balok adalah satu
-            program di bulan ia benar-benar jatuh. Sentuh baloknya untuk membaca, klik untuk
-            membuka halamannya.
+            
           </p>
         </header>
 

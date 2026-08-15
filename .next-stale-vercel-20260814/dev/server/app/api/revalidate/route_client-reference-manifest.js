@@ -1,1 +1,0 @@
-globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/revalidate/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"D:\\Agentic-Project\\WEBSITE-HMTE\\WESBITE-HMTE3\\src\\app\\api\\revalidate\\route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};
