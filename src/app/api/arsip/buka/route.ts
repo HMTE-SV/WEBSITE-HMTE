@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import {
   ARCHIVE_COOKIE_NAME,
   ARCHIVE_SESSION_MAX_AGE_SECONDS,
+  archiveCookieOptions,
   hasArchiveAccessSecret,
   isAcceptableAccessCode,
   normalizeAccessCode,
@@ -99,14 +100,6 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ unlocked: matched.length })
-  response.cookies.set({
-    name: ARCHIVE_COOKIE_NAME,
-    value: token,
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: ARCHIVE_SESSION_MAX_AGE_SECONDS,
-  })
+  response.cookies.set({ ...archiveCookieOptions(ARCHIVE_SESSION_MAX_AGE_SECONDS), value: token })
   return response
 }

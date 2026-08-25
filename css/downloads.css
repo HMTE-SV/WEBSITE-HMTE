@@ -86,3 +86,43 @@ a.archive-document[data-unlocked='true'] .archive-document-action { background: 
 @media (max-width: 860px) {
   .archive-vault { grid-template-columns: minmax(0,1fr); gap: 18px; }
 }
+
+@media (max-width: 720px) {
+  /*
+   * Tiga angka di hero tidak lagi muat berjajar sejak "Terbatas" ikut hadir.
+   * Dibiarkan membungkus, bukan dikecilkan: angka yang menyusut sampai sulit
+   * dibaca sama tidak bergunanya dengan angka yang terpotong.
+   */
+  .archive-hero dl { flex-wrap: wrap; row-gap: 4px; }
+  .archive-hero dl div { min-width: 78px; }
+
+  .archive-vault { padding: 18px 16px; }
+  .archive-vault-copy span { margin-top: 6px; }
+
+  /*
+   * 16px bukan pilihan estetis. Di iOS, kolom isian dengan huruf lebih kecil
+   * dari itu membuat Safari memperbesar halaman begitu disentuh, dan halaman
+   * yang terlanjur diperbesar tidak kembali sendiri — pengunjung ditinggal di
+   * tampilan yang meleset setelah mengetik kode.
+   */
+  .archive-vault-form input { font-size: 16px; letter-spacing: .06em; }
+  .archive-vault-form > div { flex-wrap: wrap; }
+  .archive-vault-form > div button { flex: 1 0 auto; min-height: 44px; }
+  .archive-vault-lock { min-height: 44px; }
+
+  /* Judul panjang tidak boleh menyeret labelnya keluar layar. */
+  .archive-project h2 { text-wrap: pretty; }
+  .archive-private-tag { display: inline-block; margin: 6px 0 0; }
+
+  /*
+   * Kolom ukuran disembunyikan di layar sempit, jadi kata "Terbatas" ikut
+   * hilang. Yang menanggung penandaan tinggal lencana aksi bertuliskan
+   * "Terkunci", dan ia harus cukup tegas untuk berdiri sendiri.
+   */
+  .archive-document[data-locked='true'] .archive-document-action { box-shadow: inset 0 0 0 1px rgba(var(--hmte-navy-rgb), .18); font-weight: 700; }
+}
+
+@media (max-width: 420px) {
+  .archive-vault-form > div { display: grid; grid-template-columns: minmax(0,1fr); }
+  .archive-document { grid-template-columns: 40px minmax(0,1fr); }
+}

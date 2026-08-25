@@ -87,7 +87,7 @@
 .adm-archive-order button:disabled { cursor: not-allowed; opacity: .42; }
 
 @media (max-width: 980px) {
-  .adm-archive-summary { grid-template-columns: repeat(3,1fr); }
+  .adm-archive-summary { grid-template-columns: repeat(4,1fr); }
   .adm-archive-summary p { grid-column: 1/-1; border-top: 1px solid var(--adm-line); }
   .adm-archive-workspace { grid-template-columns: 220px minmax(0,1fr); }
   .adm-archive-documents-head { display: none; }
@@ -1245,3 +1245,16 @@ button.adp-tile {
 .adm-archive-code-row input { flex: 1; min-width: 0; }
 .adm-archive-code-clear { margin-top: 8px; padding: 0; border: 0; background: none; color: var(--adm-danger, #b4232a); font-size: 0.75rem; text-decoration: underline; cursor: pointer; }
 .adm-archive-code-clear:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 620px) {
+  /* Empat kotak angka tidak muat berjajar di layar telepon. */
+  .adm-archive-summary { grid-template-columns: repeat(2,1fr); }
+  .adm-archive-summary > div:nth-child(2n) { border-right: 0; }
+  .adm-archive-summary > div:nth-child(-n+2) { border-bottom: 1px solid var(--adm-line); }
+  .adm-archive-summary strong { font-size: 1.375rem; }
+
+  /* Tombol pasang kode turun ke barisnya sendiri agar kolom isian tetap lega. */
+  .adm-archive-code-row { flex-wrap: wrap; }
+  .adm-archive-code-row input { flex: 1 0 100%; }
+  .adm-archive-code-row .adm-btn { flex: 1 0 auto; }
+}

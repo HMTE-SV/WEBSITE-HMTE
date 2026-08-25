@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ARCHIVE_COOKIE_NAME } from '@/lib/archive-access'
+import { archiveCookieOptions } from '@/lib/archive-access'
 
 /*
  * Menutup kembali arsip yang sudah dibuka.
@@ -14,14 +14,8 @@ export const dynamic = 'force-dynamic'
 
 export async function POST() {
   const response = NextResponse.json({ locked: true })
-  response.cookies.set({
-    name: ARCHIVE_COOKIE_NAME,
-    value: '',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
-  })
+  // Atribut harus persis sama dengan saat dipasang, kecuali umurnya. Kuki yang
+  // dihapus dengan atribut berbeda tidak tergantikan — ia tertinggal hidup.
+  response.cookies.set({ ...archiveCookieOptions(0), value: '' })
   return response
 }

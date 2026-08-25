@@ -30,6 +30,41 @@ const SALT_BYTES = 16
 export const ARCHIVE_COOKIE_NAME = 'hmte_arsip'
 export const ARCHIVE_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60
 
+/**
+ * Atribut kuki sesi arsip, disatukan supaya membuka dan mengunci tidak pernah
+ * berbeda — kuki yang dipasang dengan atribut berbeda dari yang menghapusnya
+ * akan tertinggal hidup di browser.
+ *
+ * `sameSite: 'none'` bukan pelonggaran yang ceroboh, melainkan syarat agar
+ * situs ini tetap berfungsi saat ditampilkan di dalam iframe dari domain lain.
+ * Di konteks itu browser menganggap seluruh permintaan lintas-situs, dan kuki
+ * `Lax` tidak pernah dikirim maupun disimpan — gerbangnya akan menerima kode
+ * yang benar lalu melupakannya seketika.
+ *
+ * `partitioned` yang membuatnya tetap aman: kuki dikunci ke situs induk yang
+ * memasang iframe-nya, jadi situs lain yang menyisipkan alamat yang sama
+ * mendapat laci kosong, bukan sesi milik orang lain. Di peramban lama yang
+ * belum mengenalnya, atribut ini diabaikan dan kukinya hanya menjadi `None`
+ * biasa; itu tetap tidak membocorkan apa pun, karena jawaban rute berkas tidak
+ * bisa dibaca lintas-asal.
+ *
+ * Di pengembangan lokal semuanya turun ke `lax` tanpa `secure`: `None` menuntut
+ * `Secure`, dan kuki `Secure` tidak pernah tersimpan lewat http://localhost.
+ */
+export function archiveCookieOptions(maxAgeSeconds: number) {
+  const isProduction = process.env.NODE_ENV === 'production'
+
+  return {
+    name: ARCHIVE_COOKIE_NAME,
+    httpOnly: true,
+    sameSite: isProduction ? 'none' as const : 'lax' as const,
+    secure: isProduction,
+    partitioned: isProduction,
+    path: '/',
+    maxAge: maxAgeSeconds,
+  }
+}
+
 export type ArchiveAccessRecord = {
   hash: string
   salt: string
