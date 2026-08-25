@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  /*
+   * Berkas arsip privat tinggal di private/arsip/, di luar public/, supaya
+   * tidak pernah dilayani sebagai aset statis. Konsekuensinya Next tidak bisa
+   * menebaknya sendiri: penelusuran berkas hanya mengikuti apa yang diimpor
+   * kode, sedangkan rute berkas membacanya dari jalur yang baru diketahui saat
+   * berjalan. Tanpa baris ini, arsip privat hilang begitu di-deploy.
+   */
+  outputFileTracingIncludes: {
+    '/api/arsip/berkas/[projectId]/[documentId]': ['./private/arsip/**/*'],
+  },
   reactStrictMode: true,
 }
 

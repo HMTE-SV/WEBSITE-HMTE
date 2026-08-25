@@ -1,8 +1,16 @@
 import Link from 'next/link'
+import { ArchiveBoard } from '@/components/site/ArchiveBoard'
 import { HeroBackdrop } from '@/components/site/HeroBackdrop'
-import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
-import { getPublicDownloadProjects, type ResolvedDownloadDocument } from '@/lib/downloads-data'
+import { PublicPageFrame } from '@/components/site/PublicPage'
+import { getLockedProjectCounts, getPublicDownloadProjects } from '@/lib/downloads-data'
 import type { DownloadProjectType } from '@/lib/downloads'
+
+/*
+ * Halaman tetap dirender di server dan boleh di-cache, karena semua yang
+ * sampai ke sini sudah disaring: project privat tidak ikut sama sekali, dan
+ * dokumen privat datang tanpa alamat. Yang terkunci diurus ArchiveBoard di
+ * sisi klien setelah kodenya terbukti.
+ */
 
 const pageCopy = {
   archive: {
@@ -25,24 +33,14 @@ const pageCopy = {
   },
 } as const
 
-function DocumentRow({ document }: { document: ResolvedDownloadDocument }) {
-  const isPending = document.status === 'pending' || !document.available
-  const content = <>
-    <span className="archive-document-format">{document.format || '—'}</span>
-    <span className="archive-document-copy"><strong>{document.title}</strong>{document.description ? <small>{document.description}</small> : null}</span>
-    <span className="archive-document-size">{isPending ? 'Belum tersedia' : document.sizeLabel}</span>
-    <span className="archive-document-action">{isPending ? 'Menyusul' : document.kind === 'external' ? 'Buka' : 'Unduh'}</span>
-  </>
-
-  if (isPending) return <div className="archive-document" data-pending="true" aria-disabled="true">{content}</div>
-
-  return <a className="archive-document" href={document.href} {...(document.kind === 'external' ? { target: '_blank', rel: 'noopener noreferrer' } : { download: true })}>{content}</a>
-}
-
 export async function ArchiveLibraryPage({ type }: { type: DownloadProjectType }) {
   const copy = pageCopy[type]
-  const projects = await getPublicDownloadProjects(type)
+  const [projects, lockedCounts] = await Promise.all([
+    getPublicDownloadProjects(type),
+    getLockedProjectCounts(),
+  ])
   const documentCount = projects.reduce((total, project) => total + project.documents.length, 0)
+  const lockedCount = lockedCounts[type]
 
   return <PublicPageFrame activeHref={copy.activeHref}>
     <section className="archive-hero has-hero-backdrop" aria-labelledby="archive-title">
@@ -52,7 +50,11 @@ export async function ArchiveLibraryPage({ type }: { type: DownloadProjectType }
         <h1 id="archive-title">{copy.title} <span>{copy.accent}</span></h1>
         <div className="archive-hero-bottom">
           <p>{copy.lead}</p>
-          <dl><div><dt>Project</dt><dd>{String(projects.length).padStart(2, '0')}</dd></div><div><dt>Dokumen</dt><dd>{String(documentCount).padStart(2, '0')}</dd></div></dl>
+          <dl>
+            <div><dt>Project</dt><dd>{String(projects.length + lockedCount).padStart(2, '0')}</dd></div>
+            <div><dt>Dokumen</dt><dd>{String(documentCount).padStart(2, '0')}</dd></div>
+            {lockedCount > 0 ? <div><dt>Terbatas</dt><dd>{String(lockedCount).padStart(2, '0')}</dd></div> : null}
+          </dl>
         </div>
       </div>
     </section>
@@ -64,18 +66,13 @@ export async function ArchiveLibraryPage({ type }: { type: DownloadProjectType }
           <Link href="/template-dokumen" aria-current={type === 'template' ? 'page' : undefined}>Template Dokumen</Link>
         </nav>
 
-        {projects.length === 0 ? <EmptyState title={copy.emptyTitle} body={copy.emptyBody} /> : <div className="archive-projects">
-          {projects.map((project, index) => <article className="archive-project" key={project.id}>
-            <header>
-              <div className="archive-project-index">{String(index + 1).padStart(2, '0')}</div>
-              <div><p>{project.period || (type === 'archive' ? 'Project HMTE' : 'Template resmi')}</p><h2>{project.title}</h2>{project.description ? <span>{project.description}</span> : null}</div>
-              <strong>{project.documents.length} dokumen</strong>
-            </header>
-            <div className="archive-documents">
-              {project.documents.length > 0 ? project.documents.map((document) => <DocumentRow document={document} key={document.id} />) : <p className="archive-project-empty">Project ini belum memiliki dokumen publik.</p>}
-            </div>
-          </article>)}
-        </div>}
+        <ArchiveBoard
+          emptyBody={copy.emptyBody}
+          emptyTitle={copy.emptyTitle}
+          lockedCount={lockedCount}
+          projects={projects}
+          type={type}
+        />
       </div>
     </section>
   </PublicPageFrame>

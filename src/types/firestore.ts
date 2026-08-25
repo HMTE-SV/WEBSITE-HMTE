@@ -1,5 +1,5 @@
 import type { Timestamp } from 'firebase/firestore'
-import type { DownloadProject } from '@/lib/downloads'
+import type { DownloadProject, LockedProjectCounts } from '@/lib/downloads'
 import type { PublicDataCategory, PublicDataResource } from '@/lib/public-data'
 import type { ProgramResource, ProgramTimelineEntry } from '@/lib/program-detail'
 import type { SiteSettings } from '@/lib/site-settings'
@@ -15,6 +15,7 @@ export const firestoreCollections = {
   contentRevisions: 'contentRevisions',
   divisions: 'divisions',
   downloads: 'downloads',
+  downloadsPrivate: 'downloadsPrivate',
   gallery: 'gallery',
   leaders: 'leaders',
   leaderContacts: 'leaderContacts',
@@ -301,6 +302,12 @@ export type AdminUserDocument = FirestoreDocument & {
  */
 export type DownloadsDocument = FirestoreDocument & {
   projects: DownloadProject[]
+  /**
+   * Hanya bermakna di salinan publik `downloads/index`: berapa project yang
+   * disembunyikan seluruhnya, supaya pengunjung tahu ada yang bisa dibuka
+   * tanpa diberi tahu apa isinya. Di `downloadsPrivate/index` nilainya nol.
+   */
+  lockedProjects: LockedProjectCounts
   updatedBy: string
 }
 

@@ -448,6 +448,36 @@ service cloud.firestore {
       allow delete: if isSuperadmin();
     }
 
+    /*
+     * Dokumen induk arsip: berisi project privat lengkap dengan judul dan jalur
+     * berkasnya. Tidak boleh terbaca publik sama sekali.
+     *
+     * Halaman /arsip TIDAK membaca koleksi ini. Ia membaca `downloads/index`
+     * yang sudah disaring, dan isi privat baru diambil dari sini lewat Admin SDK
+     * setelah kode akses terbukti. Kalau suatu saat halaman publik mulai
+     * membaca koleksi ini dengan SDK klien, seluruh gerbangnya runtuh.
+     */
+    match /downloadsPrivate/{documentId} {
+      allow read: if hasActiveAdminProfile();
+      allow create: if canManage('downloads') && hasValidWriteTimestamps();
+      allow update: if canManage('downloads') && keepsCreatedAt();
+      allow delete: if isSuperadmin();
+    }
+
+    /*
+     * Sidik jari kode akses arsip. Tertutup untuk semua orang, termasuk
+     * superadmin yang sedang masuk panel.
+     *
+     * Bukan karena admin tidak boleh tahu, melainkan karena tidak ada yang
+     * perlu membacanya: kode dipasang lewat /api/admin/arsip-kode dan dibuktikan
+     * lewat /api/arsip/buka, keduanya memakai Admin SDK yang melewati berkas ini
+     * sepenuhnya. Menutupnya di sini berarti turunan scrypt-nya tidak pernah
+     * ikut terbawa satu pun jawaban Firestore ke browser.
+     */
+    match /archiveAccess/{projectId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

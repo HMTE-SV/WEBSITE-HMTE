@@ -25,7 +25,7 @@
 /* Pusat arsip — project di kiri, dokumen terkait tetap utuh di kanan. */
 .adm-archive-summary {
   display: grid;
-  grid-template-columns: repeat(3, 118px) minmax(0, 1fr);
+  grid-template-columns: repeat(4, 118px) minmax(0, 1fr);
   overflow: hidden;
   border: 1px solid var(--adm-line);
   border-radius: 14px;
@@ -1238,3 +1238,10 @@ button.adp-tile {
   .adp-data-resource-item { grid-template-columns: 30px minmax(0,1fr); }
   .adp-data-resource-remove { grid-column: 2; justify-self: start; }
 }
+
+/* Kode akses arsip: satu baris isian dengan tombolnya, karena ia tersimpan
+ * sendiri dan tidak ikut tombol simpan besar di bawah. */
+.adm-archive-code-row { display: flex; gap: 8px; }
+.adm-archive-code-row input { flex: 1; min-width: 0; }
+.adm-archive-code-clear { margin-top: 8px; padding: 0; border: 0; background: none; color: var(--adm-danger, #b4232a); font-size: 0.75rem; text-decoration: underline; cursor: pointer; }
+.adm-archive-code-clear:disabled { opacity: .5; cursor: not-allowed; }
