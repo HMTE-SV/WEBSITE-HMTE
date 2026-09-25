@@ -71,7 +71,7 @@ export function PublicCard({ eyebrow, title, body, href, meta, image }: PublicCa
     <article className="public-card">
       {image ? (
         <div className="public-card-image">
-          <Image src={image.startsWith('/') ? image : `/${image}`} alt={title} width={1200} height={675} />
+          <Image src={image.startsWith('/') ? image : `/${image}`} alt={title} width={1200} height={675} sizes="(max-width: 920px) 100vw, 400px" />
         </div>
       ) : null}
       <div className="public-card-body">

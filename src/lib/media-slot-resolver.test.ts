@@ -8,7 +8,7 @@ describe('resolveMediaSlots', () => {
 
     expect(Object.keys(resolved)).toHaveLength(mediaSlotDefinitions.length)
     expect(resolved['brand.logo.primary']).toMatchObject({
-      url: '/assets/logo-hmte.svg',
+      url: '/assets/logo-hmte.webp',
       focalPointX: 50,
       focalPointY: 50,
     })

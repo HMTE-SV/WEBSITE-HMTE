@@ -20,7 +20,10 @@ export const mediaSlotDefinitions = [
     label: 'Logo utama HMTE',
     group: 'Brand',
     description: 'Dipakai header, footer, dan identitas utama situs.',
-    fallbackUrl: '/assets/logo-hmte.svg',
+    // Raster yang sama dengan isi logo-hmte.svg (SVG itu cuma membungkus satu
+    // PNG base64). SVG dilayani next/image apa adanya — 346 KB di tiap HP —
+    // sedangkan WebP ini bisa diperkecil per lebar layar.
+    fallbackUrl: '/assets/logo-hmte.webp',
     fallbackAlt: 'Logo HMTE TRE SV UGM',
   },
   {

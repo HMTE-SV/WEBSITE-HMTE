@@ -10,15 +10,11 @@ import {
   LandingEntryChoice,
   type LandingEntryMode,
 } from '@/components/site/LandingEntryChoice'
+import { MediaGatedImage } from '@/components/site/MediaGatedImage'
 import { heroActivityImages } from '@/data/site-content'
+import { STORY_MEDIA_QUERY } from '@/lib/hero-media'
 
 const PHOTO_PHASE_END = 0.72
-/*
- * Cerita scroll hanya hidup di layar lebar di browser biasa. Di bawah itu
- * (dan di mode aplikasi) CSS menyembunyikan seksi ini dan HeroOpener yang
- * tampil. Harus sama persis dengan media query di css/hero-opener.css.
- */
-const STORY_MEDIA_QUERY = '(min-width: 769px) and (display-mode: browser)'
 const HERO_MEDIA_SLOT_KEYS = heroActivityImages.map((_, index) => `home.hero.${index + 1}`)
 
 function subscribeStoryMedia(onChange: () => void) {
@@ -182,11 +178,13 @@ export function Hero() {
               style={{ '--wall-tile-index': index } as CSSProperties}
               key={tile.key}
             >
+              {/* Ukuran sama dengan slide di bawah: foto yang sama, jadi satu
+                  unduhan dipakai dua kali alih-alih dua versi per foto. */}
               <Image
                 src={tile.src}
                 alt=""
                 fill
-                sizes="(max-width: 760px) 50vw, 24vw"
+                sizes="100vw"
                 className="hero-scroll-wall-image"
                 style={{ objectPosition: `${tile.focalPointX}% ${tile.focalPointY}%` }}
               />
@@ -200,11 +198,13 @@ export function Hero() {
               className={`hero-scroll-slide${index === activeIndex ? ' is-active' : ''}`}
               key={image.src}
             >
-              <Image
+              <MediaGatedImage
+                media={STORY_MEDIA_QUERY}
                 src={image.src}
                 alt=""
                 fill
-                priority={index === 0}
+                loading={index === 0 ? 'eager' : undefined}
+                fetchPriority={index === 0 ? 'high' : undefined}
                 sizes="100vw"
                 className="hero-scroll-slide-image"
                 style={{ objectPosition: `${image.focalPointX}% ${image.focalPointY}%` }}

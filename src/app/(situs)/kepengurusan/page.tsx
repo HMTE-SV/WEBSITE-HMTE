@@ -127,6 +127,8 @@ export default async function LeadershipPage() {
                     src={mediaSlots[getDivisionMediaSlotKey(division.code)].url || divisionVisuals[division.code]}
                     alt=""
                     fill
+                    // Plat pertama adalah LCP di HP; sisanya tetap lazy.
+                    priority={index === 0}
                     sizes="(max-width: 820px) 100vw, (max-width: 1100px) 50vw, 25vw"
                     style={{
                       objectPosition: `${mediaSlots[getDivisionMediaSlotKey(division.code)].focalPointX}% ${mediaSlots[getDivisionMediaSlotKey(division.code)].focalPointY}%`,

@@ -3,7 +3,7 @@
    ------------------------------------------------------------
    Komponen: src/components/site/HeroOpener.tsx.
    Mobile-first. Gerbang tampil/sembunyi ada di bagian paling
-   bawah dan harus sama dengan STORY_MEDIA_QUERY di Hero.tsx.
+   bawah dan harus sama dengan STORY_MEDIA_QUERY (src/lib/hero-media.ts).
    ============================================================ */
 
 .hero-opener {
@@ -371,7 +371,7 @@
 /*
  * Layar lebar di browser biasa: cerita scroll (Hero.tsx). Selain itu — HP,
  * atau situs yang dibuka sebagai aplikasi — pembuka ini.
- * Samakan dengan STORY_MEDIA_QUERY di src/components/site/Hero.tsx.
+ * Samakan dengan STORY_MEDIA_QUERY di src/lib/hero-media.ts.
  */
 @media (min-width: 769px) and (display-mode: browser) {
   .hero-opener {

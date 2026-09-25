@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from 'react'
 import type { AnimationEvent, KeyboardEvent, MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { LogoMark } from '@/components/site/Brand'
+import { MediaGatedImage } from '@/components/site/MediaGatedImage'
 import { useMediaSlot } from '@/components/site/MediaSlotProvider'
 import { usePageSection } from '@/components/site/PageContentProvider'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
+import { STORY_MEDIA_QUERY } from '@/lib/hero-media'
 import { formatCabinetTitle } from '@/lib/site-settings'
 import styles from './LandingEntryChoice.module.css'
 
@@ -267,13 +269,15 @@ export function LandingEntryChoice({
       <main className={styles.arrival}>
         <div className={styles.cabinetMark}>
           <span aria-hidden="true" />
-          <Image
+          <MediaGatedImage
+            media={STORY_MEDIA_QUERY}
             className={styles.cabinetLogo}
             src={cabinetLogo.url}
             alt={cabinetLogo.alt}
             width={180}
             height={180}
-            priority
+            loading="eager"
+            fetchPriority="high"
           />
         </div>
 
