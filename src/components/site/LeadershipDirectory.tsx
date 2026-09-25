@@ -19,7 +19,7 @@ function MemberImage({ member }: { member: Leader }) {
   const logo = useMediaSlot('brand.logo.primary')
 
   if (member.photo) {
-    return <Image src={member.photo} alt={member.name} fill sizes="(max-width: 700px) 66vw, 220px" />
+    return <Image src={member.photo} alt={member.name} fill sizes="(max-width: 768px) 104px, 220px" />
   }
 
   return <Image className="org-person-logo" src={logo.url} alt="" width={96} height={44} />

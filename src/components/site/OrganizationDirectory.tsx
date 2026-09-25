@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useRef } from 'react'
 import { usePageSection } from '@/components/site/PageContentProvider'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 import { interpolatePageText } from '@/lib/page-content'
@@ -31,9 +32,35 @@ function DivisionSwitches({ divisions }: { divisions: Division[] }) {
   const executive = divisions.find((division) => division.code === 'PH')
   const fields = divisions.filter((division) => division.code !== 'PH')
   const ordered = executive ? [executive, ...fields] : fields
+  const navRef = useRef<HTMLElement>(null)
+  const pickedRef = useRef(false)
+
+  // Di HP pil-pil ini satu baris yang digeser dan menempel di atas panelnya
+  // (css/home-mobile.css). Pil terpilih dibawa ke tengah barisnya; bila
+  // panelnya sudah lewat ke atas layar, halaman dibawa ke awal panel supaya
+  // isi bidang baru terbaca dari atas. Di desktop baris ini tidak bergulir,
+  // jadi keduanya tidak berbuat apa-apa.
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav || nav.scrollWidth <= nav.clientWidth) return
+    const chip = nav.querySelector<HTMLElement>('button[aria-pressed="true"]')
+    if (!chip) return
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const behavior: ScrollBehavior = smooth ? 'smooth' : 'auto'
+    nav.scrollTo({ left: chip.offsetLeft - (nav.clientWidth - chip.offsetWidth) / 2, behavior })
+
+    if (!pickedRef.current) return
+    const body = nav.parentElement
+    if (!body) return
+    const navTop = parseFloat(getComputedStyle(nav).top) || 0
+    const bodyTop = body.getBoundingClientRect().top
+    if (bodyTop < navTop) {
+      window.scrollTo({ top: window.scrollY + bodyTop - navTop, behavior })
+    }
+  }, [selectedDivision])
 
   return (
-    <nav className="org-switches" aria-label="Pilih Pengurus Harian atau departemen">
+    <nav className="org-switches" ref={navRef} aria-label="Pilih Pengurus Harian atau departemen">
       {ordered.map((division, index) => {
         const isSelected = selectedDivision === division.code
 
@@ -42,7 +69,10 @@ function DivisionSwitches({ divisions }: { divisions: Division[] }) {
             type="button"
             className={isSelected ? 'is-active' : undefined}
             key={division.code}
-            onClick={() => selectDivision(division.code)}
+            onClick={() => {
+              pickedRef.current = true
+              selectDivision(division.code)
+            }}
             aria-pressed={isSelected}
           >
             <span>{String(index + 1).padStart(2, '0')}</span>

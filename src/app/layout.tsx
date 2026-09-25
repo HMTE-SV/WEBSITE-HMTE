@@ -35,6 +35,7 @@ import '../../css/mobile.css'
 import '../../css/mobile-pages.css'
 import '../../css/hero-opener.css'
 import '../../css/mobile-nav.css'
+import '../../css/home-mobile.css'
 
 /*
  * Font di-host sendiri lewat next/font, bukan @import Google Fonts di CSS.

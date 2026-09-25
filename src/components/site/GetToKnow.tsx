@@ -2,12 +2,15 @@
 
 import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { AboutDeck } from '@/components/site/AboutDeck'
 import { LogoMark } from '@/components/site/Brand'
 import { useMediaSlots } from '@/components/site/MediaSlotProvider'
 import { usePageSection } from '@/components/site/PageContentProvider'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 import { formatCabinetTitle } from '@/lib/site-settings'
 import { interpolatePageText } from '@/lib/page-content'
+import { createFieldParticles, drawAboutField } from '@/lib/about-field'
+import { useStoryMedia } from '@/lib/use-story-media'
 
 type Keyframe = { at: number; x: number; y: number; r: number; s: number; o: number; b: number }
 
@@ -180,7 +183,13 @@ export function GetToKnow() {
   const railFillRef = useRef<HTMLElement>(null)
   const hintRef = useRef<HTMLParagraphElement>(null)
 
+  // Cerita scroll hanya milik layar lebar di browser. Di HP & mode aplikasi
+  // yang tampil AboutDeck, jadi panggung ini tidak dipasang sama sekali:
+  // tanpa [data-ready], seksi tidak setinggi 480svh dan tidak ada rAF.
+  const storyActive = useStoryMedia()
+
   useEffect(() => {
+    if (!storyActive) return
     const section = sectionRef.current
     const stage = stageRef.current
     const canvas = canvasRef.current
@@ -202,14 +211,7 @@ export function GetToKnow() {
     let smooth = -1
     let chapterIndex = -1
 
-    const particles = Array.from({ length: 96 }, (_, index) => ({
-      angle: (index / 96) * Math.PI * 2,
-      orbit: 0.16 + ((index * 29) % 47) / 88,
-      speed: 0.12 + (index % 6) * 0.02,
-      size: 0.7 + (index % 5) * 0.4,
-      gold: index % 7 === 0,
-      spin: index % 2 === 0 ? 1 : -1,
-    }))
+    const particles = createFieldParticles(96)
 
     function resize() {
       if (!stage || !canvas) return
@@ -223,67 +225,15 @@ export function GetToKnow() {
 
     function drawField(p: number, time: number) {
       if (!context) return
-      context.setTransform(dpr, 0, 0, dpr, 0, 0)
-      context.clearRect(0, 0, stageW, stageH)
-
-      const cx = stageW * 0.5 + pointer.x * 10
-      const cy = stageH * 0.47 + pointer.y * 8
-      const scale = Math.min(stageW, stageH)
-      const conv = easeInOutCubic(seg(p, 0.7, 0.9))
-      const flare = bell(p, 0.885, 0.075)
-      const calm = 1 - 0.5 * seg(p, 0.93, 1)
-
-      const ambient = context.createRadialGradient(cx, cy, 0, cx, cy, scale * (0.52 + flare * 0.22))
-      ambient.addColorStop(0, `rgba(17, 96, 182, ${0.18 + flare * 0.16})`)
-      ambient.addColorStop(0.5, 'rgba(6, 54, 116, 0.08)')
-      ambient.addColorStop(1, 'rgba(0, 13, 36, 0)')
-      context.fillStyle = ambient
-      context.fillRect(0, 0, stageW, stageH)
-
-      for (let ring = 0; ring < 6; ring += 1) {
-        const radius = scale * (0.14 + ring * 0.07) * (1 - conv * 0.82)
-        const rotation = time * (ring % 2 === 0 ? 0.12 : -0.09) + p * Math.PI * (1.2 + ring * 0.06)
-        const squeeze = 0.58 + conv * 0.3
-        context.beginPath()
-        for (let point = 0; point <= 100; point += 1) {
-          const angle = (point / 100) * Math.PI * 2
-          const wobble = Math.sin(angle * 3 + time * 0.9 + ring) * scale * 0.008 * (1 - conv)
-          const x = cx + Math.cos(angle + rotation) * (radius + wobble)
-          const y = cy + Math.sin(angle + rotation) * (radius + wobble) * squeeze
-          if (point === 0) context.moveTo(x, y)
-          else context.lineTo(x, y)
-        }
-        context.strokeStyle = ring % 3 === 0
-          ? `rgba(245, 184, 46, ${(0.05 + conv * 0.1) * calm})`
-          : `rgba(93, 169, 239, ${0.07 * calm})`
-        context.lineWidth = ring % 3 === 0 ? 1.1 : 0.7
-        context.stroke()
-      }
-
-      const particleFade = 1 - seg(p, 0.92, 0.985)
-      particles.forEach((particle) => {
-        const angle = particle.angle + time * particle.speed * particle.spin + p * Math.PI * 1.6
-        const orbit = scale * particle.orbit * (1 - conv * 0.93)
-        const x = cx + Math.cos(angle) * orbit
-        const y = cy + Math.sin(angle) * orbit * (0.6 + conv * 0.35)
-        const alpha = (particle.gold ? 0.75 : 0.5) * calm * (0.5 + conv * 0.5) * particleFade
-        if (alpha <= 0.01) return
-        context.beginPath()
-        context.arc(x, y, particle.size * (1 - conv * 0.4), 0, Math.PI * 2)
-        context.fillStyle = particle.gold
-          ? `rgba(245, 184, 46, ${alpha})`
-          : `rgba(152, 207, 255, ${alpha})`
-        context.fill()
+      drawAboutField(context, particles, {
+        width: stageW,
+        height: stageH,
+        dpr,
+        p,
+        time,
+        pointerX: pointer.x,
+        pointerY: pointer.y,
       })
-
-      if (flare > 0.02) {
-        const burst = context.createRadialGradient(cx, cy, 0, cx, cy, scale * 0.36)
-        burst.addColorStop(0, `rgba(245, 184, 46, ${0.4 * flare})`)
-        burst.addColorStop(0.4, `rgba(245, 184, 46, ${0.12 * flare})`)
-        burst.addColorStop(1, 'rgba(245, 184, 46, 0)')
-        context.fillStyle = burst
-        context.fillRect(0, 0, stageW, stageH)
-      }
     }
 
     function render(p: number, time: number) {
@@ -469,7 +419,7 @@ export function GetToKnow() {
       if (finePointer) window.removeEventListener('pointermove', handlePointer)
       section.removeAttribute('data-ready')
     }
-  }, [])
+  }, [storyActive])
 
   const goToChapter = useCallback((index: number) => {
     const section = sectionRef.current
@@ -492,6 +442,11 @@ export function GetToKnow() {
   const finale = { line: fields.finaleLine, caption: interpolatePageText(fields.finaleCaption, { period: settings.periodLabel }) }
   const chapterLabels = [fields.introLabel, ...steps.map((step) => step.label), settings.cabinetName]
   const missionWords = splitSentences(steps[2].title)
+  const deckPhotos = PHOTOS.map((photo, index) => ({
+    src: aboutMediaSlots[index].url || photo.src,
+    alt: aboutMediaSlots[index].alt || photo.alt,
+    position: `${aboutMediaSlots[index].focalPointX}% ${aboutMediaSlots[index].focalPointY}%`,
+  }))
 
   return (
     <section
@@ -501,6 +456,22 @@ export function GetToKnow() {
       data-chapter={activeChapter}
       aria-labelledby="about-story-title"
     >
+      {/*
+        Dua versi, satu yang tampil (diputuskan CSS di css/home-mobile.css,
+        gerbangnya sama dengan pembuka beranda): AboutDeck untuk HP & mode
+        aplikasi, panggung cerita scroll di bawahnya untuk layar lebar.
+      */}
+      <AboutDeck
+        identity={identity}
+        orgContext={orgContext}
+        chapterLabels={chapterLabels}
+        prologue={prologue}
+        steps={steps}
+        missionWords={missionWords}
+        finale={finale}
+        photos={deckPhotos}
+      />
+
       <div ref={stageRef} className="about-story-stage">
         <canvas ref={canvasRef} className="about-story-canvas" aria-hidden="true" />
         <div className="about-story-tone" aria-hidden="true" />

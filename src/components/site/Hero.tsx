@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { LogoMark } from '@/components/site/Brand'
 import { useMediaSlots } from '@/components/site/MediaSlotProvider'
@@ -13,24 +13,10 @@ import {
 import { MediaGatedImage } from '@/components/site/MediaGatedImage'
 import { heroActivityImages } from '@/data/site-content'
 import { STORY_MEDIA_QUERY } from '@/lib/hero-media'
+import { useStoryMedia } from '@/lib/use-story-media'
 
 const PHOTO_PHASE_END = 0.72
 const HERO_MEDIA_SLOT_KEYS = heroActivityImages.map((_, index) => `home.hero.${index + 1}`)
-
-function subscribeStoryMedia(onChange: () => void) {
-  const media = window.matchMedia(STORY_MEDIA_QUERY)
-  media.addEventListener('change', onChange)
-  return () => media.removeEventListener('change', onChange)
-}
-
-function getStoryMediaSnapshot() {
-  return window.matchMedia(STORY_MEDIA_QUERY).matches
-}
-
-// Server tidak tahu lebar layar; efek scroll memang hanya berjalan di klien.
-function getStoryServerSnapshot() {
-  return false
-}
 
 export function Hero() {
   const heroTitle = usePageField('hero', 'heroTitle')
@@ -60,7 +46,7 @@ export function Hero() {
   // Dipasang/dilepas mengikuti media query, supaya memutar tablet atau
   // mengubah ukuran jendela tidak meninggalkan listener scroll yang menulis
   // ke seksi yang sedang tersembunyi.
-  const storyActive = useSyncExternalStore(subscribeStoryMedia, getStoryMediaSnapshot, getStoryServerSnapshot)
+  const storyActive = useStoryMedia()
 
   useEffect(() => {
     if (!storyActive) return

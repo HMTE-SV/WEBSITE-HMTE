@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMediaSlots } from '@/components/site/MediaSlotProvider'
 import { usePageSection } from '@/components/site/PageContentProvider'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
+import { useStoryMedia } from '@/lib/use-story-media'
 import { interpolatePageText } from '@/lib/page-content'
 import { formatCabinetTitle } from '@/lib/site-settings'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
@@ -107,6 +108,8 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
   }))
   const [isInView, setIsInView] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const storyActive = useStoryMedia()
 
   const members = Object.values(leadersByDivision).flat()
   const programs = Object.values(programsByDivision).flat()
@@ -127,7 +130,9 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
     )
     observer.observe(section)
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // Paralaks vertikal hanya untuk dinding bertingkat di layar lebar; di HP
+    // dinding ini satu baris yang digeser (efek di bawah).
+    if (!storyActive || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return () => observer.disconnect()
     }
 
@@ -153,7 +158,55 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
       window.removeEventListener('scroll', handleScroll)
       if (frame !== null) window.cancelAnimationFrame(frame)
     }
-  }, [])
+  }, [storyActive])
+
+  // HP: tiap kartu tahu jaraknya dari posisi geser (--d, --ad), jadi kartu
+  // yang sedang di depan tegak dan tetangganya miring mengikuti jari; bilah
+  // di bawahnya menunjukkan sudah sejauh mana dinding dijelajahi.
+  useEffect(() => {
+    const grid = gridRef.current
+    const section = sectionRef.current
+    if (storyActive || !grid || !section) return
+    const tiles = Array.from(grid.children) as HTMLElement[]
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let frame: number | null = null
+
+    function update() {
+      frame = null
+      if (!grid || !section || tiles.length === 0) return
+      const max = Math.max(grid.scrollWidth - grid.clientWidth, 1)
+      const ratio = grid.scrollLeft / max
+      const visible = grid.clientWidth / grid.scrollWidth
+      section.style.setProperty('--wall-scroll', (visible + (1 - visible) * ratio).toFixed(4))
+      if (reduced) return
+      const origin = tiles[0].offsetLeft
+      const stride = tiles.length > 1 ? tiles[1].offsetLeft - origin : 1
+      const position = grid.scrollLeft / stride
+      tiles.forEach((tile, index) => {
+        const distance = Math.max(-1.5, Math.min(1.5, index - position))
+        tile.style.setProperty('--d', distance.toFixed(3))
+        tile.style.setProperty('--ad', Math.abs(distance).toFixed(3))
+      })
+    }
+
+    function schedule() {
+      if (frame === null) frame = window.requestAnimationFrame(update)
+    }
+
+    update()
+    grid.addEventListener('scroll', schedule, { passive: true })
+    const resize = new ResizeObserver(schedule)
+    resize.observe(grid)
+    return () => {
+      grid.removeEventListener('scroll', schedule)
+      resize.disconnect()
+      if (frame !== null) window.cancelAnimationFrame(frame)
+      tiles.forEach((tile) => {
+        tile.style.removeProperty('--d')
+        tile.style.removeProperty('--ad')
+      })
+    }
+  }, [storyActive])
 
   return (
     <section
@@ -169,7 +222,7 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
           <p>{interpolatePageText(fields.lead, textVariables)}</p>
         </header>
 
-        <div className="moment-wall-grid">
+        <div className="moment-wall-grid" ref={gridRef}>
           {resolvedMoments.slice(0, 3).map((moment, index) => (
             <figure
               className={`moment-tile moment-tile--${moment.size}`}
@@ -234,6 +287,7 @@ export function HMTEMomentum({ divisions, leadersByDivision, programsByDivision 
             </figure>
           ))}
         </div>
+        <div className="moment-wall-progress" aria-hidden="true"><i /></div>
 
         <footer className="moment-wall-foot">
           <p>
