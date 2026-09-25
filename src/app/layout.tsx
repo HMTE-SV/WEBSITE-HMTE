@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Caveat, Geist, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
 import { MediaSlotProvider } from '@/components/site/MediaSlotProvider'
 import { MobileMenuProvider } from '@/components/site/MobileMenu'
+import { ServiceWorkerRegistration } from '@/components/site/ServiceWorkerRegistration'
 import { SiteSettingsProvider } from '@/components/site/SiteSettingsProvider'
 import { getPublicMediaSlots } from '@/lib/media-slot-data'
 import { getSiteSettings } from '@/lib/site-settings-data'
@@ -61,6 +62,8 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: settings.siteName,
     icons: {
       icon: favicon.url,
+      // iOS memakai ini untuk ikon layar utama, bukan ikon di manifest.
+      apple: '/icons/apple-touch-icon.png',
     },
     openGraph: {
       type: 'website',
@@ -112,6 +115,7 @@ export default async function RootLayout({
         <SiteSettingsProvider settings={settings}>
           <MediaSlotProvider slots={slots}>
             <MobileMenuProvider>{children}</MobileMenuProvider>
+            <ServiceWorkerRegistration />
           </MediaSlotProvider>
         </SiteSettingsProvider>
       </body>

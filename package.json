@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build",
+    "build": "node scripts/build-sw.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
     "test": "npm run test:unit && npm run test:rules",
@@ -43,10 +43,12 @@
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "@types/sanitize-html": "^2.16.1",
+    "esbuild": "^0.28.1",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
     "firebase-tools": "^15.24.0",
     "jsdom": "^30.0.1",
+    "serwist": "^9.5.12",
     "tsx": "^4.23.1",
     "typescript": "6.0.3",
     "vitest": "^4.1.7"

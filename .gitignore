@@ -63,3 +63,5 @@ service-account.json
 .debug
 .next-stale-vercel-20260814
 ASSET
+# Service worker hasil build (scripts/build-sw.mjs dari src/sw/sw.ts).
+public/sw.js
