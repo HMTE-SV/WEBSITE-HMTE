@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   // Memungkinkan build verifikasi berjalan berdampingan dengan `next dev`
   // tanpa berebut lock `.next`. Vercel tetap memakai `.next` secara default.
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  // `next dev` menolak skrip & HMR untuk asal selain localhost. Tanpa ini,
+  // membuka situs dari HP lewat IP laptop (jaringan lokal) menampilkan HTML
+  // tanpa JavaScript: menu, galeri, dan semua tombol mati. Hanya berlaku di dev.
+  allowedDevOrigins: ['10.*.*.*', '192.168.*.*', '172.*.*.*'],
   images: {
     remotePatterns: [
       {
