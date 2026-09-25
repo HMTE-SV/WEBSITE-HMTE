@@ -1,0 +1,271 @@
+/* ============================================================
+   MOBILE — tambalan layar kecil & layar sentuh
+   ------------------------------------------------------------
+   Diimpor PALING AKHIR di src/app/layout.tsx. Berkas ini tidak
+   membuat gaya baru; ia hanya menimpa ukuran yang tidak layak
+   di HP. Semua aturannya dikurung salah satu dari tiga gerbang
+   berikut, jadi tampilan desktop dengan mouse tidak berubah:
+
+     1. env(safe-area-inset-*)  — bernilai 0 di luar perangkat
+        ber-notch, jadi aman ditulis tanpa media query.
+     2. (pointer: coarse)       — layar sentuh. Target sentuh
+        dan ukuran huruf isian bergantung pada JARI, bukan pada
+        lebar layar: tablet 1024px pun butuh 44px.
+     3. (max-width: 767.98px)   — lantai ukuran huruf. Di sini
+        yang menentukan adalah jarak baca di layar sempit.
+   ============================================================ */
+
+/* ---------- 1. Safe area (notch, home indicator) ---------- */
+
+/*
+ * viewport-fit=cover (lihat `viewport` di layout.tsx) membiarkan halaman
+ * mengisi area di balik notch. Di mode landscape, sisi kiri/kanan halaman
+ * akan terpotong notch kalau tidak diberi jarak; latar body tetap membentang
+ * penuh, hanya isinya yang bergeser.
+ */
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/*
+ * Header melayang: jangan sampai tertutup status bar saat dibuka sebagai
+ * aplikasi. Lewat margin, bukan `top`, karena `top` header sudah diatur
+ * berbeda di beberapa breakpoint dan di varian landing (sticky); margin
+ * menambah jarak di atas nilai mana pun yang sedang berlaku.
+ */
+.tre-header,
+.tre-header.header-landing {
+  margin-top: env(safe-area-inset-top);
+}
+
+.tre-footer {
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+}
+
+/* ---------- 2. Layar sentuh: target 44px & huruf isian 16px ---------- */
+
+@media (pointer: coarse) {
+  /*
+   * Huruf isian di bawah 16px membuat Safari iOS memperbesar halaman begitu
+   * kolom disentuh, dan halaman yang terlanjur diperbesar tidak kembali
+   * sendiri. Hanya kolom teks; kotak centang tidak memicu zoom.
+   */
+  .soft-search input,
+  .data-hub-search input,
+  .archive-vault-form input,
+  .aspiration-form input:not([type='checkbox']):not([type='radio']),
+  .aspiration-form select,
+  .aspiration-form textarea,
+  .public-form input:not([type='checkbox']):not([type='radio']),
+  .public-form select,
+  .public-form textarea {
+    font-size: 16px;
+  }
+
+  /* Header */
+  .tre-header .mobile-menu-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .tre-header .brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Pil & tab penyaring */
+  .soft-pills button,
+  .newsroom-filter button,
+  .newsroom-tabs button,
+  .data-hub-filters button {
+    min-height: 44px;
+  }
+
+  .archive-switcher a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Tautan teks tunggal yang berdiri sendiri */
+  .newsroom-scroll-cue,
+  .newsroom-index-link,
+  .org-switchboard-index-link,
+  .org-signal-foot a,
+  .postal-hint {
+    min-height: 44px;
+  }
+
+  .newsroom-story-read,
+  .org-signal-programs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /*
+   * Tautan footer: jarak antartautan dipindah dari margin ke padding, supaya
+   * seluruh baris bisa disentuh. Tinggi baris naik dari ±32px ke 44px.
+   */
+  .tre-footer .col a {
+    margin-bottom: 0;
+    padding-block: 10px;
+  }
+
+  /*
+   * Titik rel "Tentang HMTE" tampak 8px dan harus tetap tampak 8px. Area
+   * sentuhnya saja yang diperlebar lewat lapisan tak terlihat.
+   */
+  .about-story-rail button::after {
+    content: '';
+    position: absolute;
+    inset: -11px;
+  }
+}
+
+/* ---------- 3. Lantai ukuran huruf di layar sempit ---------- */
+
+/*
+ * Dihasilkan dari CSS yang ada: hanya selector yang SEMUA deklarasi ukuran
+ * hurufnya di bawah lantai, supaya tidak ada aturan yang malah mengecil.
+ * Label mono/uppercase (aksen kecil, lihat aturan tipografi) diberi lantai
+ * 11px; teks biasa 12px. Desktop tidak tersentuh.
+ *
+ * Papan tahun Program Kerja (.stg-*) sengaja dikecualikan: baloknya
+ * setinggi 20px dan dirombak tersendiri, bukan ditambal di sini.
+ */
+@media (max-width: 767.98px) {
+    .archive-document-format,
+    .archive-hero dt,
+    .archive-private-tag,
+    .archive-project header p,
+    .archive-vault-copy > p,
+    .article-story-facts dt,
+    .article-story-heading > span,
+    .article-story-media figcaption,
+    .aspiration-kicker,
+    .backdrop-lab-item figcaption,
+    .contact-route-label,
+    .contact-route-number,
+    .contact-signoff p,
+    .contact-signoff span,
+    .contact-studio-eyebrow,
+    .contact-studio-jump,
+    .contact-studio-topline,
+    .data-detail-back,
+    .data-detail-heading > div b,
+    .data-detail-heading > div span,
+    .data-detail-meta dt,
+    .data-detail-meta-heading > span,
+    .data-detail-resource-index,
+    .data-detail-resource-list a > strong,
+    .data-detail-resource-list small,
+    .data-detail-resources-head span,
+    .data-hub-card-foot,
+    .data-hub-card-index,
+    .data-hub-card-meta,
+    .data-hub-filters button,
+    .data-hub-hero-copy > span,
+    .data-hub-stats dt,
+    .data-hub-toolbar > div > span,
+    .date-badge span,
+    .date-badge-more,
+    .detail-badge,
+    .detail-bio h4,
+    .detail-profile-link,
+    .detail-socials h4,
+    .gallery-index-kicker,
+    .leader-profile-copy > a,
+    .leadership-index-filters button,
+    .logo-tile strong,
+    .mail-address-block > span,
+    .mail-address-coords,
+    .mail-item-meta > b,
+    .mail-item-meta > span,
+    .newsroom-stats dt,
+    .organization-confirmation-copy span,
+    .organization-section-link a,
+    .os-modal-context,
+    .pgd-facts dt,
+    .pgd-months li,
+    .pgm-date small,
+    .pgm-date span,
+    .pgm-hero-facts dt,
+    .pillar-tag,
+    .pillars-output > span,
+    .postal-eyebrow,
+    .postal-hint,
+    .postal-ps-mark,
+    .postcard-address > span,
+    .postcard-postmark,
+    .postcard-stamp-inner span,
+    .ppl-hero-stats dt,
+    .program-roadmap-division-link,
+    .program-timeline-detail > time,
+    .proker-date,
+    .pub-badge,
+    .workspace-context-mark,
+    .workspace-footer-actions a {
+      font-size: 11px;
+    }
+
+    .about-story-meta p,
+    .ag-month-name em,
+    .archive-document-action,
+    .archive-document-copy small,
+    .archive-document-size,
+    .archive-project header > strong,
+    .archive-vault-lock,
+    .article-story-facts-heading > small,
+    .aspiration-form .public-check-row small,
+    .aspiration-form .public-check-row strong,
+    .aspiration-form-heading strong,
+    .aspiration-form-submit p,
+    .aspiration-form.public-form label > span:first-child b,
+    .data-detail-meta > p,
+    .date-badge[data-precision='planned'] b.date-badge-more,
+    .date-badge[data-precision='planned'] span,
+    .date-badge[data-precision='unscheduled'] span,
+    .division-detail-member-list small,
+    .division-detail-program-list small,
+    .division-detail-program-list time,
+    .division-detail-switcher a i,
+    .kep-dock-name,
+    .landing-news-publisher,
+    .member-profile-copy dd,
+    .member-profile-programs small,
+    .member-profile-programs strong,
+    .member-profile-team > a > span,
+    .member-profile-team small,
+    .member-profile-team strong,
+    .newsroom-more-list small,
+    .newsroom-story-tag,
+    .org-member-copy span,
+    .org-panel-footer a,
+    .org-person p,
+    .org-program-row p,
+    .org-rail-copy small,
+    .org-signal-foot a,
+    .org-signal-foot p,
+    .org-signal-label,
+    .org-signal-program-list p,
+    .org-signal-programs > a,
+    .organization-directory .os-brand,
+    .organization-directory .os-status,
+    .pgd-files small,
+    .pgd-timeline-when,
+    .pgm-notice-date span,
+    .pk-load-bars span,
+    .pk-spot-div,
+    .program-leader-detail dd,
+    .program-progress-summary span,
+    .program-team-list button small,
+    .program-team-list button strong,
+    .public-card-eyebrow,
+    .sem-icon span,
+    .soft-tag {
+      font-size: 12px;
+    }
+}

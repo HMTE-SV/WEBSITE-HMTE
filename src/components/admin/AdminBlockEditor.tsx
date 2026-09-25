@@ -1,5 +1,9 @@
 'use client'
 
+// Gaya editor hanya dimuat di rute yang benar-benar memakai editor ini, bukan
+// di root layout: halaman publik tidak pernah merender BlockNote.
+import '@blocknote/core/fonts/inter.css'
+import '@blocknote/mantine/style.css'
 import { useEffect, useRef, useState } from 'react'
 import {
   BlockNoteSchema,

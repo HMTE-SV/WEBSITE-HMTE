@@ -9,7 +9,8 @@ const eslintConfig = [
       '.next/**',
       '**/.next/**',
       '.claude/**',
-      '.next-stale-*/**',
+      // Semua distDir alternatif (.next-local, .next-local-dev, .next-stale-*).
+      '.next-*/**',
       '.recovery-residual-*/**',
       '.codex-remote-attachments/**',
       'node_modules/**',

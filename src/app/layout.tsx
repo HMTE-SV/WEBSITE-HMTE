@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import '@blocknote/core/fonts/inter.css'
-import '@blocknote/mantine/style.css'
+import { Caveat, Geist, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
 import { MediaSlotProvider } from '@/components/site/MediaSlotProvider'
 import { SiteSettingsProvider } from '@/components/site/SiteSettingsProvider'
 import { getPublicMediaSlots } from '@/lib/media-slot-data'
@@ -17,15 +16,6 @@ import '../../css/ui-soft.css'
 import '../../css/downloads.css'
 import '../../css/data-library.css'
 /*
- * Sistem desain panel admin (docs/DESIGN_ADMIN.md). Dilingkupi `.adm`, jadi ia
- * hidup berdampingan dengan admin-panel.css lama selama halaman dipindahkan
- * satu per satu. Berkas lama dibuang begitu tidak ada lagi yang memakainya.
- */
-import '../../css/admin.css'
-import '../../css/admin-dashboard.css'
-import '../../css/admin-publikasi.css'
-import '../../css/admin-organisasi.css'
-/*
  * Diimpor PALING AKHIR, dan itu disengaja.
  *
  * css/program-stage.css tidak mewarisi apa pun dari ui-soft.css, tapi keduanya
@@ -34,6 +24,26 @@ import '../../css/admin-organisasi.css'
  * !important untuk memaksanya.
  */
 import '../../css/program-stage.css'
+/*
+ * Tambalan layar kecil dan layar sentuh. Sengaja setelah program-stage.css:
+ * isinya menimpa ukuran yang sudah ada (target sentuh, huruf isian, safe-area),
+ * bukan membuat gaya baru, jadi ia harus menang di urutan.
+ */
+import '../../css/mobile.css'
+
+/*
+ * Font di-host sendiri lewat next/font, bukan @import Google Fonts di CSS.
+ * @import itu berantai (HTML -> CSS -> CSS font -> berkas font) dan memblokir
+ * render; di HP ia penyumbang terbesar LCP yang lambat. Keluarganya sama
+ * persis, yang berubah hanya cara memuatnya. CSS membacanya lewat variabel
+ * di bawah (lihat token --font-* di hmte.css).
+ */
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' })
+const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta', display: 'swap' })
+const jetBrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains', display: 'swap' })
+// Hanya dipakai kartu pos di /kontak; tidak perlu di-preload di halaman lain.
+const caveat = Caveat({ subsets: ['latin'], variable: '--font-caveat', display: 'swap', preload: false })
+const fontVariables = [geist.variable, plusJakartaSans.variable, jetBrainsMono.variable, caveat.variable].join(' ')
 
 export async function generateMetadata(): Promise<Metadata> {
   const [slots, settings] = await Promise.all([getPublicMediaSlots(), getSiteSettings()])
@@ -76,6 +86,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  // Isi boleh mengisi area di balik notch/home indicator; jaraknya dijaga
+  // lewat env(safe-area-inset-*) di css/mobile.css.
+  viewportFit: 'cover',
   themeColor: '#011f4b',
   colorScheme: 'light',
 }
@@ -88,7 +103,7 @@ export default async function RootLayout({
   const [slots, settings] = await Promise.all([getPublicMediaSlots(), getSiteSettings()])
 
   return (
-    <html lang="id">
+    <html lang="id" className={fontVariables}>
       <body>
         <SiteSettingsProvider settings={settings}>
           <MediaSlotProvider slots={slots}>{children}</MediaSlotProvider>

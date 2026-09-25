@@ -18,7 +18,7 @@
    cascade until a screenshot-verified split can be done safely.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Font dimuat lewat next/font di src/app/layout.tsx, bukan @import di sini. */
 
 :root {
   /* Colors - Primitives */
@@ -55,9 +55,9 @@
   --accent-secondary:   var(--hmte-gold);
   
   /* Fonts */
-  --font-display:       "Geist", "Inter", system-ui, -apple-system, sans-serif;
-  --font-body:          "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono:          "JetBrains Mono", ui-monospace, monospace;
+  --font-display:       var(--font-geist, "Geist"), system-ui, -apple-system, sans-serif;
+  --font-body:          var(--font-jakarta, "Plus Jakarta Sans"), system-ui, -apple-system, sans-serif;
+  --font-mono:          var(--font-jetbrains, "JetBrains Mono"), ui-monospace, monospace;
   
   /* Font Sizes */
   --fs-display-xl:      96px;
