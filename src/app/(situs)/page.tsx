@@ -5,6 +5,7 @@ import { Footer } from '@/components/site/Footer'
 import { GetToKnow } from '@/components/site/GetToKnow'
 import { Header } from '@/components/site/Header'
 import { Hero } from '@/components/site/Hero'
+import { HeroOpener } from '@/components/site/HeroOpener'
 import { HMTEMomentum } from '@/components/site/HMTEMomentum'
 import { NewsAgenda } from '@/components/site/NewsAgenda'
 import { OrganizationDirectory } from '@/components/site/OrganizationDirectory'
@@ -58,6 +59,13 @@ export default async function Home() {
 
   return (
     <PageContentProvider content={pageContent}>
+      {/*
+        Dua pembuka, satu yang tampil (diputuskan CSS, lihat hero-opener.css):
+        HeroOpener untuk HP & mode aplikasi, Hero (cerita scroll) untuk layar
+        lebar. HeroOpener ditaruh di depan agar header landing sesudah Hero
+        tetap bersebelahan dengan <main>, persis seperti di desktop.
+      */}
+      {hero?.visible ? <HeroOpener /> : null}
       {hero?.visible ? <Hero /> : null}
       <div className="landing-nav-stage landing-nav-stage--after-hero">
         <Header variant="landing" />

@@ -1,0 +1,386 @@
+/* ============================================================
+   HERO OPENER — pembuka beranda untuk HP & mode aplikasi
+   ------------------------------------------------------------
+   Komponen: src/components/site/HeroOpener.tsx.
+   Mobile-first. Gerbang tampil/sembunyi ada di bagian paling
+   bawah dan harus sama dengan STORY_MEDIA_QUERY di Hero.tsx.
+   ============================================================ */
+
+.hero-opener {
+  --opener-deep: #030d21;
+  --opener-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100svh;
+  overflow: hidden;
+  color: var(--tre-paper);
+  background: var(--opener-deep);
+  isolation: isolate;
+}
+
+/* ---------- Dinding foto ---------- */
+
+.hero-opener-wall {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  padding: 5px;
+}
+
+.hero-opener-tile {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--hmte-navy);
+  opacity: 0;
+  animation: opener-tile-in 900ms var(--opener-ease) both;
+  animation-delay: calc(120ms + var(--tile-index) * 110ms);
+}
+
+.hero-opener-tile img {
+  object-fit: cover;
+  transform: scale(1.1);
+  animation: opener-tile-settle 2400ms var(--opener-ease) both;
+  animation-delay: calc(120ms + var(--tile-index) * 110ms);
+}
+
+/*
+ * Selubung navy tiap foto. Sorotan bergilir cukup menipiskan selubung ini
+ * sebentar: animasi opacity murni, dikerjakan compositor, tanpa filter.
+ * Siklus 12 detik dibagi enam foto = satu sorotan tiap dua detik.
+ */
+.hero-opener-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--opener-deep);
+  opacity: 0.5;
+  animation: opener-spotlight 12s ease-in-out infinite;
+  animation-delay: calc(2200ms + var(--tile-index) * 2s);
+}
+
+@keyframes opener-tile-in {
+  from { opacity: 0; transform: translate3d(0, 26px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes opener-tile-settle {
+  to { transform: scale(1); }
+}
+
+@keyframes opener-spotlight {
+  0%, 18%, 100% { opacity: 0.5; }
+  7%, 11% { opacity: 0.06; }
+}
+
+/* Gradasi: foto tetap terasa di atas, teks & tombol terbaca di bawah. */
+.hero-opener-tone {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(120% 60% at 50% 42%, rgba(var(--hmte-gold-rgb), 0.12), transparent 60%),
+    linear-gradient(
+      180deg,
+      rgba(3, 13, 33, 0.72) 0%,
+      rgba(3, 13, 33, 0.28) 26%,
+      rgba(3, 13, 33, 0.55) 48%,
+      rgba(3, 13, 33, 0.94) 70%,
+      var(--opener-deep) 100%
+    );
+}
+
+/* ---------- Baris atas ---------- */
+
+.hero-opener-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding:
+    calc(12px + env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    0
+    max(16px, env(safe-area-inset-left));
+}
+
+.hero-opener-bar-logo {
+  width: 96px;
+  height: auto;
+}
+
+.hero-opener-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(var(--hmte-gold-rgb), 0.38);
+  border-radius: 999px;
+  background: rgba(3, 13, 33, 0.42);
+  color: var(--hmte-gold);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hero-opener-menu > span {
+  display: grid;
+  gap: 4px;
+}
+
+.hero-opener-menu i {
+  display: block;
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.hero-opener-menu i + i {
+  width: 11px;
+  justify-self: end;
+}
+
+.hero-opener-menu:focus-visible,
+.hero-opener-primary:focus-visible,
+.hero-opener-secondary:focus-visible {
+  outline: 2px solid var(--hmte-gold);
+  outline-offset: 3px;
+}
+
+/* ---------- Isi ---------- */
+
+.hero-opener-body {
+  display: grid;
+  align-content: end;
+  gap: 22px;
+  padding:
+    24px
+    max(20px, env(safe-area-inset-right))
+    calc(28px + env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+}
+
+.hero-opener-mark {
+  position: relative;
+  justify-self: start;
+  width: min(74vw, 340px);
+  animation: opener-rise 1100ms var(--opener-ease) 650ms both;
+}
+
+.hero-opener-logo {
+  position: relative;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.45));
+}
+
+.hero-opener-glow {
+  position: absolute;
+  inset: -40% -20%;
+  background: radial-gradient(closest-side, rgba(var(--hmte-gold-rgb), 0.26), transparent);
+  animation: opener-glow 5s ease-in-out 1.6s infinite;
+}
+
+.hero-opener-copy > * {
+  animation: opener-rise 900ms var(--opener-ease) both;
+}
+
+.hero-opener-copy > :nth-child(1) { animation-delay: 900ms; }
+.hero-opener-copy > :nth-child(2) { animation-delay: 1000ms; }
+.hero-opener-copy > :nth-child(3) { animation-delay: 1100ms; }
+
+.hero-opener-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  color: var(--hmte-gold);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-opener-cabinet {
+  width: 24px;
+  height: 24px;
+}
+
+.hero-opener h1 {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 8.6vw, 44px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.hero-opener-lead {
+  max-width: 36ch;
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.hero-opener-actions {
+  display: grid;
+  gap: 6px;
+  animation: opener-rise 900ms var(--opener-ease) 1200ms both;
+}
+
+.hero-opener-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 64px;
+  padding: 12px 18px 12px 20px;
+  border-radius: 16px;
+  background: var(--hmte-gold);
+  color: var(--hmte-navy-deep);
+  text-decoration: none;
+  box-shadow: 0 18px 40px -22px rgba(var(--hmte-gold-rgb), 0.9);
+}
+
+.hero-opener-primary > span {
+  display: grid;
+  gap: 2px;
+}
+
+.hero-opener-primary strong {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.hero-opener-primary small {
+  font-size: 12.5px;
+  font-weight: 500;
+  opacity: 0.74;
+}
+
+.hero-opener-primary svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: opener-nudge 2.4s ease-in-out 2.4s infinite;
+}
+
+.hero-opener-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(var(--hmte-gold-rgb), 0.6);
+  text-underline-offset: 5px;
+}
+
+@keyframes opener-rise {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes opener-glow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes opener-nudge {
+  0%, 60%, 100% { transform: none; }
+  30% { transform: translate3d(0, 4px, 0); }
+}
+
+/* ---------- Tablet (mode aplikasi) ---------- */
+
+@media (min-width: 601px) {
+  .hero-opener-wall {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-opener-body {
+    max-width: 640px;
+    padding-inline: 40px;
+  }
+}
+
+/* ---------- Mode aplikasi ---------- */
+
+@media (display-mode: standalone) {
+  /* BottomNav menutup 64px terbawah; "Lainnya" di sana sudah membuka menu. */
+  .hero-opener {
+    min-height: calc(100svh - 64px - env(safe-area-inset-bottom));
+  }
+
+  .hero-opener-menu {
+    display: none;
+  }
+}
+
+/* ---------- Gerak dikurangi ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-opener-tile,
+  .hero-opener-tile img,
+  .hero-opener-tile::after,
+  .hero-opener-mark,
+  .hero-opener-glow,
+  .hero-opener-copy > *,
+  .hero-opener-actions,
+  .hero-opener-primary svg {
+    animation: none;
+  }
+
+  .hero-opener-tile {
+    opacity: 1;
+  }
+
+  .hero-opener-tile img {
+    transform: none;
+  }
+}
+
+/* ---------- Gerbang: pembuka mana yang tampil ---------- */
+
+/*
+ * Layar lebar di browser biasa: cerita scroll (Hero.tsx). Selain itu — HP,
+ * atau situs yang dibuka sebagai aplikasi — pembuka ini.
+ * Samakan dengan STORY_MEDIA_QUERY di src/components/site/Hero.tsx.
+ */
+@media (min-width: 769px) and (display-mode: browser) {
+  .hero-opener {
+    display: none;
+  }
+}
+
+@media not all and (min-width: 769px) and (display-mode: browser) {
+  .tre-hero.hero-scroll-story {
+    display: none;
+  }
+}

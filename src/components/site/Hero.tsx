@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { CSSProperties } from 'react'
 import { LogoMark } from '@/components/site/Brand'
 import { useMediaSlots } from '@/components/site/MediaSlotProvider'
@@ -13,7 +13,28 @@ import {
 import { heroActivityImages } from '@/data/site-content'
 
 const PHOTO_PHASE_END = 0.72
+/*
+ * Cerita scroll hanya hidup di layar lebar di browser biasa. Di bawah itu
+ * (dan di mode aplikasi) CSS menyembunyikan seksi ini dan HeroOpener yang
+ * tampil. Harus sama persis dengan media query di css/hero-opener.css.
+ */
+const STORY_MEDIA_QUERY = '(min-width: 769px) and (display-mode: browser)'
 const HERO_MEDIA_SLOT_KEYS = heroActivityImages.map((_, index) => `home.hero.${index + 1}`)
+
+function subscribeStoryMedia(onChange: () => void) {
+  const media = window.matchMedia(STORY_MEDIA_QUERY)
+  media.addEventListener('change', onChange)
+  return () => media.removeEventListener('change', onChange)
+}
+
+function getStoryMediaSnapshot() {
+  return window.matchMedia(STORY_MEDIA_QUERY).matches
+}
+
+// Server tidak tahu lebar layar; efek scroll memang hanya berjalan di klien.
+function getStoryServerSnapshot() {
+  return false
+}
 
 export function Hero() {
   const heroTitle = usePageField('hero', 'heroTitle')
@@ -40,7 +61,13 @@ export function Hero() {
     setEntryMode(mode)
   }
 
+  // Dipasang/dilepas mengikuti media query, supaya memutar tablet atau
+  // mengubah ukuran jendela tidak meninggalkan listener scroll yang menulis
+  // ke seksi yang sedang tersembunyi.
+  const storyActive = useSyncExternalStore(subscribeStoryMedia, getStoryMediaSnapshot, getStoryServerSnapshot)
+
   useEffect(() => {
+    if (!storyActive) return
     const section = sectionRef.current
     if (!section) return
 
@@ -136,7 +163,7 @@ export function Hero() {
       window.removeEventListener('resize', scheduleUpdate)
       if (animationFrame) window.cancelAnimationFrame(animationFrame)
     }
-  }, [])
+  }, [storyActive])
 
   return (
     <section
