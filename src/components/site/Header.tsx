@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMediaSlot } from '@/components/site/MediaSlotProvider'
+import { MOBILE_MENU_ID, useMobileMenu } from '@/components/site/MobileMenu'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 
 type HeaderProps = {
@@ -15,7 +16,7 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
   const logo = useMediaSlot('brand.logo.primary')
   const settings = useSiteSettings()
   const navigation = settings.navigation.filter((item) => item.visible)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const mobileMenu = useMobileMenu()
   const [openGroup, setOpenGroup] = useState<string | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
   const navRef = useRef<HTMLElement>(null)
@@ -62,7 +63,6 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
   }, [openGroup])
 
   function closeAll() {
-    setIsMenuOpen(false)
     setOpenGroup(null)
   }
 
@@ -82,13 +82,19 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
             priority
           />
         </Link>
+        {/*
+          Di layar kecil, nav di bawah ini disembunyikan CSS dan tombol ini
+          membuka lembar menu (MobileMenu.tsx) yang dirender sekali di root
+          layout. Nav desktop tetap apa adanya.
+        */}
         <button
           type="button"
           className="mobile-menu-button"
-          aria-expanded={isMenuOpen}
-          aria-controls="main-navigation"
-          aria-label={isMenuOpen ? 'Tutup navigasi utama' : 'Buka navigasi utama'}
-          onClick={() => setIsMenuOpen((current) => !current)}
+          aria-haspopup="dialog"
+          aria-expanded={mobileMenu.isOpen}
+          aria-controls={MOBILE_MENU_ID}
+          aria-label="Buka menu navigasi"
+          onClick={mobileMenu.open}
         >
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
@@ -97,7 +103,6 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
         <nav
           id="main-navigation"
           ref={navRef}
-          className={isMenuOpen ? 'is-open' : undefined}
           aria-label="Navigasi utama"
         >
           {navigation.map((item) => {

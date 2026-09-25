@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Caveat, Geist, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
 import { MediaSlotProvider } from '@/components/site/MediaSlotProvider'
+import { MobileMenuProvider } from '@/components/site/MobileMenu'
 import { SiteSettingsProvider } from '@/components/site/SiteSettingsProvider'
 import { getPublicMediaSlots } from '@/lib/media-slot-data'
 import { getSiteSettings } from '@/lib/site-settings-data'
@@ -30,6 +31,7 @@ import '../../css/program-stage.css'
  * bukan membuat gaya baru, jadi ia harus menang di urutan.
  */
 import '../../css/mobile.css'
+import '../../css/mobile-nav.css'
 
 /*
  * Font di-host sendiri lewat next/font, bukan @import Google Fonts di CSS.
@@ -106,7 +108,9 @@ export default async function RootLayout({
     <html lang="id" className={fontVariables}>
       <body>
         <SiteSettingsProvider settings={settings}>
-          <MediaSlotProvider slots={slots}>{children}</MediaSlotProvider>
+          <MediaSlotProvider slots={slots}>
+            <MobileMenuProvider>{children}</MobileMenuProvider>
+          </MediaSlotProvider>
         </SiteSettingsProvider>
       </body>
     </html>

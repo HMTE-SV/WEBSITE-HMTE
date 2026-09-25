@@ -1,0 +1,347 @@
+/* ============================================================
+   MOBILE NAV — lembar menu (.mnav-*) & navigasi bawah (.bnav)
+   ------------------------------------------------------------
+   Komponen: src/components/site/MobileMenu.tsx, BottomNav.tsx.
+   Ditulis mobile-first: aturan tanpa media query adalah HP.
+   Warna & huruf memakai token yang sama dengan header
+   (--hmte-navy, --hmte-gold, --font-*), jadi tidak ada
+   identitas visual baru di sini.
+   ============================================================ */
+
+/* ---------- Lembar menu ---------- */
+
+/*
+ * <dialog> ditarik menutup seluruh layar; panel di dalamnya yang tampak
+ * sebagai lembar dari bawah. Dengan begitu ketukan di area gelap di atas
+ * panel mendarat di <dialog> itu sendiri dan bisa dipakai untuk menutup.
+ */
+.mnav-sheet {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tre-paper);
+  overflow: hidden;
+}
+
+.mnav-sheet::backdrop {
+  background: rgba(1, 7, 14, 0.58);
+}
+
+/* Kunci gulir halaman di belakang selama menu terbuka. */
+html.has-mobile-menu,
+html.has-mobile-menu body {
+  overflow: hidden;
+}
+
+.mnav-panel {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  max-height: min(88dvh, 760px);
+  padding:
+    0
+    max(20px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+  background: var(--hmte-navy);
+  border-top: 1px solid rgba(var(--hmte-gold-rgb), 0.24);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -24px 60px -30px rgba(0, 0, 0, 0.6);
+}
+
+.mnav-sheet[open] .mnav-panel {
+  animation: mnav-rise 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mnav-sheet[open]::backdrop {
+  animation: mnav-fade 280ms ease;
+}
+
+@keyframes mnav-rise {
+  from { transform: translate3d(0, 100%, 0); }
+  to { transform: none; }
+}
+
+@keyframes mnav-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mnav-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding-top: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mnav-grip {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateX(-50%);
+}
+
+.mnav-title {
+  margin: 0;
+  color: var(--hmte-gold);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mnav-close {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tre-paper);
+  cursor: pointer;
+}
+
+.mnav-close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.mnav-close:focus-visible,
+.mnav-link:focus-visible,
+.mnav-cta:focus-visible {
+  outline: 2px solid var(--hmte-gold);
+  outline-offset: 2px;
+}
+
+.mnav-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block: 8px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.mnav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding-inline: 14px;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mnav-link:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mnav-link[aria-current='page'] {
+  background: rgba(var(--hmte-gold-rgb), 0.1);
+  color: var(--hmte-gold);
+}
+
+.mnav-link[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--hmte-gold);
+}
+
+.mnav-link--top {
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.mnav-group {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mnav-group-title {
+  margin: 0 0 4px;
+  padding-inline: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mnav-group ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Dua kolom begitu ada ruang, supaya lembar tidak perlu digulir di HP umum. */
+@media (min-width: 400px) {
+  .mnav-group ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 4px;
+  }
+}
+
+.mnav-foot {
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mnav-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  border-radius: 14px;
+  background: var(--hmte-gold);
+  color: var(--hmte-navy-deep);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mnav-cta svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Navigasi bawah (hanya aplikasi terpasang) ---------- */
+
+.bnav {
+  display: none;
+}
+
+/*
+ * Hanya saat dibuka sebagai aplikasi (ikon di layar utama), dan hanya di
+ * layar yang memakai header versi HP. PWA terpasang di laptop tetap
+ * memakai navigasi desktop.
+ */
+@media (display-mode: standalone) and (max-width: 1023.98px) {
+  .bnav {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: var(--z-header);
+    display: grid;
+    grid-template-columns: repeat(var(--bnav-count, 4), minmax(0, 1fr));
+    padding:
+      6px
+      env(safe-area-inset-right)
+      max(6px, env(safe-area-inset-bottom))
+      env(safe-area-inset-left);
+    background: rgba(1, 31, 75, 0.96);
+    border-top: 1px solid rgba(var(--hmte-gold-rgb), 0.2);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* Ruang di bawah konten supaya footer tidak tertutup bilah. */
+  body {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  /* "Lainnya" sudah membuka lembar yang sama; tombol menu di header jadi ganda. */
+  .tre-header .mobile-menu-button {
+    display: none;
+  }
+}
+
+.bnav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 52px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bnav-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  transition: background-color 180ms ease;
+}
+
+.bnav-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.bnav-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.bnav-item[aria-current='page'] {
+  color: var(--hmte-gold);
+}
+
+.bnav-item[aria-current='page'] .bnav-icon {
+  background: rgba(var(--hmte-gold-rgb), 0.14);
+}
+
+.bnav-item:focus-visible {
+  outline: 2px solid var(--hmte-gold);
+  outline-offset: -2px;
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mnav-sheet[open] .mnav-panel,
+  .mnav-sheet[open]::backdrop {
+    animation: none;
+  }
+
+  .bnav-icon {
+    transition: none;
+  }
+}
