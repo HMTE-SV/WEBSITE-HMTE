@@ -31,6 +31,7 @@ import '../../css/program-stage.css'
  * bukan membuat gaya baru, jadi ia harus menang di urutan.
  */
 import '../../css/mobile.css'
+import '../../css/mobile-pages.css'
 import '../../css/hero-opener.css'
 import '../../css/mobile-nav.css'
 

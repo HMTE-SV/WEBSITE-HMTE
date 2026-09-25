@@ -1,0 +1,351 @@
+/* ============================================================
+   MOBILE PAGES — penyesuaian HP per halaman (fase 5)
+   ------------------------------------------------------------
+   Pelengkap css/mobile.css. Di sana aturan lintas situs (safe
+   area, target 44px, lantai huruf); di sini hal yang khas satu
+   halaman: pil penyaring, papan program kerja, galeri, form.
+   Diimpor sesudah semua CSS halaman supaya menang di urutan.
+   ============================================================ */
+
+/* ---------- Pil penyaring: satu baris yang digeser ---------- */
+
+/*
+ * Sembilan bidang membungkus jadi tiga baris (±130px) di 390px, dan begitu
+ * tiap pil setinggi 44px, empat baris. Satu baris yang bisa digeser menjaga
+ * konten tetap dekat ke atas layar; pola yang sama dengan .newsroom-filter
+ * di /berita, yang sejak awal sudah begitu.
+ *
+ * Wadahnya dibiarkan menembus jarak tepi halaman (margin negatif = jarak
+ * tepi .public-shell di HP), supaya pil terakhir tidak terpotong oleh tepi
+ * yang tidak kelihatan, dan tepi kanan dipudarkan sebagai tanda "masih ada".
+ */
+@media (max-width: 767.98px) {
+  .soft-pills,
+  .data-hub-filters {
+    flex-wrap: nowrap;
+    margin-inline: -16px;
+    padding-inline: 16px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 16px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to right, #000 0 88%, transparent);
+  }
+
+  .soft-pills::-webkit-scrollbar,
+  .data-hub-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .soft-pills > *,
+  .data-hub-filters > * {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  /* Pil terakhir bisa digeser sampai lepas dari pudaran tepi kanan. */
+  .soft-pills::after,
+  .data-hub-filters::after {
+    content: '';
+    flex: none;
+    width: 24px;
+  }
+}
+
+/* ---------- Kolom isian ---------- */
+
+@media (pointer: coarse) {
+  /* Kotak pencarian 48px, tapi input di dalamnya cuma 28px: ketukan di tepi
+     atas/bawah kotak mendarat di luar input. */
+  .data-hub-search input {
+    align-self: stretch;
+    min-height: 46px;
+  }
+
+  /* Seluruh baris sudah bisa diketuk (label); kotaknya diperbesar supaya
+     keadaannya terbaca tanpa harus menyipit. */
+  .public-check-row input {
+    flex: none;
+    width: 22px;
+    min-height: 22px;
+    height: 22px;
+  }
+
+  .stg-chips a {
+    min-height: 44px;
+  }
+}
+
+/* ---------- Papan program kerja: tetap papan, layak sentuh ---------- */
+
+/*
+ * Di layar sentuh balok 50×20px terlalu kecil untuk jari. Papannya tidak
+ * diganti daftar — sumbu waktu tetap tokoh utamanya — tetapi:
+ *   - papan dilebarkan, jadi balok satu bulan ±75px, dan tetap digulir
+ *     mendatar di wadahnya sendiri (halaman tidak ikut bergeser);
+ *   - tiap jalur setinggi 44px dengan jarak 6px.
+ *
+ * Tinggi baris dihitung ulang dari --lanes; --row-h di style inline
+ * dihitung komponen untuk jalur 30px dan tidak dipakai di sini.
+ *
+ * "Tinggi = kepastian jadwal" tetap terbaca: balok bertanggal pejal penuh,
+ * balok rencana digambar sebagai pita lebih tipis di tengah lewat ::before —
+ * area sentuhnya tetap 44px penuh.
+ */
+@media (pointer: coarse) {
+  .stg-field {
+    min-width: 960px;
+  }
+
+  .stg-row {
+    height: calc(var(--lanes) * 44px + (var(--lanes) - 1) * 6px);
+  }
+
+  .stg-block,
+  .stg-block[data-precision='planned'] {
+    top: calc(var(--lane) * 50px);
+    height: 44px;
+  }
+
+  .stg-block[data-precision='planned'] {
+    background: transparent;
+    opacity: 1;
+  }
+
+  .stg-block[data-precision='planned']::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 9px 0;
+    border-radius: 6px;
+    background: var(--dv);
+    opacity: 0.9;
+  }
+
+  /*
+   * Program bertanggal satu-dua hari hanya selebar 2–5px walau papan sudah
+   * dilebarkan. Namanya ditulis di sebelah kanan balok, tetapi masih anak
+   * <a> yang sama — jadi kotak teks itu dijadikan setinggi jalur dan
+   * disambung ke balok (left: 100%, jarak lewat padding), dan balok + nama
+   * bersama-sama jadi satu target sentuh.
+   */
+  .stg-block[data-label='outside'] .stg-block-name {
+    left: 100%;
+    padding-left: 8px;
+    padding-right: 6px;
+    line-height: 44px;
+  }
+}
+
+/* ---------- Galeri: dua kolom + pratinjau layar penuh ---------- */
+
+/* Tombol pembuka menutupi fotonya persis dan tidak menggambar apa pun. */
+.gallery-mosaic-item {
+  position: relative;
+}
+
+.gallery-mosaic-open {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.gallery-mosaic-open:focus-visible {
+  outline: 3px solid var(--hmte-gold);
+  outline-offset: -3px;
+}
+
+/*
+ * HP: satu foto per layar (410px) membuat dua belas foto jadi dua belas kali
+ * menggulir. Dua kolom persegi memperlihatkan ±6 foto sekaligus; foto utama
+ * tetap selebar penuh. Judul & keterangan foto kecil pindah ke pratinjau.
+ */
+@media (max-width: 700px) {
+  .gallery-mosaic {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .gallery-mosaic-item.is-lead {
+    grid-column: 1 / -1;
+  }
+
+  .gallery-mosaic-item figure,
+  .gallery-mosaic-item.is-lead figure {
+    min-height: 0;
+    aspect-ratio: 1;
+    border-radius: var(--sr-sm, 12px);
+  }
+
+  .gallery-mosaic-item.is-lead figure {
+    aspect-ratio: 4 / 3;
+  }
+
+  .gallery-mosaic-item:not(.is-lead) figcaption,
+  .gallery-mosaic-item:not(.is-lead) figure::after {
+    display: none;
+  }
+
+  .gallery-mosaic-index {
+    top: 10px;
+    left: 10px;
+    width: 28px;
+  }
+
+  .gallery-mosaic-item.is-lead figcaption {
+    inset: auto 16px 16px;
+  }
+
+  .gallery-mosaic-item.is-lead h3 {
+    font-size: 24px;
+  }
+
+  .gallery-mosaic-item.is-lead figcaption p {
+    display: none;
+  }
+}
+
+html.has-gallery-viewer,
+html.has-gallery-viewer body {
+  overflow: hidden;
+}
+
+.gallery-viewer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--tre-off-white);
+  background: #01050d;
+  overflow: hidden;
+}
+
+.gallery-viewer[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  animation: gallery-viewer-in 220ms ease;
+}
+
+.gallery-viewer::backdrop {
+  background: #01050d;
+}
+
+@keyframes gallery-viewer-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gallery-viewer-top,
+.gallery-viewer-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+}
+
+.gallery-viewer-top {
+  justify-content: space-between;
+  padding-top: calc(8px + env(safe-area-inset-top));
+}
+
+.gallery-viewer-bottom {
+  align-items: end;
+  padding-top: 12px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+}
+
+.gallery-viewer-count {
+  margin: 0 0 0 8px;
+  color: var(--hmte-gold);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.gallery-viewer-count span {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.gallery-viewer-button {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--tre-off-white);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.gallery-viewer-button svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gallery-viewer-button:disabled {
+  visibility: hidden;
+}
+
+.gallery-viewer-button:focus-visible {
+  outline: 2px solid var(--hmte-gold);
+  outline-offset: 2px;
+}
+
+.gallery-viewer-stage {
+  position: relative;
+  touch-action: pan-y;
+}
+
+.gallery-viewer-stage img {
+  object-fit: contain;
+}
+
+.gallery-viewer-caption {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.gallery-viewer-caption h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.gallery-viewer-caption p {
+  display: -webkit-box;
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-viewer[open] {
+    animation: none;
+  }
+}

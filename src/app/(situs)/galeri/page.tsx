@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import { GalleryMosaic } from '@/components/site/GalleryMosaic'
 import { HeroBackdrop } from '@/components/site/HeroBackdrop'
 import { EmptyState, PublicPageFrame } from '@/components/site/PublicPage'
 import { getPublishedGalleryItems, type PublicGalleryItem } from '@/lib/gallery-data'
@@ -55,36 +55,7 @@ export default async function GalleryPage() {
           </div>
 
           {galleryItems.length > 0 ? (
-            <div className="gallery-mosaic">
-              {/*
-                Tidak ada lagi <Link> membungkus tiap foto. Dulu setiap kartu
-                menuju /berita/[slug] karena isinya memang sampul berita yang
-                di-dedup, bukan dokumentasi. Item galeri berdiri sendiri dan
-                tidak punya halaman tujuan, jadi memaksakan tautan cuma
-                menghasilkan pranala mati.
-              */}
-              {galleryItems.map((item, index) => (
-                <div
-                  className={index === 0 ? 'gallery-mosaic-item is-lead' : 'gallery-mosaic-item'}
-                  key={item.id}
-                >
-                  <figure>
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.alt}
-                      fill
-                      priority={index === 0}
-                      sizes={index === 0 ? '(max-width: 760px) 100vw, 58vw' : '(max-width: 760px) 100vw, 34vw'}
-                    />
-                    <span className="gallery-mosaic-index">{String(index + 1).padStart(2, '0')}</span>
-                    <figcaption>
-                      <h3>{item.title}</h3>
-                      {item.caption ? <p>{item.caption}</p> : null}
-                    </figcaption>
-                  </figure>
-                </div>
-              ))}
-            </div>
+            <GalleryMosaic items={galleryItems} />
           ) : (
             <EmptyState
               title={loadError ? 'Galeri belum dapat dimuat' : 'Galeri belum tersedia'}
