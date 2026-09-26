@@ -50,6 +50,55 @@ export function HomeMotion() {
     }
   }, [])
 
+  /*
+   * Dua kebiasaan jempol, berlaku juga saat gerakan dikurangi:
+   * - mengetuk Beranda/logo saat sudah di beranda membawa kembali ke atas
+   *   (Next tidak berbuat apa-apa untuk tautan ke halaman yang sama);
+   * - di layar sempit, header menyingkir saat menggulir turun dan kembali
+   *   saat menggulir naik: navigasi sudah ada di kapsul bawah, jadi 64px
+   *   di atas lebih berguna untuk isi.
+   */
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>('.p10')
+    if (!root) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const narrow = window.matchMedia('(max-width: 899.98px)')
+
+    function onClick(event: MouseEvent) {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const link = (event.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!link || link.target === '_blank') return
+      const target = new URL(link.href, location.href)
+      if (target.origin !== location.origin || target.pathname !== '/' || target.hash || location.pathname !== '/') return
+      event.preventDefault()
+      if (location.hash) history.replaceState(null, '', '/')
+      window.scrollTo({ top: 0, behavior: reduced.matches ? 'auto' : 'smooth' })
+    }
+
+    let lastY = window.scrollY
+    let frame = 0
+    function onScroll() {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        const y = window.scrollY
+        const delta = y - lastY
+        if (!narrow.matches || y < 120 || delta < -6) root?.classList.remove('is-hdr-hidden')
+        else if (delta > 6) root?.classList.add('is-hdr-hidden')
+        if (Math.abs(delta) > 6) lastY = y
+      })
+    }
+
+    document.addEventListener('click', onClick, true)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      document.removeEventListener('click', onClick, true)
+      window.removeEventListener('scroll', onScroll)
+      if (frame) cancelAnimationFrame(frame)
+      root.classList.remove('is-hdr-hidden')
+    }
+  }, [])
+
   return null
 }
 

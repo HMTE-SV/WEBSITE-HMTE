@@ -91,17 +91,6 @@ export function HomeNews({ articles }: { articles: PublicArticle[] }) {
         <p className="p10-lead">{fields.publishedLead}</p>
       </header>
 
-      {/* Satu sorot seksi ini: judul-judul kategori aktif berjalan di papan. */}
-      <div className="p10-board p10-board--headlines">
-        <LedBoard
-          scenes={[{ kind: 'marquee', text: [...stories.map((story) => `${story.categoryLabel} · ${story.publishedLabel} — ${story.title}`), fields.kicker].join('   ◆   ').toUpperCase(), speed: 34 }]}
-          loop
-          pitch={3}
-          widePitch={4}
-          threshold={0.2}
-        />
-      </div>
-
       {tabs.length > 1 ? (
         <div className="p10-pills" role="tablist" aria-label={fields.kicker}>
           {tabs.map((tab, index) => {
@@ -166,6 +155,17 @@ export function HomeNews({ articles }: { articles: PublicArticle[] }) {
             ))}
           </nav>
         ) : null}
+      </div>
+
+      {/* Satu sorot seksi ini, di ujungnya: judul-judul kategori aktif berjalan di papan. */}
+      <div className="p10-board p10-board--headlines">
+        <LedBoard
+          scenes={[{ kind: 'marquee', text: [...stories.map((story) => `${story.categoryLabel} · ${story.publishedLabel} — ${story.title}`), fields.kicker].join('   ◆   ').toUpperCase(), speed: 34 }]}
+          loop
+          pitch={3}
+          widePitch={4}
+          threshold={0.2}
+        />
       </div>
     </section>
   )

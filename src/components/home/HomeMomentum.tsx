@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useMediaSlots } from '@/components/site/MediaSlotProvider'
 import { usePageSection } from '@/components/site/PageContentProvider'
@@ -53,6 +54,41 @@ export function HomeMomentum({ divisions, leadersByDivision, programsByDivision 
     position: slots[index].isAssigned ? `${slots[index].focalPointX}% ${slots[index].focalPointY}%` : moment.position,
     label: fields[`photoLabel${index + 1}`] || moment.label,
   }))
+  const wallRef = useRef<HTMLUListElement>(null)
+  const [current, setCurrent] = useState(0)
+
+  // HP: dinding ini baris geser; titik penanda mengikuti foto yang sedang di depan.
+  useEffect(() => {
+    const wall = wallRef.current
+    if (!wall) return
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const tiles = Array.from(wall.children) as HTMLElement[]
+      if (tiles.length < 2 || wall.scrollWidth <= wall.clientWidth) return
+      const stride = tiles[1].offsetLeft - tiles[0].offsetLeft || 1
+      const atEnd = wall.scrollLeft + wall.clientWidth >= wall.scrollWidth - 4
+      setCurrent(atEnd ? tiles.length - 1 : Math.round(wall.scrollLeft / stride))
+    }
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    wall.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      wall.removeEventListener('scroll', onScroll)
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  function goTo(index: number) {
+    const wall = wallRef.current
+    const tile = wall?.children[index] as HTMLElement | undefined
+    if (!wall || !tile) return
+    const first = wall.children[0] as HTMLElement
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    wall.scrollTo({ left: tile.offsetLeft - first.offsetLeft, behavior: smooth ? 'smooth' : 'auto' })
+  }
+
   const members = Object.values(leadersByDivision).flat()
   const programs = Object.values(programsByDivision).flat()
 
@@ -81,7 +117,7 @@ export function HomeMomentum({ divisions, leadersByDivision, programsByDivision 
         </span>
       </p>
 
-      <ul className="p10-wall" aria-label={fields.kicker}>
+      <ul className="p10-wall" ref={wallRef} aria-label={fields.kicker}>
         {moments.map((moment) => (
           <li className={`p10-tile p10-tile--${moment.shape}`} key={`${moment.src}-${moment.label}`}>
             <DotPhoto src={moment.src} alt={moment.alt} position={moment.position} sizes="(max-width: 900px) 80vw, 420px">
@@ -90,6 +126,19 @@ export function HomeMomentum({ divisions, leadersByDivision, programsByDivision 
           </li>
         ))}
       </ul>
+      <div className="p10-pager" role="group" aria-label={`${fields.kicker}: pilih foto`}>
+        {moments.map((moment, index) => (
+          <button
+            type="button"
+            key={`${moment.src}-dot`}
+            aria-label={`Foto ${index + 1} dari ${moments.length}: ${moment.label}`}
+            aria-current={index === current ? 'true' : undefined}
+            onClick={() => goTo(index)}
+          >
+            <span aria-hidden="true" />
+          </button>
+        ))}
+      </div>
 
       <blockquote className="p10-quote">
         <p>{fields.quote}</p>
