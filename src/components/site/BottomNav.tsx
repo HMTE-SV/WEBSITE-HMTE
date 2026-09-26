@@ -7,16 +7,15 @@ import { MOBILE_MENU_ID, useMobileMenu } from '@/components/site/MobileMenu'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 
 /*
- * Navigasi bawah untuk situs yang DIPASANG sebagai aplikasi (PWA).
+ * Navigasi bawah: kapsul melayang untuk jempol.
  *
  * Komponen ini selalu ada di DOM, tapi CSS menyembunyikannya kecuali di
- * `@media (display-mode: standalone)` (lihat css/mobile-nav.css). Di browser
- * biasa, header + lembar menu sudah cukup; bilah kedua di bawah layar hanya
- * memakan ruang baca. Keputusan tampil/tidaknya sengaja di CSS, bukan
+ * aplikasi terpasang (css/mobile-nav.css) dan di beranda browser HP
+ * (css/home-p10.css). Keputusan tampil/tidaknya sengaja di CSS, bukan
  * matchMedia di JS, supaya tidak ada kedip saat hidrasi.
  */
 
-type BottomNavKey = 'beranda' | 'kabar' | 'acara' | 'organisasi' | 'lainnya'
+type BottomNavKey = 'beranda' | 'kabar' | 'acara' | 'program' | 'organisasi' | 'lainnya'
 
 type BottomNavItem = {
   key: BottomNavKey
@@ -59,6 +58,12 @@ const ITEMS: BottomNavItem[] = [
     icon: <svg viewBox="0 0 24 24" {...stroke}><rect x="4" y="5.5" width="16" height="14" rx="2" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></svg>,
   },
   {
+    key: 'program',
+    label: 'Program',
+    href: '/program-kerja',
+    icon: <svg viewBox="0 0 24 24" {...stroke}><rect x="4" y="4" width="7" height="7" rx="1.6" /><rect x="13" y="4" width="7" height="7" rx="1.6" /><rect x="4" y="13" width="7" height="7" rx="1.6" /><path d="M16.5 13v7M13 16.5h7" /></svg>,
+  },
+  {
     key: 'organisasi',
     label: 'Organisasi',
     href: '/kepengurusan',
@@ -86,9 +91,14 @@ export function BottomNav() {
   function isActive(item: BottomNavItem) {
     if (!item.href) return false
     const group = item.navGroupId ? settings.navigation.find((navItem) => navItem.id === item.navGroupId) : undefined
+    // Anak grup yang sudah punya item sendiri (mis. Program Kerja) tidak ikut
+    // menyalakan item grupnya, supaya hanya satu pil yang aktif.
+    const ownedElsewhere = new Set(ITEMS.filter((other) => other !== item && other.href).map((other) => other.href))
     const routes = [
       item.href,
-      ...(group?.children.filter((child) => child.href.startsWith('/')).map((child) => child.href) ?? []),
+      ...(group?.children
+        .filter((child) => child.href.startsWith('/') && !ownedElsewhere.has(child.href))
+        .map((child) => child.href) ?? []),
       ...(item.alsoMatches ?? []),
     ]
     return routes.some((route) => matches(pathname, route))

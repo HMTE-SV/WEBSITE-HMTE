@@ -1,15 +1,15 @@
 import type { Metadata } from 'next'
 import { Fragment } from 'react'
-import { CTA } from '@/components/site/CTA'
 import { Footer } from '@/components/site/Footer'
-import { GetToKnow } from '@/components/site/GetToKnow'
 import { Header } from '@/components/site/Header'
-import { Hero } from '@/components/site/Hero'
-import { HeroOpener } from '@/components/site/HeroOpener'
-import { HMTEMomentum } from '@/components/site/HMTEMomentum'
-import { NewsAgenda } from '@/components/site/NewsAgenda'
-import { OrganizationDirectory } from '@/components/site/OrganizationDirectory'
 import { PageContentProvider } from '@/components/site/PageContentProvider'
+import { HomeAbout } from '@/components/home/HomeAbout'
+import { HomeClose } from '@/components/home/HomeClose'
+import { HomeHero } from '@/components/home/HomeHero'
+import { HomeMomentum } from '@/components/home/HomeMomentum'
+import { HomeMotion } from '@/components/home/HomeMotion'
+import { HomeNews } from '@/components/home/HomeNews'
+import { HomeOrganization } from '@/components/home/HomeOrganization'
 import { getPublishedArticleFeed, type PublicArticle } from '@/lib/article-data'
 import { getOrganizationData } from '@/lib/organization-data'
 import { getPageContent } from '@/lib/page-content-data'
@@ -46,11 +46,11 @@ export default async function Home() {
   ])
 
   const components = {
-    about: <GetToKnow />,
-    news: <NewsAgenda articles={articles} />,
-    organization: <OrganizationDirectory divisions={organizationData.divisions} divisionsByCode={organizationData.divisionsByCode} leadersByDivision={organizationData.leadersByDivision} programsByDivision={organizationData.programsByDivision} />,
-    momentum: <HMTEMomentum divisions={organizationData.divisions} leadersByDivision={organizationData.leadersByDivision} programsByDivision={organizationData.programsByDivision} />,
-    cta: <CTA />,
+    about: <HomeAbout />,
+    news: <HomeNews articles={articles} />,
+    organization: <HomeOrganization divisions={organizationData.divisions} divisionsByCode={organizationData.divisionsByCode} leadersByDivision={organizationData.leadersByDivision} programsByDivision={organizationData.programsByDivision} />,
+    momentum: <HomeMomentum divisions={organizationData.divisions} leadersByDivision={organizationData.leadersByDivision} programsByDivision={organizationData.programsByDivision} />,
+    cta: <HomeClose />,
   } as const
   const hero = pageContent.sections.find((section) => section.id === 'hero')
   const mainSections = [...pageContent.sections]
@@ -60,20 +60,20 @@ export default async function Home() {
   return (
     <PageContentProvider content={pageContent}>
       {/*
-        Dua pembuka, satu yang tampil (diputuskan CSS, lihat hero-opener.css):
-        HeroOpener untuk HP & mode aplikasi, Hero (cerita scroll) untuk layar
-        lebar. HeroOpener ditaruh di depan agar header landing sesudah Hero
-        tetap bersebelahan dengan <main>, persis seperti di desktop.
+        Beranda = papan LED P10 (css/home-p10.css). Satu versi untuk semua
+        lebar layar; perbedaan HP dan desktop diurus CSS, bukan dua komponen.
       */}
-      {hero?.visible ? <HeroOpener /> : null}
-      {hero?.visible ? <Hero /> : null}
-      <div className="landing-nav-stage landing-nav-stage--after-hero">
-        <Header variant="landing" />
+      <div className="p10">
+        <HomeMotion />
+        <div className="landing-nav-stage p10-nav-stage">
+          <Header variant="landing" />
+        </div>
+        {hero?.visible ? <HomeHero articles={articles} /> : null}
+        <main id="main-content" className="p10-main">
+          {mainSections.map((section) => <Fragment key={section.id}>{components[section.id as keyof typeof components]}</Fragment>)}
+        </main>
+        <Footer />
       </div>
-      <main id="main-content">
-        {mainSections.map((section) => <Fragment key={section.id}>{components[section.id as keyof typeof components]}</Fragment>)}
-      </main>
-      <Footer />
     </PageContentProvider>
   )
 }
