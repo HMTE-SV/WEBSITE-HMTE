@@ -11,12 +11,14 @@ import type { ArticleCategoryKey } from '@/types/content'
 import { ArrowIcon, ChevronIcon } from './HomeMotion'
 
 /*
- * Kabar di beranda: judul seksi berupa kotak navy yang sekaligus memegang
- * pilihan kategori; di sebelahnya satu berita utama dan baris-baris cerita
- * lain. Beranda etalase, bukan arsip, jadi paling banyak lima cerita per
- * kategori.
+ * Kabar di beranda: kotak judul navy memegang pilihan kategori (dengan
+ * "Semua" = terbaru lintas kategori), di sebelahnya satu berita utama, lalu
+ * sederet kartu berita berikutnya. Susunan ini tetap rapi berapa pun jumlah
+ * berita di arsip: beranda etalase, bukan arsip, jadi paling banyak empat.
  */
-const MAX_STORIES_PER_CATEGORY = 5
+const MAX_STORIES = 4
+const ALL = 'semua'
+type TabKey = ArticleCategoryKey | typeof ALL
 
 export function HomeNews({ articles }: { articles: PublicArticle[] }) {
   const { fields } = usePageSection('news')
@@ -29,14 +31,17 @@ export function HomeNews({ articles }: { articles: PublicArticle[] }) {
     })
     return grouped
   }, [articles])
-  const tabs = useMemo(() => articleTabs.filter((tab) => byCategory.has(tab.key)), [byCategory])
-  const [chosen, setChosen] = useState<ArticleCategoryKey | null>(null)
+  const tabs = useMemo(() => {
+    const categories: Array<{ key: TabKey; label: string }> = articleTabs.filter((tab) => byCategory.has(tab.key))
+    return categories.length > 1 ? [{ key: ALL as TabKey, label: 'Semua' }, ...categories] : categories
+  }, [byCategory])
+  const [chosen, setChosen] = useState<TabKey | null>(null)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   // Diturunkan, bukan disimpan: kategori pilihan bisa hilang saat halaman direvalidasi.
-  const current = chosen && byCategory.has(chosen) ? chosen : tabs[0]?.key
-  const stories = current ? (byCategory.get(current) ?? []).slice(0, MAX_STORIES_PER_CATEGORY) : []
-  const [lead, ...rest] = stories
+  const current = chosen && tabs.some((tab) => tab.key === chosen) ? chosen : tabs[0]?.key
+  const pool = current === ALL ? articles : current ? (byCategory.get(current) ?? []) : []
+  const [lead, ...rest] = pool.slice(0, MAX_STORIES)
 
   function onTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const last = tabs.length - 1
@@ -124,17 +129,17 @@ export function HomeNews({ articles }: { articles: PublicArticle[] }) {
           </div>
         </header>
 
+        {/* Desktop: display: contents, supaya berita utama dan kartunya duduk langsung di grid seksi. */}
         <div
           className="av-news-body"
           key={current}
           id="av-news-panel"
           role={tabs.length > 1 ? 'tabpanel' : undefined}
           aria-labelledby={tabs.length > 1 ? `av-tab-${current}` : undefined}
-          data-solo={rest.length ? undefined : ''}
         >
           <article className="av-box av-story">
             <Link className="av-story-media" href={`/berita/${lead.slug}`} tabIndex={-1} aria-hidden>
-              <ArticleCover src={lead.image} alt="" slug={lead.slug} sizes="(max-width: 900px) 100vw, 460px" decorative />
+              <ArticleCover src={lead.image} alt="" slug={lead.slug} sizes="(max-width: 900px) 100vw, 480px" decorative />
             </Link>
             <div className="av-story-copy">
               <p className="av-meta">
@@ -157,18 +162,26 @@ export function HomeNews({ articles }: { articles: PublicArticle[] }) {
           </article>
 
           {rest.length ? (
-            <nav className="av-box av-rows" aria-label={fields.relatedLabel}>
-              <p className="av-rows-head">{fields.relatedLabel}</p>
+            <ul className="av-cards" aria-label={fields.relatedLabel} data-cards={rest.length}>
               {rest.map((article) => (
-                <Link className="av-row" href={`/berita/${article.slug}`} key={article.slug}>
-                  <span className="av-row-text">
-                    <strong>{article.title}</strong>
-                    <small>{article.publishedLabel} · {article.readTime}</small>
-                  </span>
-                  <ChevronIcon />
-                </Link>
+                <li key={article.slug}>
+                  <Link className="av-box av-card" href={`/berita/${article.slug}`}>
+                    <span className="av-card-media">
+                      <ArticleCover src={article.image} alt="" slug={article.slug} sizes="(max-width: 900px) 96px, 360px" decorative />
+                    </span>
+                    <span className="av-card-copy">
+                      <span className="av-meta">
+                        <span className="av-tag">{article.categoryLabel}</span>
+                        <time dateTime={article.dateIso || undefined}>{article.publishedLabel}</time>
+                      </span>
+                      <strong>{article.title}</strong>
+                      <small>{article.readTime}</small>
+                    </span>
+                    <ChevronIcon />
+                  </Link>
+                </li>
               ))}
-            </nav>
+            </ul>
           ) : null}
         </div>
       </div>

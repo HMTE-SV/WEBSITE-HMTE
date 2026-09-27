@@ -58,8 +58,8 @@ export function HomeMotion() {
     root.querySelectorAll('[data-reveal], [data-count]').forEach((element) => observer.observe(element))
 
     /*
-     * Hero: busur dan logo bereaksi pada gulir (semua layar) dan pointer
-     * (layar berpointer halus). Pointer dihaluskan dengan pegas sederhana
+     * Hero: busur dan logo bereaksi pada gulir (semua layar), pointer
+     * (layar berpointer halus), dan kemiringan ponsel (layar sentuh). Pointer dihaluskan dengan pegas sederhana
      * supaya logo memiring dengan inersia, dan tepi busur menyala tepat di
      * sudut lingkaran yang berada di bawah kursor.
      */
@@ -92,30 +92,45 @@ export function HomeMotion() {
     function queueHero() {
       if (!heroFrame) heroFrame = requestAnimationFrame(paintHero)
     }
+    // Arahkan sorot ke titik cakrawala di bawah posisi-x layar tertentu.
+    function aimAt(clientX: number) {
+      if (!orbit) return
+      const ring = orbit.getBoundingClientRect()
+      const radius = ring.width / 2
+      const ratio = Math.max(-1, Math.min(1, (clientX - (ring.left + radius)) / radius))
+      target.angle = (Math.asin(ratio) * 180) / Math.PI
+      target.spot = 1
+      // Titik di cakrawala tepat di bawah kursor, dalam koordinat kotak hero.
+      if (box) {
+        const frame = box.getBoundingClientRect()
+        const dx = ratio * radius
+        const rimY = ring.top + radius - Math.sqrt(Math.max(0, radius * radius - dx * dx))
+        target.gx = ring.left + radius + dx - frame.left
+        target.gy = rimY - frame.top
+        if (eased.spot < 0.05) {
+          eased.gx = target.gx
+          eased.gy = target.gy
+        }
+      }
+    }
     function onPointer(event: PointerEvent) {
       if (!hero || !fine.matches) return
       const rect = hero.getBoundingClientRect()
       target.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
       target.y = ((event.clientY - rect.top) / rect.height) * 2 - 1
-      if (orbit) {
-        const ring = orbit.getBoundingClientRect()
-        const radius = ring.width / 2
-        const ratio = Math.max(-1, Math.min(1, (event.clientX - (ring.left + radius)) / radius))
-        target.angle = (Math.asin(ratio) * 180) / Math.PI
-        target.spot = 1
-        // Titik di cakrawala tepat di bawah kursor, dalam koordinat kotak hero.
-        if (box) {
-          const frame = box.getBoundingClientRect()
-          const dx = ratio * radius
-          const rimY = ring.top + radius - Math.sqrt(Math.max(0, radius * radius - dx * dx))
-          target.gx = ring.left + radius + dx - frame.left
-          target.gy = rimY - frame.top
-          if (eased.spot < 0.05) {
-            eased.gx = target.gx
-            eased.gy = target.gy
-          }
-        }
-      }
+      aimAt(event.clientX)
+      queueHero()
+    }
+    /*
+     * HP: kemiringan ponsel menggantikan kursor. Android memberi datanya
+     * tanpa izin; iOS meminta izin, jadi di sana event ini diam saja.
+     */
+    function onTilt(event: DeviceOrientationEvent) {
+      if (!hero || fine.matches || event.gamma === null || event.beta === null) return
+      if (hero.getBoundingClientRect().bottom < 0) return
+      target.x = Math.max(-1, Math.min(1, event.gamma / 26))
+      target.y = Math.max(-1, Math.min(1, (event.beta - 55) / 26))
+      aimAt(window.innerWidth / 2 + target.x * window.innerWidth * 0.42)
       queueHero()
     }
     function onLeave() {
@@ -127,6 +142,7 @@ export function HomeMotion() {
     window.addEventListener('scroll', queueHero, { passive: true })
     hero?.addEventListener('pointermove', onPointer)
     hero?.addEventListener('pointerleave', onLeave)
+    window.addEventListener('deviceorientation', onTilt)
     paintHero()
 
     return () => {
@@ -136,6 +152,7 @@ export function HomeMotion() {
       window.removeEventListener('scroll', queueHero)
       hero?.removeEventListener('pointermove', onPointer)
       hero?.removeEventListener('pointerleave', onLeave)
+      window.removeEventListener('deviceorientation', onTilt)
       root.removeAttribute('data-motion')
       root.querySelectorAll('.is-in').forEach((element) => element.classList.remove('is-in'))
       counters.forEach((element) => {
@@ -145,17 +162,13 @@ export function HomeMotion() {
   }, [])
 
   /*
-   * Dua kebiasaan jempol, berlaku juga saat gerakan dikurangi:
-   * - mengetuk Beranda/logo saat sudah di beranda membawa kembali ke atas
-   *   (Next tidak berbuat apa-apa untuk tautan ke halaman yang sama);
-   * - di layar sempit, header menyingkir saat menggulir turun dan kembali
-   *   saat menggulir naik: navigasi sudah ada di kapsul bawah.
+   * Mengetuk Beranda/logo saat sudah di beranda membawa kembali ke atas
+   * (Next tidak berbuat apa-apa untuk tautan ke halaman yang sama). Berlaku
+   * juga saat gerakan dikurangi. Di layar sempit, header menyingkir begitu
+   * hero lewat dan bilah lompat-seksi menggantikannya (HomeSectionNav).
    */
   useEffect(() => {
-    const root = document.querySelector<HTMLElement>('.av')
-    if (!root) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const narrow = window.matchMedia('(max-width: 899.98px)')
 
     function onClick(event: MouseEvent) {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
@@ -168,28 +181,8 @@ export function HomeMotion() {
       window.scrollTo({ top: 0, behavior: reduced.matches ? 'auto' : 'smooth' })
     }
 
-    let lastY = window.scrollY
-    let frame = 0
-    function onScroll() {
-      if (frame) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
-        const y = window.scrollY
-        const delta = y - lastY
-        if (!narrow.matches || y < 120 || delta < -6) root?.classList.remove('is-hdr-hidden')
-        else if (delta > 6) root?.classList.add('is-hdr-hidden')
-        if (Math.abs(delta) > 6) lastY = y
-      })
-    }
-
     document.addEventListener('click', onClick, true)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      document.removeEventListener('click', onClick, true)
-      window.removeEventListener('scroll', onScroll)
-      if (frame) cancelAnimationFrame(frame)
-      root.classList.remove('is-hdr-hidden')
-    }
+    return () => document.removeEventListener('click', onClick, true)
   }, [])
 
   return null

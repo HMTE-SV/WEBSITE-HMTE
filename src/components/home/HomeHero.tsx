@@ -9,6 +9,7 @@ import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 import { heroIdentity } from '@/data/site-content'
 import type { PublicArticle } from '@/lib/article-data'
 import { formatCabinetTitle } from '@/lib/site-settings'
+import { HeroParticles } from './HeroParticles'
 import { ArrowIcon, Sparks } from './HomeMotion'
 
 type HomeHeroProps = {
@@ -17,9 +18,10 @@ type HomeHeroProps = {
 
 /*
  * Pembuka: logo kabinet sebagai sumber cahaya. Busur biru raksasa terbuka
- * dari tengah, kilau berlari di tepinya, gelombang energi memancar dari
- * logo. Di desktop tepi busur menyala tepat di bawah kursor dan logo
- * memiring mengikuti arahnya. Di dasar kotak,
+ * dari tengah, butir cahaya berkumpul jadi orbit di sekeliling logo lalu
+ * kilatan melintasi cakrawala. Tepi busur menyala dan logo memiring
+ * mengikuti kursor (desktop) atau kemiringan ponsel (HP); mengetuk logo
+ * meledakkan orbitnya. Di dasar kotak,
  * pita judul berita terbaru berjalan pelan (berhenti saat disentuh/diarahkan).
  */
 export function HomeHero({ articles }: HomeHeroProps) {
@@ -46,8 +48,10 @@ export function HomeHero({ articles }: HomeHeroProps) {
           </i>
         </span>
         <span className="av-horizon-glow" aria-hidden="true" />
+        <HeroParticles />
 
         <div className="av-emblem">
+          <span className="av-emblem-flare" aria-hidden="true" />
           <div className="av-emblem-core">
             <span className="av-emblem-pulse" aria-hidden="true" />
             <span className="av-emblem-pulse" aria-hidden="true" />
