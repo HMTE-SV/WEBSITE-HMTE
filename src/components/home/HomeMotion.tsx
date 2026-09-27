@@ -1,52 +1,108 @@
 'use client'
 
-import Image, { getImageProps } from 'next/image'
 import { useEffect } from 'react'
-import type { ReactNode } from 'react'
 
 /*
- * Penyala beranda.
+ * Penggerak beranda.
  *
  * Tanpa JS, atau saat pengguna meminta gerakan dikurangi, semua isi tampil
- * utuh sejak awal. Hanya bila gerakan diizinkan, akar `.p10` diberi
- * [data-motion] dan elemen ber-[data-lit] menunggu masuk layar sebelum
- * "menyala" (kelas is-lit). Foto titik (DotPhoto) memakai sinyal yang sama,
- * lalu diberi is-done setelah titiknya melebur, supaya masker dilepas dan
- * foto tampil tanpa sisa kisi.
+ * utuh sejak awal. Hanya bila gerakan diizinkan, akar `.av` diberi
+ * [data-motion]: elemen ber-[data-reveal] menunggu masuk layar lalu muncul
+ * dari cahaya (kelas is-in), angka ber-[data-count] menghitung naik, dan
+ * hero membaca gulir (HP) serta pointer (desktop) lewat variabel CSS.
  */
 export function HomeMotion() {
   useEffect(() => {
-    const root = document.querySelector<HTMLElement>('.p10')
+    const root = document.querySelector<HTMLElement>('.av')
     if (!root) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     root.setAttribute('data-motion', '')
-    const timers = new Set<number>()
+    const frames = new Set<number>()
+
+    function countUp(element: HTMLElement) {
+      const target = Number(element.dataset.count)
+      if (!Number.isFinite(target) || target <= 0) return
+      const start = performance.now()
+      const duration = 1400
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / duration)
+        const eased = 1 - Math.pow(1 - t, 4)
+        element.textContent = String(Math.round(target * eased))
+        if (t < 1) {
+          const id = requestAnimationFrame(step)
+          frames.add(id)
+        }
+      }
+      element.textContent = '0'
+      frames.add(requestAnimationFrame(step))
+    }
+
+    const counters = Array.from(root.querySelectorAll<HTMLElement>('[data-count]'))
+    counters.forEach((element) => {
+      element.textContent = '0'
+    })
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return
           const element = entry.target as HTMLElement
-          element.classList.add('is-lit')
           observer.unobserve(element)
-          if (element.classList.contains('dotp')) {
-            const timer = window.setTimeout(() => {
-              element.classList.add('is-done')
-              timers.delete(timer)
-            }, 1500)
-            timers.add(timer)
-          }
+          if (element.hasAttribute('data-count')) countUp(element)
+          else element.classList.add('is-in')
         })
       },
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.12 },
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.12 },
     )
-    root.querySelectorAll('[data-lit]').forEach((element) => observer.observe(element))
+    root.querySelectorAll('[data-reveal], [data-count]').forEach((element) => observer.observe(element))
+
+    // Hero: cahaya mengikuti gulir di semua layar, dan pointer di layar berpointer halus.
+    const hero = root.querySelector<HTMLElement>('.av-hero')
+    let heroFrame = 0
+    let pointer = { x: 0, y: 0 }
+    const fine = window.matchMedia('(pointer: fine)')
+    function paintHero() {
+      heroFrame = 0
+      if (!hero) return
+      const progress = Math.min(1, Math.max(0, window.scrollY / Math.max(1, hero.offsetHeight)))
+      hero.style.setProperty('--hp', progress.toFixed(3))
+      hero.style.setProperty('--hx', pointer.x.toFixed(3))
+      hero.style.setProperty('--hy', pointer.y.toFixed(3))
+    }
+    function queueHero() {
+      if (!heroFrame) heroFrame = requestAnimationFrame(paintHero)
+    }
+    function onPointer(event: PointerEvent) {
+      if (!hero || !fine.matches) return
+      const rect = hero.getBoundingClientRect()
+      pointer = {
+        x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        y: ((event.clientY - rect.top) / rect.height) * 2 - 1,
+      }
+      queueHero()
+    }
+    function onLeave() {
+      pointer = { x: 0, y: 0 }
+      queueHero()
+    }
+    window.addEventListener('scroll', queueHero, { passive: true })
+    hero?.addEventListener('pointermove', onPointer)
+    hero?.addEventListener('pointerleave', onLeave)
+    paintHero()
 
     return () => {
       observer.disconnect()
-      timers.forEach((timer) => window.clearTimeout(timer))
+      frames.forEach((id) => cancelAnimationFrame(id))
+      if (heroFrame) cancelAnimationFrame(heroFrame)
+      window.removeEventListener('scroll', queueHero)
+      hero?.removeEventListener('pointermove', onPointer)
+      hero?.removeEventListener('pointerleave', onLeave)
       root.removeAttribute('data-motion')
-      root.querySelectorAll('.is-lit, .is-done').forEach((element) => element.classList.remove('is-lit', 'is-done'))
+      root.querySelectorAll('.is-in').forEach((element) => element.classList.remove('is-in'))
+      counters.forEach((element) => {
+        element.textContent = element.dataset.count ?? ''
+      })
     }
   }, [])
 
@@ -55,11 +111,10 @@ export function HomeMotion() {
    * - mengetuk Beranda/logo saat sudah di beranda membawa kembali ke atas
    *   (Next tidak berbuat apa-apa untuk tautan ke halaman yang sama);
    * - di layar sempit, header menyingkir saat menggulir turun dan kembali
-   *   saat menggulir naik: navigasi sudah ada di kapsul bawah, jadi 64px
-   *   di atas lebih berguna untuk isi.
+   *   saat menggulir naik: navigasi sudah ada di kapsul bawah.
    */
   useEffect(() => {
-    const root = document.querySelector<HTMLElement>('.p10')
+    const root = document.querySelector<HTMLElement>('.av')
     if (!root) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
     const narrow = window.matchMedia('(max-width: 899.98px)')
@@ -102,48 +157,43 @@ export function HomeMotion() {
   return null
 }
 
-type DotPhotoProps = {
-  src: string
-  alt: string
-  sizes: string
-  position?: string
-  className?: string
-  priority?: boolean
-  children?: ReactNode
-}
-
-/** Foto yang muncul dari titik LED lalu melebur menjadi gambar utuh. */
-export function DotPhoto({ src, alt, sizes, position, className, priority, children }: DotPhotoProps) {
-  return (
-    <figure className={className ? `dotp ${className}` : 'dotp'} data-lit="">
-      <Image src={src} alt={alt} fill sizes={sizes} priority={priority} style={position ? { objectPosition: position } : undefined} />
-      {children}
-    </figure>
-  )
-}
-
-/*
- * URL gambar kecil dari optimizer Next untuk dicetak di papan LED: papan hanya
- * butuh ±100 titik lebar, dan canvas boleh membaca piksel gambar satu origin.
- */
-export function boardImage(src: string) {
-  return getImageProps({ src, alt: '', width: 256, height: 160 }).props.src
-}
-
 const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
-export function ArrowIcon({ direction = 'right' }: { direction?: 'right' | 'down' }) {
+export function ArrowIcon({ direction = 'right' }: { direction?: 'right' | 'down' | 'up-right' }) {
   return (
-    <svg className="p10-icon" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
-      {direction === 'down' ? <path d="M12 4.5v15m-6-6 6 6 6-6" /> : <path d="M4.5 12h15m-6-6 6 6-6 6" />}
+    <svg className="av-icon" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
+      {direction === 'down' ? (
+        <path d="M12 4.5v15m-6-6 6 6 6-6" />
+      ) : direction === 'up-right' ? (
+        <path d="M7 17 17 7M8.5 7H17v8.5" />
+      ) : (
+        <path d="M4.5 12h15m-6-6 6 6-6 6" />
+      )}
     </svg>
   )
 }
 
 export function ChevronIcon() {
   return (
-    <svg className="p10-icon" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
+    <svg className="av-icon" viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
       <path d="m9.5 6 6 6-6 6" />
     </svg>
+  )
+}
+
+/** Bintik-bintik cahaya kecil di langit aurora; posisinya tetap supaya SSR dan klien sama. */
+const SPARKS = [
+  [8, 22, 0], [16, 64, 1.2], [23, 38, 2.4], [31, 12, 0.6], [38, 72, 1.8], [46, 30, 3],
+  [57, 18, 0.9], [63, 58, 2.1], [71, 26, 1.5], [78, 68, 0.3], [84, 16, 2.7], [92, 44, 1.1],
+  [12, 84, 2.2], [52, 82, 0.4], [88, 86, 1.7],
+] as const
+
+export function Sparks() {
+  return (
+    <span className="av-sparks" aria-hidden="true">
+      {SPARKS.map(([x, y, delay]) => (
+        <i key={`${x}-${y}`} style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${delay}s` }} />
+      ))}
+    </span>
   )
 }

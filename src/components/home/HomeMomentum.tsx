@@ -1,16 +1,15 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
 import { useMediaSlots } from '@/components/site/MediaSlotProvider'
 import { usePageSection } from '@/components/site/PageContentProvider'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 import { interpolatePageText } from '@/lib/page-content'
 import { formatCabinetTitle } from '@/lib/site-settings'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
-import { ArrowIcon, DotPhoto } from './HomeMotion'
-import { LedBoard } from './LedBoard'
+import { ArrowIcon } from './HomeMotion'
 
 type HomeMomentumProps = {
   divisions: Division[]
@@ -24,20 +23,19 @@ const MOMENTS = [
   { src: '/assets/abya-vistara/kabinet-01.webp', alt: 'Foto Kabinet Abya Vistara di halaman kampus UGM', label: 'Kabinet di kampus', shape: 'base' },
   { src: '/assets/abya-vistara/kegiatan-02.webp', alt: 'Barisan anggota HMTE mengikuti permainan kelompok', label: 'Permainan kelompok', shape: 'base' },
   { src: '/assets/abya-vistara/kegiatan-03.webp', alt: 'Anggota HMTE tertawa bersama dalam kegiatan luar ruang', label: 'Kegiatan luar ruang', shape: 'tall' },
-  { src: '/assets/abya-vistara/kabinet-02.webp', alt: 'Jajaran Kabinet Abya Vistara mengenakan jaket himpunan', label: 'Jaket himpunan', shape: 'base' },
+  { src: '/assets/abya-vistara/kabinet-02.webp', alt: 'Jajaran Kabinet Abya Vistara mengenakan jaket himpunan', label: 'Jaket himpunan', shape: 'tall', position: '72% 50%' },
   { src: '/assets/abya-vistara/kabinet-03.webp', alt: 'Foto bersama pengurus HMTE periode 2026/2027', label: 'Pengurus 2026/2027', shape: 'grand', position: '50% 30%' },
 ]
 const MOMENT_SLOT_KEYS = MOMENTS.map((_, index) => `home.moment.${index + 1}`)
+// Urutan tampil: foto kabinet (slot 2, 5, 6) diselang foto kegiatan supaya tidak pernah bersebelahan.
+const DISPLAY_ORDER = [1, 0, 4, 2, 5, 3]
 
-/** Angka LED yang menghitung naik di dalam kalimat; angkanya tetap ada sebagai teks. */
-function LedNumber({ value }: { value: number }) {
-  const digits = String(value).length
+/** Angka besar yang menghitung naik saat terlihat; nilainya tetap ada untuk pembaca layar. */
+function Count({ value }: { value: number }) {
   return (
-    <span className="p10-num" style={{ '--digits': digits } as CSSProperties}>
+    <span className="av-count">
       <span className="sr-only">{value}</span>
-      <span className="p10-board p10-board--num">
-        <LedBoard scenes={[{ kind: 'count', to: value, duration: 1300, hold: 0 }]} pitch={3} widePitch={4} still={0} threshold={0.8} />
-      </span>
+      <span aria-hidden="true" data-count={value}>{value}</span>
     </span>
   )
 }
@@ -53,7 +51,9 @@ export function HomeMomentum({ divisions, leadersByDivision, programsByDivision 
     alt: slots[index].alt || moment.alt,
     position: slots[index].isAssigned ? `${slots[index].focalPointX}% ${slots[index].focalPointY}%` : moment.position,
     label: fields[`photoLabel${index + 1}`] || moment.label,
+    slot: index + 1,
   }))
+  const shown = DISPLAY_ORDER.map((index) => moments[index])
   const wallRef = useRef<HTMLUListElement>(null)
   const [current, setCurrent] = useState(0)
 
@@ -93,57 +93,60 @@ export function HomeMomentum({ divisions, leadersByDivision, programsByDivision 
   const programs = Object.values(programsByDivision).flat()
 
   return (
-    <section className="p10-moment p10-module" id="hmte-dalam-gerak" aria-labelledby="p10-moment-title">
-      <header className="p10-head">
-        <h2 id="p10-moment-title">{fields.title}</h2>
-        <Link className="p10-head-action" href="/galeri">
-          {fields.galleryAction}
-          <ArrowIcon />
-        </Link>
-        <p className="p10-lead">{interpolatePageText(fields.lead, vars)}</p>
-      </header>
+    <section className="av-sec av-moment" id="hmte-dalam-gerak" aria-labelledby="av-moment-title">
+      <div className="av-frame">
+        <header className="av-head" data-reveal="">
+          <h2 id="av-moment-title">{fields.title}</h2>
+          <Link className="av-head-action" href="/galeri">
+            {fields.galleryAction}
+            <ArrowIcon />
+          </Link>
+          <p className="av-lead">{interpolatePageText(fields.lead, vars)}</p>
+        </header>
 
-      <p className="p10-stats">
-        <span>
-        {fields.statsIntro} <LedNumber value={divisions.length} /> <strong>{fields.divisionLabel}</strong> dan{' '}
-        <LedNumber value={programs.length} /> <strong>{fields.programLabel}</strong>.{' '}
-        {members.length > 0 ? (
-          <>
-            <LedNumber value={members.length} /> {fields.memberLabel}
-          </>
-        ) : (
-          fields.memberEmpty
-        )}
-        </span>
-      </p>
+        <p className="av-box av-box--aurora av-stats" data-reveal="">
+          <span>
+            {fields.statsIntro} <Count value={divisions.length} /> <strong>{fields.divisionLabel}</strong> dan{' '}
+            <Count value={programs.length} /> <strong>{fields.programLabel}</strong>.{' '}
+            {members.length > 0 ? (
+              <>
+                <Count value={members.length} /> {fields.memberLabel}
+              </>
+            ) : (
+              fields.memberEmpty
+            )}
+          </span>
+        </p>
 
-      <ul className="p10-wall" ref={wallRef} aria-label={fields.kicker}>
-        {moments.map((moment) => (
-          <li className={`p10-tile p10-tile--${moment.shape}`} key={`${moment.src}-${moment.label}`}>
-            <DotPhoto src={moment.src} alt={moment.alt} position={moment.position} sizes="(max-width: 900px) 80vw, 420px">
-              <figcaption>{moment.label}</figcaption>
-            </DotPhoto>
-          </li>
-        ))}
-      </ul>
-      <div className="p10-pager" role="group" aria-label={`${fields.kicker}: pilih foto`}>
-        {moments.map((moment, index) => (
-          <button
-            type="button"
-            key={`${moment.src}-dot`}
-            aria-label={`Foto ${index + 1} dari ${moments.length}: ${moment.label}`}
-            aria-current={index === current ? 'true' : undefined}
-            onClick={() => goTo(index)}
-          >
-            <span aria-hidden="true" />
-          </button>
-        ))}
+        <ul className="av-wall" ref={wallRef} aria-label={fields.kicker}>
+          {shown.map((moment, index) => (
+            <li className={`av-tile av-tile--${moment.shape}`} key={`${moment.src}-${moment.label}`} data-slot={moment.slot} data-reveal="" style={{ '--d': `${(index % 3) * 80}ms` } as React.CSSProperties}>
+              <figure>
+                <Image src={moment.src} alt={moment.alt} fill sizes="(max-width: 900px) 80vw, 420px" style={moment.position ? { objectPosition: moment.position } : undefined} />
+                <figcaption>{moment.label}</figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+        <div className="av-pager" role="group" aria-label={`${fields.kicker}: pilih foto`}>
+          {shown.map((moment, index) => (
+            <button
+              type="button"
+              key={`${moment.src}-dot`}
+              aria-label={`Foto ${index + 1} dari ${shown.length}: ${moment.label}`}
+              aria-current={index === current ? 'true' : undefined}
+              onClick={() => goTo(index)}
+            >
+              <span aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+
+        <blockquote className="av-quote" data-reveal="">
+          <p>{fields.quote}</p>
+          <footer>{interpolatePageText(fields.quoteCaption, vars)}</footer>
+        </blockquote>
       </div>
-
-      <blockquote className="p10-quote">
-        <p>{fields.quote}</p>
-        <footer>{interpolatePageText(fields.quoteCaption, vars)}</footer>
-      </blockquote>
     </section>
   )
 }

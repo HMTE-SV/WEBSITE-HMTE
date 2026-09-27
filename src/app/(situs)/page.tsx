@@ -60,16 +60,16 @@ export default async function Home() {
   return (
     <PageContentProvider content={pageContent}>
       {/*
-        Beranda = papan LED P10 (css/home-p10.css). Satu versi untuk semua
-        lebar layar; perbedaan HP dan desktop diurus CSS, bukan dua komponen.
+        Beranda = lembar putih bercahaya aurora (css/home-aurora.css). Satu
+        versi untuk semua lebar layar; perbedaan HP dan desktop diurus CSS.
       */}
-      <div className="p10">
+      <div className="av">
         <HomeMotion />
-        <div className="landing-nav-stage p10-nav-stage">
+        <div className="landing-nav-stage av-nav-stage">
           <Header variant="landing" />
         </div>
         {hero?.visible ? <HomeHero articles={articles} /> : null}
-        <main id="main-content" className="p10-main">
+        <main id="main-content" className="av-main">
           {mainSections.map((section) => <Fragment key={section.id}>{components[section.id as keyof typeof components]}</Fragment>)}
         </main>
         <Footer />

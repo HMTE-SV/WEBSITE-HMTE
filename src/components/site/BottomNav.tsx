@@ -11,7 +11,7 @@ import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
  *
  * Komponen ini selalu ada di DOM, tapi CSS menyembunyikannya kecuali di
  * aplikasi terpasang (css/mobile-nav.css) dan di beranda browser HP
- * (css/home-p10.css). Keputusan tampil/tidaknya sengaja di CSS, bukan
+ * (css/home-aurora.css). Keputusan tampil/tidaknya sengaja di CSS, bukan
  * matchMedia di JS, supaya tidak ada kedip saat hidrasi.
  */
 

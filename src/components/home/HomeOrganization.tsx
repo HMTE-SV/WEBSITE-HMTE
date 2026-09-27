@@ -13,7 +13,6 @@ import { getDivisionHref, getLeaderHref } from '@/lib/organization-slugs'
 import { formatCabinetTitle } from '@/lib/site-settings'
 import type { Division, DivisionCode, Leader, Program } from '@/types/content'
 import { ArrowIcon, ChevronIcon } from './HomeMotion'
-import { LedBoard } from './LedBoard'
 
 type HomeOrganizationProps = {
   divisions: Division[]
@@ -28,28 +27,34 @@ export function HomeOrganization(props: HomeOrganizationProps) {
 
   return (
     <DirectoryProvider>
-      <section className="p10-org p10-module" id="pillars" aria-labelledby="p10-org-title">
-        <header className="p10-head">
-          <h2 id="p10-org-title">
-            {fields.title}{' '}
-            <span className="p10-display-soft">{fields.mutedTitle.trim()}</span>.
-          </h2>
-          <Link className="p10-head-action" href="/kepengurusan">
-            {fields.action}
-            <ArrowIcon />
-          </Link>
-          <p className="p10-lead">{interpolatePageText(fields.lead, { cabinet: formatCabinetTitle(settings) })}</p>
-          <p className="p10-context">
-            {fields.kicker} · {props.divisions.length} unsur
-          </p>
-        </header>
-        <Switchboard {...props} />
+      <section className="av-sec av-org" id="pillars" aria-labelledby="av-org-title">
+        <div className="av-frame">
+          <header className="av-head" data-reveal="">
+            <h2 id="av-org-title">
+              {fields.title}{' '}
+              <span className="av-display-blue">{fields.mutedTitle.trim()}</span>.
+            </h2>
+            <Link className="av-head-action" href="/kepengurusan">
+              {fields.action}
+              <ArrowIcon />
+            </Link>
+            <p className="av-lead">{interpolatePageText(fields.lead, { cabinet: formatCabinetTitle(settings) })}</p>
+            <p className="av-context">
+              {fields.kicker} · {props.divisions.length} unsur
+            </p>
+          </header>
+          <Channels {...props} />
+        </div>
       </section>
     </DirectoryProvider>
   )
 }
 
-function Switchboard({ divisions, divisionsByCode, leadersByDivision, programsByDivision }: HomeOrganizationProps) {
+/*
+ * Delapan unsur kabinet sebagai kanal identik yang berjajar: dibaca dengan
+ * menyapu barisnya, lalu satu kanal dibuka di kotak rincian di bawahnya.
+ */
+function Channels({ divisions, divisionsByCode, leadersByDivision, programsByDivision }: HomeOrganizationProps) {
   const { selectedDivision, selectDivision } = useDirectory()
   const logo = useMediaSlot('brand.logo.primary')
   const railRef = useRef<HTMLDivElement>(null)
@@ -60,7 +65,7 @@ function Switchboard({ divisions, divisionsByCode, leadersByDivision, programsBy
   const programs = programsByDivision[selectedDivision] ?? []
   const roles = organizationRolesByDivision[selectedDivision] ?? []
 
-  // Pil terpilih dibawa ke tengah barisnya bila baris itu bergulir (HP).
+  // Kanal terpilih dibawa ke tengah barisnya bila baris itu bergulir (HP).
   useEffect(() => {
     const rail = railRef.current
     if (!rail || rail.scrollWidth <= rail.clientWidth) return
@@ -74,110 +79,95 @@ function Switchboard({ divisions, divisionsByCode, leadersByDivision, programsBy
   if (!division) return null
 
   return (
-    <div className="p10-switch">
-      <div className="p10-switch-control">
-        <div className="p10-board p10-board--division">
-          <LedBoard
-            scenes={[
-              { kind: 'text', text: division.shortName.toUpperCase(), hold: 2600 },
-              { kind: 'marquee', text: division.name.toUpperCase(), speed: 34 },
-            ]}
-            loop
-            pitch={4}
-            widePitch={6}
-          />
-        </div>
-        <div className="p10-switch-rail" ref={railRef} role="group" aria-label="Pilih Pengurus Harian atau departemen">
-          {ordered.map((item) => {
-            const active = item.code === selectedDivision
-            return (
-              <button
-                key={item.code}
-                type="button"
-                aria-pressed={active}
-                className={active ? 'is-active' : undefined}
-                onClick={() => selectDivision(item.code)}
-              >
-                <strong>{item.shortName}</strong>
-                <small>{item.name}</small>
-              </button>
-            )
-          })}
-        </div>
+    <div className="av-channels">
+      <div className="av-channel-rail" ref={railRef} role="group" aria-label="Pilih Pengurus Harian atau departemen">
+        {ordered.map((item) => {
+          const active = item.code === selectedDivision
+          return (
+            <button
+              key={item.code}
+              type="button"
+              aria-pressed={active}
+              className={active ? 'av-channel is-active' : 'av-channel'}
+              onClick={() => selectDivision(item.code)}
+            >
+              <span className="av-channel-dot" aria-hidden="true" />
+              <strong>{item.shortName}</strong>
+              <small>{item.name}</small>
+            </button>
+          )
+        })}
       </div>
 
-      <article className="p10-division" key={selectedDivision} aria-live="polite">
-        <header className="p10-division-head">
+      <article className="av-division" key={selectedDivision} aria-live="polite">
+        <header className="av-box av-box--deep av-division-head">
           <h3>{division.name}</h3>
           <p>{division.description}</p>
-        </header>
-
-        <div className="p10-division-grid">
-          <div className="p10-division-people">
-            <p className="p10-rows-head">
-              {members.length > 0 ? 'Orang-orang di baliknya' : 'Struktur peran'}
-              <span>{members.length > 0 ? `${members.length} pengurus` : `${roles.length} kelompok peran`}</span>
-            </p>
-            {members.length > 0
-              ? members.slice(0, 6).map((member, index) => (
-                  <Link className="p10-row p10-person" href={getLeaderHref(member)} key={`${member.name}-${member.role}`} style={{ '--i': index } as React.CSSProperties}>
-                    <span className="p10-avatar">
-                      {member.photo ? (
-                        <Image src={member.photo} alt="" fill sizes="96px" />
-                      ) : (
-                        <Image className="p10-avatar-logo" src={logo.url} alt="" width={40} height={18} />
-                      )}
-                    </span>
-                    <span className="p10-row-text">
-                      <strong>{member.name}</strong>
-                      <small>{member.role}</small>
-                    </span>
-                    <ChevronIcon />
-                  </Link>
-                ))
-              : roles.slice(0, 6).map((role, index) => (
-                  <div className="p10-row p10-person" key={role.name} style={{ '--i': index } as React.CSSProperties}>
-                    <span className="p10-avatar">
-                      <Image className="p10-avatar-logo" src={logo.url} alt="" width={40} height={18} />
-                    </span>
-                    <span className="p10-row-text">
-                      <strong>{role.name}</strong>
-                      <small>Nama pengurus belum tersedia</small>
-                    </span>
-                  </div>
-                ))}
-          </div>
-
-          <div className="p10-division-programs">
-            <p className="p10-rows-head">
-              Program kerja
-              <span>{programs.length} program</span>
-            </p>
-            <ul>
-              {programs.slice(0, 3).map((program) => (
-                <li key={program.name}>
-                  <strong>{program.name}</strong>
-                  <small>{program.status} · {program.date}</small>
-                </li>
-              ))}
-            </ul>
-            <Link className="p10-link" href="/program-kerja">
-              Seluruh program kerja
+          <div className="av-actions">
+            <Link className="av-btn av-btn--light" href={`/kepengurusan?divisi=${selectedDivision}`}>
+              <strong>{members.length > 0 ? 'Semua pengurus' : 'Struktur lengkap'}</strong>
+              <ArrowIcon />
+            </Link>
+            <Link className="av-btn av-btn--glass" href={getDivisionHref(selectedDivision)}>
+              <strong>Profil {division.shortName}</strong>
               <ArrowIcon />
             </Link>
           </div>
+        </header>
+
+        <div className="av-box av-division-people">
+          <p className="av-rows-head">
+            {members.length > 0 ? 'Orang-orang di baliknya' : 'Struktur peran'}
+            <span>{members.length > 0 ? `${members.length} pengurus` : `${roles.length} kelompok peran`}</span>
+          </p>
+          {members.length > 0
+            ? members.slice(0, 6).map((member, index) => (
+                <Link className="av-row av-person" href={getLeaderHref(member)} key={`${member.name}-${member.role}`} style={{ '--i': index } as React.CSSProperties}>
+                  <span className="av-avatar">
+                    {member.photo ? (
+                      <Image src={member.photo} alt="" fill sizes="96px" />
+                    ) : (
+                      <Image className="av-avatar-logo" src={logo.url} alt="" width={40} height={18} />
+                    )}
+                  </span>
+                  <span className="av-row-text">
+                    <strong>{member.name}</strong>
+                    <small>{member.role}</small>
+                  </span>
+                  <ChevronIcon />
+                </Link>
+              ))
+            : roles.slice(0, 6).map((role, index) => (
+                <div className="av-row av-person" key={role.name} style={{ '--i': index } as React.CSSProperties}>
+                  <span className="av-avatar">
+                    <Image className="av-avatar-logo" src={logo.url} alt="" width={40} height={18} />
+                  </span>
+                  <span className="av-row-text">
+                    <strong>{role.name}</strong>
+                    <small>Nama pengurus belum tersedia</small>
+                  </span>
+                </div>
+              ))}
         </div>
 
-        <footer className="p10-division-foot">
-          <Link className="p10-button p10-button--ghost" href={`/kepengurusan?divisi=${selectedDivision}`}>
-            <strong>{members.length > 0 ? 'Semua pengurus' : 'Struktur lengkap'}</strong>
+        <div className="av-box av-box--mist av-division-programs">
+          <p className="av-rows-head">
+            Program kerja
+            <span>{programs.length} program</span>
+          </p>
+          <ul>
+            {programs.slice(0, 3).map((program) => (
+              <li key={program.name}>
+                <strong>{program.name}</strong>
+                <small>{program.status} · {program.date}</small>
+              </li>
+            ))}
+          </ul>
+          <Link className="av-link" href="/program-kerja">
+            Seluruh program kerja
             <ArrowIcon />
           </Link>
-          <Link className="p10-button p10-button--ghost" href={getDivisionHref(selectedDivision)}>
-            <strong>Profil {division.shortName}</strong>
-            <ArrowIcon />
-          </Link>
-        </footer>
+        </div>
       </article>
     </div>
   )
