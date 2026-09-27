@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import type { CSSProperties } from 'react'
 import { useMediaSlot } from '@/components/site/MediaSlotProvider'
 import { usePageSection } from '@/components/site/PageContentProvider'
 import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
@@ -15,8 +16,10 @@ type HomeHeroProps = {
 }
 
 /*
- * Pembuka: logo kabinet sebagai sumber cahaya. Busur biru raksasa naik di
- * belakangnya, cincin aurora berputar, bintangnya bernapas. Di dasar kotak,
+ * Pembuka: logo kabinet sebagai sumber cahaya. Busur biru raksasa terbuka
+ * dari tengah, kilau berlari di tepinya, gelombang energi memancar dari
+ * logo. Di desktop tepi busur menyala tepat di bawah kursor dan logo
+ * memiring mengikuti arahnya. Di dasar kotak,
  * pita judul berita terbaru berjalan pelan (berhenti saat disentuh/diarahkan).
  */
 export function HomeHero({ articles }: HomeHeroProps) {
@@ -37,10 +40,17 @@ export function HomeHero({ articles }: HomeHeroProps) {
         <Sparks />
         <span className="av-orbit" aria-hidden="true">
           <i className="av-orbit-arc" />
+          <i className="av-orbit-rim">
+            <b className="av-orbit-glint" />
+            <b className="av-orbit-spot" />
+          </i>
         </span>
+        <span className="av-horizon-glow" aria-hidden="true" />
 
         <div className="av-emblem">
           <div className="av-emblem-core">
+            <span className="av-emblem-pulse" aria-hidden="true" />
+            <span className="av-emblem-pulse" aria-hidden="true" />
             <span className="av-emblem-ring" aria-hidden="true" />
             <span className="av-emblem-halo" aria-hidden="true" />
             <Image
@@ -56,7 +66,14 @@ export function HomeHero({ articles }: HomeHeroProps) {
         </div>
 
         <div className="av-hero-copy">
-          <h1 id="av-hero-title">{fields.heroTitle}</h1>
+          <h1 id="av-hero-title">
+            {fields.heroTitle.split(' ').map((word, index, words) => (
+              <span className="av-word" key={`${word}-${index}`} style={{ '--w': index } as CSSProperties}>
+                {word}
+                {index < words.length - 1 ? ' ' : null}
+              </span>
+            ))}
+          </h1>
           <p className="av-hero-lead">{heroIdentity.tagline}</p>
           <div className="av-hero-actions">
             <a className="av-btn av-btn--light" href="#kabar">

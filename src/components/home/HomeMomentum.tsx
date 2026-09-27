@@ -104,19 +104,25 @@ export function HomeMomentum({ divisions, leadersByDivision, programsByDivision 
           <p className="av-lead">{interpolatePageText(fields.lead, vars)}</p>
         </header>
 
-        <p className="av-box av-box--aurora av-stats" data-reveal="">
-          <span>
-            {fields.statsIntro} <Count value={divisions.length} /> <strong>{fields.divisionLabel}</strong> dan{' '}
-            <Count value={programs.length} /> <strong>{fields.programLabel}</strong>.{' '}
-            {members.length > 0 ? (
-              <>
-                <Count value={members.length} /> {fields.memberLabel}
-              </>
-            ) : (
-              fields.memberEmpty
-            )}
-          </span>
-        </p>
+        <div className="av-moment-top">
+          <p className="av-box av-box--aurora av-stats" data-reveal="">
+            <span>
+              {fields.statsIntro} <Count value={divisions.length} /> <strong>{fields.divisionLabel}</strong> dan{' '}
+              <Count value={programs.length} /> <strong>{fields.programLabel}</strong>.{' '}
+              {members.length > 0 ? (
+                <>
+                  <Count value={members.length} /> {fields.memberLabel}
+                </>
+              ) : (
+                fields.memberEmpty
+              )}
+            </span>
+          </p>
+          <blockquote className="av-box av-quote" data-reveal="" style={{ '--d': '90ms' } as React.CSSProperties}>
+            <p>{fields.quote}</p>
+            <footer>{interpolatePageText(fields.quoteCaption, vars)}</footer>
+          </blockquote>
+        </div>
 
         <ul className="av-wall" ref={wallRef} aria-label={fields.kicker}>
           {shown.map((moment, index) => (
@@ -142,10 +148,6 @@ export function HomeMomentum({ divisions, leadersByDivision, programsByDivision 
           ))}
         </div>
 
-        <blockquote className="av-quote" data-reveal="">
-          <p>{fields.quote}</p>
-          <footer>{interpolatePageText(fields.quoteCaption, vars)}</footer>
-        </blockquote>
       </div>
     </section>
   )

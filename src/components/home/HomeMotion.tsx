@@ -57,18 +57,37 @@ export function HomeMotion() {
     )
     root.querySelectorAll('[data-reveal], [data-count]').forEach((element) => observer.observe(element))
 
-    // Hero: cahaya mengikuti gulir di semua layar, dan pointer di layar berpointer halus.
+    /*
+     * Hero: busur dan logo bereaksi pada gulir (semua layar) dan pointer
+     * (layar berpointer halus). Pointer dihaluskan dengan pegas sederhana
+     * supaya logo memiring dengan inersia, dan tepi busur menyala tepat di
+     * sudut lingkaran yang berada di bawah kursor.
+     */
     const hero = root.querySelector<HTMLElement>('.av-hero')
-    let heroFrame = 0
-    let pointer = { x: 0, y: 0 }
+    const orbit = hero?.querySelector<HTMLElement>('.av-orbit') ?? null
     const fine = window.matchMedia('(pointer: fine)')
+    const box = hero?.querySelector<HTMLElement>('.av-hero-box') ?? null
+    const target = { x: 0, y: 0, spot: 0, angle: 0, gx: 0, gy: 0 }
+    const eased = { x: 0, y: 0, spot: 0, angle: 0, gx: 0, gy: 0 }
+    let heroFrame = 0
     function paintHero() {
       heroFrame = 0
       if (!hero) return
       const progress = Math.min(1, Math.max(0, window.scrollY / Math.max(1, hero.offsetHeight)))
+      let moving = false
+      for (const key of ['x', 'y', 'spot', 'angle', 'gx', 'gy'] as const) {
+        const delta = target[key] - eased[key]
+        eased[key] += delta * (key === 'x' || key === 'y' ? 0.09 : 0.18)
+        if (Math.abs(delta) > 0.001) moving = true
+      }
+      hero.style.setProperty('--gx', `${eased.gx.toFixed(1)}px`)
+      hero.style.setProperty('--gy', `${eased.gy.toFixed(1)}px`)
       hero.style.setProperty('--hp', progress.toFixed(3))
-      hero.style.setProperty('--hx', pointer.x.toFixed(3))
-      hero.style.setProperty('--hy', pointer.y.toFixed(3))
+      hero.style.setProperty('--hx', eased.x.toFixed(4))
+      hero.style.setProperty('--hy', eased.y.toFixed(4))
+      hero.style.setProperty('--so', eased.spot.toFixed(3))
+      hero.style.setProperty('--sa', `${eased.angle.toFixed(2)}deg`)
+      if (moving) queueHero()
     }
     function queueHero() {
       if (!heroFrame) heroFrame = requestAnimationFrame(paintHero)
@@ -76,14 +95,33 @@ export function HomeMotion() {
     function onPointer(event: PointerEvent) {
       if (!hero || !fine.matches) return
       const rect = hero.getBoundingClientRect()
-      pointer = {
-        x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-        y: ((event.clientY - rect.top) / rect.height) * 2 - 1,
+      target.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+      target.y = ((event.clientY - rect.top) / rect.height) * 2 - 1
+      if (orbit) {
+        const ring = orbit.getBoundingClientRect()
+        const radius = ring.width / 2
+        const ratio = Math.max(-1, Math.min(1, (event.clientX - (ring.left + radius)) / radius))
+        target.angle = (Math.asin(ratio) * 180) / Math.PI
+        target.spot = 1
+        // Titik di cakrawala tepat di bawah kursor, dalam koordinat kotak hero.
+        if (box) {
+          const frame = box.getBoundingClientRect()
+          const dx = ratio * radius
+          const rimY = ring.top + radius - Math.sqrt(Math.max(0, radius * radius - dx * dx))
+          target.gx = ring.left + radius + dx - frame.left
+          target.gy = rimY - frame.top
+          if (eased.spot < 0.05) {
+            eased.gx = target.gx
+            eased.gy = target.gy
+          }
+        }
       }
       queueHero()
     }
     function onLeave() {
-      pointer = { x: 0, y: 0 }
+      target.x = 0
+      target.y = 0
+      target.spot = 0
       queueHero()
     }
     window.addEventListener('scroll', queueHero, { passive: true })
