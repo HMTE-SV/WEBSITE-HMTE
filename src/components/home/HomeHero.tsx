@@ -90,16 +90,10 @@ export function HomeHero({ articles }: HomeHeroProps) {
           </div>
         </div>
 
-        <div className="av-hero-meta">
-          <p className="av-status">
-            <span className="av-status-dot" aria-hidden="true" />
-            {fields.brandLabel} · {fields.systemStatus}
-          </p>
-          <p className="av-hero-cabinet">
-            <strong>{cabinetTitle}</strong>
-            <span>{settings.periodLabel}</span>
-          </p>
-        </div>
+        <p className="av-status">
+          <span className="av-status-dot" aria-hidden="true" />
+          {fields.brandLabel} · {fields.systemStatus}
+        </p>
 
         <div className="av-ticker">
           {headlines.length ? (
@@ -125,5 +119,24 @@ export function HomeHero({ articles }: HomeHeroProps) {
         </div>
       </div>
     </section>
+  )
+}
+
+/*
+ * Ujung kanan bilah navigasi beranda: lencana kabinet (logo + nama +
+ * periode). Nama kabinet dan periodenya pindah ke sini dari dasar hero.
+ */
+export function HomeNavBadge() {
+  const settings = useSiteSettings()
+  const cabinetLogo = useMediaSlot('cabinet.logo')
+
+  return (
+    <a className="av-nav-badge" href={heroIdentity.ctaHref}>
+      <Image src={cabinetLogo.url} alt="" width={64} height={64} />
+      <span>
+        <strong>{formatCabinetTitle(settings)}</strong>
+        <small>{settings.periodLabel}</small>
+      </span>
+    </a>
   )
 }

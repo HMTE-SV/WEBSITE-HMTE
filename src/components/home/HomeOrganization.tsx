@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DirectoryProvider, useDirectory } from '@/components/site/directory/DirectoryProvider'
 import { useMediaSlot } from '@/components/site/MediaSlotProvider'
 import { usePageSection } from '@/components/site/PageContentProvider'
@@ -28,20 +28,22 @@ export function HomeOrganization(props: HomeOrganizationProps) {
   return (
     <DirectoryProvider>
       <section className="av-sec av-org" id="pillars" aria-labelledby="av-org-title">
-        <div className="av-frame">
-          <header className="av-head" data-reveal="">
+        <div className="av-frame av-grid">
+          <header className="av-box av-box--aurora av-title av-org-title" data-reveal="">
             <h2 id="av-org-title">
               {fields.title}{' '}
               <span className="av-display-blue">{fields.mutedTitle.trim()}</span>.
             </h2>
-            <Link className="av-head-action" href="/kepengurusan">
-              {fields.action}
-              <ArrowIcon />
-            </Link>
-            <p className="av-lead">{interpolatePageText(fields.lead, { cabinet: formatCabinetTitle(settings) })}</p>
-            <p className="av-context">
-              {fields.kicker} · {props.divisions.length} unsur
-            </p>
+            <div className="av-title-foot">
+              <p className="av-lead">{interpolatePageText(fields.lead, { cabinet: formatCabinetTitle(settings) })}</p>
+              <p className="av-context">
+                {fields.kicker} · {props.divisions.length} unsur
+              </p>
+              <Link className="av-link" href="/kepengurusan">
+                {fields.action}
+                <ArrowIcon />
+              </Link>
+            </div>
           </header>
           <Channels {...props} />
         </div>
@@ -51,13 +53,16 @@ export function HomeOrganization(props: HomeOrganizationProps) {
 }
 
 /*
- * Delapan unsur kabinet sebagai kanal identik yang berjajar: dibaca dengan
- * menyapu barisnya, lalu satu kanal dibuka di kotak rincian di bawahnya.
+ * Delapan unsur kabinet sebagai kanal identik: di desktop papan 4×2 di
+ * samping judul, di HP satu baris geser. Kanal terpilih dibuka di rincian
+ * di bawahnya. Di HP pengurus dan program kerja berbagi satu kotak lewat
+ * sakelar, supaya rinciannya tidak memanjang dua kali lipat.
  */
 function Channels({ divisions, divisionsByCode, leadersByDivision, programsByDivision }: HomeOrganizationProps) {
   const { selectedDivision, selectDivision } = useDirectory()
   const logo = useMediaSlot('brand.logo.primary')
   const railRef = useRef<HTMLDivElement>(null)
+  const [pane, setPane] = useState<'people' | 'programs'>('people')
   const executive = divisions.find((division) => division.code === 'PH')
   const ordered = executive ? [executive, ...divisions.filter((division) => division.code !== 'PH')] : divisions
   const division = divisionsByCode[selectedDivision]
@@ -79,7 +84,7 @@ function Channels({ divisions, divisionsByCode, leadersByDivision, programsByDiv
   if (!division) return null
 
   return (
-    <div className="av-channels">
+    <>
       <div className="av-channel-rail" ref={railRef} role="group" aria-label="Pilih Pengurus Harian atau departemen">
         {ordered.map((item) => {
           const active = item.code === selectedDivision
@@ -99,7 +104,7 @@ function Channels({ divisions, divisionsByCode, leadersByDivision, programsByDiv
         })}
       </div>
 
-      <article className="av-division" key={selectedDivision} aria-live="polite">
+      <article className="av-division" key={selectedDivision} aria-live="polite" data-pane={pane}>
         <header className="av-box av-box--deep av-division-head">
           <h3>{division.name}</h3>
           <p>{division.description}</p>
@@ -114,6 +119,17 @@ function Channels({ divisions, divisionsByCode, leadersByDivision, programsByDiv
             </Link>
           </div>
         </header>
+
+        <div className="av-division-switch" role="group" aria-label="Tampilkan rincian">
+          <button type="button" aria-pressed={pane === 'people'} onClick={() => setPane('people')}>
+            {members.length > 0 ? 'Pengurus' : 'Struktur peran'}
+            <span>{members.length > 0 ? members.length : roles.length}</span>
+          </button>
+          <button type="button" aria-pressed={pane === 'programs'} onClick={() => setPane('programs')}>
+            Program kerja
+            <span>{programs.length}</span>
+          </button>
+        </div>
 
         <div className="av-box av-division-people">
           <p className="av-rows-head">
@@ -169,6 +185,6 @@ function Channels({ divisions, divisionsByCode, leadersByDivision, programsByDiv
           </Link>
         </div>
       </article>
-    </div>
+    </>
   )
 }

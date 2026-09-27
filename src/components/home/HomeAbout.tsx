@@ -18,9 +18,10 @@ const FALLBACK_PHOTOS = [
 ]
 
 /*
- * Tentang HMTE: judul besar, lalu satu bento. Foto kabinet jadi kotak
- * terbesar dengan cahaya aurora di kakinya; tiga bab (siapa kami, visi,
- * misi) mengisi kotak di sekitarnya dengan ukuran dan isi berbeda.
+ * Tentang HMTE: tidak ada lagi teks yang melayang di atas foto. Judul seksi
+ * sendiri berupa kotak, bersanding dengan foto kabinet; tiga bab (siapa
+ * kami, visi, misi) berjajar di bawahnya sebagai kartu berfoto. Di HP
+ * kartu bab jadi satu baris geser, jadi seksi ini cukup setinggi satu kartu.
  */
 export function HomeAbout() {
   const { fields } = usePageSection('about')
@@ -44,12 +45,12 @@ export function HomeAbout() {
 
   return (
     <section className="av-sec av-about" id="tentang" aria-labelledby="av-about-title">
-      <div className="av-frame">
-        <header className="av-about-head" data-reveal="">
+      <div className="av-frame av-grid">
+        <header className="av-box av-title av-title--sky av-about-title" data-reveal="">
           <h2 className="av-display" id="av-about-title">
             <span>{fields.titleLine1}</span> <span className="av-display-blue">{fields.titleLine2}</span>
           </h2>
-          <div className="av-about-intro">
+          <div className="av-title-foot">
             <p className="av-lead">{fields.body}</p>
             <p className="av-context">
               {fields.kicker} · {settings.programName} · {settings.facultyName}
@@ -57,31 +58,31 @@ export function HomeAbout() {
           </div>
         </header>
 
-        <div className="av-bento">
-          <figure className="av-box av-box--photo av-finale" data-reveal="">
-            <Image src={group.src} alt={group.alt} fill sizes="(max-width: 900px) 100vw, 720px" style={{ objectPosition: group.position }} />
-            <figcaption className="av-finale-caption">
-              <Image src={cabinetLogo.url} alt="" width={56} height={56} />
-              <span>
-                <strong>{fields.finaleLine}</strong>
-                {finaleCaption}
-              </span>
-            </figcaption>
-          </figure>
+        <figure className="av-box av-box--photo av-finale" data-reveal="" style={{ '--d': '90ms' } as React.CSSProperties}>
+          <Image src={group.src} alt={group.alt} fill sizes="(max-width: 900px) 100vw, 680px" style={{ objectPosition: group.position }} />
+          <figcaption className="av-finale-caption">
+            <Image src={cabinetLogo.url} alt="" width={56} height={56} />
+            <span>
+              <strong>{fields.finaleLine}</strong>
+              {finaleCaption}
+            </span>
+          </figcaption>
+        </figure>
 
+        <div className="av-chapters av-swipe">
           {steps.map((step, index) => (
             <article className={`av-box av-chapter av-chapter--${index + 1}`} key={`bab-${index + 1}`} data-reveal="" style={{ '--d': `${index * 90}ms` } as React.CSSProperties}>
-              <h3>
-                <span className="av-chapter-label">{step.label}</span> {step.title}
-              </h3>
-              <p>{step.body}</p>
               <div className={chapterPhotos[index].length > 1 ? 'av-chapter-media is-pair' : 'av-chapter-media'}>
                 {chapterPhotos[index].map((photo) => (
                   <span className="av-photo" key={photo.src}>
-                    <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 900px) 92vw, 420px" style={{ objectPosition: photo.position }} />
+                    <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 900px) 80vw, 380px" style={{ objectPosition: photo.position }} />
                   </span>
                 ))}
               </div>
+              <h3>
+                <span className="av-chapter-tag">{step.label}</span> {step.title}
+              </h3>
+              <p>{step.body}</p>
             </article>
           ))}
         </div>

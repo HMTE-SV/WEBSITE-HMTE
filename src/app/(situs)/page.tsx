@@ -5,7 +5,7 @@ import { Header } from '@/components/site/Header'
 import { PageContentProvider } from '@/components/site/PageContentProvider'
 import { HomeAbout } from '@/components/home/HomeAbout'
 import { HomeClose } from '@/components/home/HomeClose'
-import { HomeHero } from '@/components/home/HomeHero'
+import { HomeHero, HomeNavBadge } from '@/components/home/HomeHero'
 import { HomeMomentum } from '@/components/home/HomeMomentum'
 import { HomeMotion } from '@/components/home/HomeMotion'
 import { HomeNews } from '@/components/home/HomeNews'
@@ -66,7 +66,7 @@ export default async function Home() {
       <div className="av">
         <HomeMotion />
         <div className="landing-nav-stage av-nav-stage">
-          <Header variant="landing" />
+          <Header variant="landing" aside={<HomeNavBadge />} />
         </div>
         {hero?.visible ? <HomeHero articles={articles} /> : null}
         <main id="main-content" className="av-main">

@@ -239,14 +239,14 @@ A white sheet lit by a blue aurora: navy ink, a bright blue signal, pale sky and
 ### Hierarchy
 - **Display** (`display`): the About statement. Its second line switches to Link Blue rather than changing size. The closing heading reuses the role at clamp(2rem, 8.4vw, 3.8rem), in white with a soft on-dark middle phrase.
 - **Hero Title** (`hero-title`): the centered white h1, max 14ch (16ch wide), balanced. Steps down to clamp(1.75rem, 7.6vw, 2.2rem) on short phones.
-- **Headline** (`headline`): section h2s, max 18ch wide, with the same blue second-phrase device.
-- **Title** (`title`): story, chapter (clamp(1.4rem, 5.8vw, 1.9rem)) and division (clamp(1.6rem, 6.4vw, 2.4rem)) h3s; channel names at 20px.
+- **Headline** (`headline`): section h2s inside title boxes, clamp(1.75rem, 7.4vw, 2.3rem) on phone and clamp(2.2rem, 3.3vw, 3.1rem) wide, max 15ch, with the same blue second-phrase device.
+- **Title** (`title`): story, chapter (clamp(1.25rem, 5.2vw, 1.5rem), 1.55rem wide) and division (clamp(1.45rem, 6vw, 2.3rem)) h3s; channel names at 18px (22px wide).
 - **Statement** (`statement`): the momentum sentence with counted numbers inline (1.5em, 700, tabular) and the quote (600, up to 2.8rem, 1.18).
 - **Lead** (`lead`): section leads at 62ch; the hero lead is 15.5px (17px wide) at 42ch.
 - **Body** (`body`): chapter copy (60ch), excerpts, division text (56ch).
 - **Body Strong** (`body-strong`): button labels (700), row titles, pills (14px), text links (15px, 700).
 - **Caption** (`caption`): row sub-lines, story foot, button sub-lines (12.5px, 72% opacity).
-- **Label** (`label`): mono 12px context lines, story meta, list heads, hero meta, ticker dates, quote attribution. Sentence or data case.
+- **Label** (`label`): mono 12px for the hero status line and ticker dates only. Context lines, story meta, list heads and quote attribution are the body face at 12.5 to 13px in Text 3.
 
 ### Named Rules
 **The Mono Whisper Rule.** JetBrains Mono is only a 12px readout. It never sets a heading, a button, or a tracked uppercase label above a heading.
@@ -255,13 +255,13 @@ A white sheet lit by a blue aurora: navy ink, a bright blue signal, pale sky and
 
 ## Layout
 
-Mobile-first, one component tree for all widths; CSS switches layout at **640px** (action rows go side by side) and **900px** (grids and wider gutters).
+Mobile-first, one component tree for all widths; CSS switches layout at **640px** (tablet: title boxes split in two, story goes side by side, channels form a 4×2 board) and **900px** (the 12-column grid and wider gutters). A phone section should read in about one to one and a half screens.
 
-- **Canvas:** content is capped at 1240px and centered; the gutter is 16px on phone and 40px from 900px. The two vertical hairline rails sit exactly on the content edge, so box edges touch them. Sections are 64px tall padding (104px wide) with a hairline top rule and blue 13px plus-marks where it crosses the rails.
+- **Canvas:** content is capped at 1240px and centered; the gutter is 16px on phone and 40px from 900px. The two vertical hairline rails sit exactly on the content edge, so box edges touch them. Sections are 40px padding (80px wide) with a hairline top rule and blue 13px plus-marks where it crosses the rails.
 - **Stages:** the hero and closing boxes are inset 8px from the screen (16px wide). The hero fills the first viewport (minus the bottom-nav reserve on phones) and ends in a full-bleed ticker of real headlines.
-- **Section head:** title over lead and mono context on phone; on desktop a two-column grid with the action link bottom-right. 28px below (44px wide).
-- **Desktop splits:** 7fr/5fr (about head, news lead/list), 5fr/7fr (division head and programs / people), 6fr/5fr (close). The about bento is a 12-column grid with named areas (finale 7 + chapter 5; chapter 5 + chapter 7).
-- **Scroll rails:** pills, channel rail, and photo wall bleed to the screen edge with a negative gutter, a right-edge fade mask, and snap. On desktop they become static: pills wrap, the 8 channels form an equal 8-column row, the wall becomes a 3-column, 4-row (220px) grid with explicitly placed tiles.
+- **Title box, never floating text:** every section heading lives inside a box on the same grid as its content: h2 at the top, lead, context and action gathered at the foot (pushed down with `margin-top: auto` on desktop). A faint orbit ring (concentric hairline circles) sits in its lower-right corner, echoing the hero arc. Variants: sky-corner white (Tentang), deep navy holding the category pills (Kabar), aurora (Pengurus), sky-top white (Dalam gerak).
+- **Desktop grid (≥900px):** `.av-grid` is 12 columns with a 16px gap (10px phone, 14px tablet). Title box 5 columns beside its first content: Tentang title + cabinet photo (7), then three chapter cards in thirds; Kabar title (4, navy) + story and rows (8); Pengurus title + 4×2 channel board (7), then division head / people / programs at 4fr/5fr/3fr; Dalam gerak title (6) + statement (6), then a 4-column, 3-row (230px) gallery with the quote as a tile. 900 to 1099px narrows: Kabar 5/7 with a stacked story, division 5fr/7fr with the head spanning.
+- **Scroll rails (phone):** chapter cards (84%, 46% tablet), channel rail and photo wall (64%, 40% tablet) bleed to the screen edge with a negative gutter and snap; filter pills scroll inside the navy title box. On phone the division shows people or programs through a two-way switch, one box at a time.
 - **Equal peers:** the eight cabinet channels are identical in size; never a size hierarchy among divisions.
 - **Bottom clearance:** on phone browsers (<1024px) the capsule shows on the homepage, and the footer (not the body) takes 136px plus safe area so the reserve stays dark.
 
@@ -272,7 +272,7 @@ Depth is light plus soft lift. Plain boxes sit on the sheet with a hairline and 
 ### Shadow Vocabulary
 - **Box rest** (`box-shadow: 0 1px 2px rgba(1,31,75,0.04), 0 30px 60px -44px rgba(1,31,75,0.35)`): every box.
 - **Button lift** (`0 14px 30px -14px rgba(0,8,30,0.7)` light pill; `0 14px 30px -16px rgba(1,31,75,0.7)` navy pill).
-- **Header capsule** (`0 18px 40px -22px rgba(1,31,75,0.7)` with `backdrop-filter: blur(18px) saturate(1.4)` over navy at 88%): the scrolled header only.
+- **Header bar** (`0 18px 40px -20px rgba(1,31,75,0.7)` with `backdrop-filter: blur(16px) saturate(1.4)` over navy at 90%): the scrolled header only.
 - **Logo glow** (`drop-shadow(0 12px 28px rgba(31,111,229,0.65))`, smaller at the close and finale): cabinet logo marks.
 - **Arc rim** (a 1.5px ice ring plus stacked sky/blue outer and inset glows): the hero orbit only.
 - **Capsule float** (`0 20px 44px -18px rgba(0,6,20,0.9)` with `blur(16px) saturate(1.3)`): the bottom nav.
@@ -303,16 +303,17 @@ Full pills with the label left and a circular icon well right; label with option
 - **Text link:** Link Blue, 15px/700, 44px tall, 18px arrow sliding 4px on hover.
 
 ### Chips
-- **Filter pills:** 44px, white, Strong Hairline border, Text 2 at 14px/650; hover border blue 45%; active is solid navy with white text; press scales 0.95.
+- **Filter pills:** 40px, living in the navy Kabar title box: 7% white with a 24% white border, on-dark text at 14px/650; hover border 50%; active is solid white with navy text; press scales 0.95.
+- **Chapter tag:** the chapter name as a white 92% pill pinned on the chapter photo (Link Blue, 13px/700); it stays inside the h3 for reading order.
 - **Tag:** Ice fill, Link Blue 650 text, pill.
 
 ### Cards / Containers
 - **Box:** 24px, hairline border, white, Box rest shadow; variants mist, deep (navy with sky and blue radial light, grain, on-dark text), and aurora (pale ice base with blue light, grain).
-- **Rows:** list items at least 72px, avatar or bullet + text block + arrow, divided by hairlines; arrow turns blue and slides 3px on hover; press fills mist.
-- **Channel:** one of eight identical cards (148px wide on phone, equal columns on desktop, 112px/128px tall), with a dot, Geist 20px name, and two-line description. Active becomes a blue-to-navy gradient with an ice dot.
+- **Rows:** list items at least 60px (56px for people), avatar or bullet + text block + arrow, divided by hairlines; arrow turns blue and slides 3px on hover; press fills mist.
+- **Channel:** one of eight identical cards (132px wide on phone, an equal 4×2 board from 640px), with a dot, Geist name, and two-line description; on desktop the name sits at the bottom and the dot pins top-left. Active becomes a blue-to-navy gradient with an ice dot.
 
 ### Navigation
-- **Header:** transparent over the hero; once scrolled it becomes a floating navy capsule (22px radius, 72px tall) with blur. On phones it hides while scrolling down.
+- **Header (homepage):** a pill bar exactly as wide as the content canvas, so its ends line up with the rails and the boxes below (56px phone, 60px wide, 28px from the top on desktop). Three zones: HMTE logo, the menu centred (40px pills, active white), and the cabinet badge (name and period over the cabinet logo; logo only below 1100px). 28% navy glass over the hero, 90% navy once scrolled. On phones it hides while scrolling down.
 - **Bottom capsule (phone browser homepage and installed PWA):** a floating dark capsule inset 12px, max 560px, 4 equal items (24px icon over 12px/600 label); active item is a Capsule Active plate. Arrives with a 520ms rise after 150ms.
 
 ### Aurora Stage (signature)

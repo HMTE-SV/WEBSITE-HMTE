@@ -11,9 +11,10 @@ import type { ArticleCategoryKey } from '@/types/content'
 import { ArrowIcon, ChevronIcon } from './HomeMotion'
 
 /*
- * Kabar di beranda: satu berita utama per kategori dalam kotak besar,
- * sisanya baris yang bisa diketuk penuh di kotak sebelahnya. Beranda
- * etalase, bukan arsip, jadi paling banyak lima cerita per kategori.
+ * Kabar di beranda: judul seksi berupa kotak navy yang sekaligus memegang
+ * pilihan kategori; di sebelahnya satu berita utama dan baris-baris cerita
+ * lain. Beranda etalase, bukan arsip, jadi paling banyak lima cerita per
+ * kategori.
  */
 const MAX_STORIES_PER_CATEGORY = 5
 
@@ -54,16 +55,18 @@ export function HomeNews({ articles }: { articles: PublicArticle[] }) {
   if (!lead || !current) {
     return (
       <section className="av-sec av-news" id="kabar" aria-labelledby="news-deck-title">
-        <div className="av-frame">
-          <header className="av-head" data-reveal="">
+        <div className="av-frame av-grid">
+          <header className="av-box av-box--deep av-title av-news-title" data-reveal="">
             <h2 id="news-deck-title">{fields.emptyTitle}</h2>
-            <Link className="av-head-action" href="/agenda">
-              {fields.emptyIndexAction}
-              <ArrowIcon />
-            </Link>
-            <p className="av-lead">{fields.emptyLead}</p>
+            <div className="av-title-foot">
+              <p className="av-lead">{fields.emptyLead}</p>
+              <Link className="av-link av-link--dark" href="/agenda">
+                {fields.emptyIndexAction}
+                <ArrowIcon />
+              </Link>
+            </div>
           </header>
-          <div className="av-box av-news-empty" data-reveal="">
+          <div className="av-box av-news-empty" data-reveal="" style={{ '--d': '90ms' } as React.CSSProperties}>
             <p>{fields.emptyBody}</p>
             <div className="av-actions">
               <Link className="av-btn av-btn--navy" href="/program-kerja">
@@ -83,45 +86,55 @@ export function HomeNews({ articles }: { articles: PublicArticle[] }) {
 
   return (
     <section className="av-sec av-news" id="kabar" aria-labelledby="news-deck-title">
-      <div className="av-frame">
-        <header className="av-head" data-reveal="">
+      <div className="av-frame av-grid">
+        <header className="av-box av-box--deep av-title av-news-title" data-reveal="">
           <h2 id="news-deck-title">{fields.publishedTitle}</h2>
-          <Link className="av-head-action" href="/berita">
-            {fields.publishedAction}
-            <ArrowIcon />
-          </Link>
-          <p className="av-lead">{fields.publishedLead}</p>
+          <div className="av-title-foot">
+            <p className="av-lead">{fields.publishedLead}</p>
+            {tabs.length > 1 ? (
+              <div className="av-pills" role="tablist" aria-label={fields.kicker}>
+                {tabs.map((tab, index) => {
+                  const active = tab.key === current
+                  return (
+                    <button
+                      key={tab.key}
+                      ref={(element) => {
+                        tabRefs.current[index] = element
+                      }}
+                      type="button"
+                      role="tab"
+                      id={`av-tab-${tab.key}`}
+                      aria-selected={active}
+                      aria-controls="av-news-panel"
+                      tabIndex={active ? 0 : -1}
+                      className={active ? 'is-active' : undefined}
+                      onClick={() => setChosen(tab.key)}
+                      onKeyDown={(event) => onTabKey(event, index)}
+                    >
+                      {tab.label}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : null}
+            <Link className="av-link av-link--dark" href="/berita">
+              {fields.publishedAction}
+              <ArrowIcon />
+            </Link>
+          </div>
         </header>
 
-        {tabs.length > 1 ? (
-          <div className="av-pills" role="tablist" aria-label={fields.kicker}>
-            {tabs.map((tab, index) => {
-              const active = tab.key === current
-              return (
-                <button
-                  key={tab.key}
-                  ref={(element) => {
-                    tabRefs.current[index] = element
-                  }}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  tabIndex={active ? 0 : -1}
-                  className={active ? 'is-active' : undefined}
-                  onClick={() => setChosen(tab.key)}
-                  onKeyDown={(event) => onTabKey(event, index)}
-                >
-                  {tab.label}
-                </button>
-              )
-            })}
-          </div>
-        ) : null}
-
-        <div className="av-news-body" key={current} data-solo={rest.length ? undefined : ''}>
+        <div
+          className="av-news-body"
+          key={current}
+          id="av-news-panel"
+          role={tabs.length > 1 ? 'tabpanel' : undefined}
+          aria-labelledby={tabs.length > 1 ? `av-tab-${current}` : undefined}
+          data-solo={rest.length ? undefined : ''}
+        >
           <article className="av-box av-story">
             <Link className="av-story-media" href={`/berita/${lead.slug}`} tabIndex={-1} aria-hidden>
-              <ArticleCover src={lead.image} alt="" slug={lead.slug} sizes="(max-width: 900px) 100vw, 720px" decorative />
+              <ArticleCover src={lead.image} alt="" slug={lead.slug} sizes="(max-width: 900px) 100vw, 460px" decorative />
             </Link>
             <div className="av-story-copy">
               <p className="av-meta">

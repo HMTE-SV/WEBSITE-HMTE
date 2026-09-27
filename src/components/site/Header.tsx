@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMediaSlot } from '@/components/site/MediaSlotProvider'
@@ -10,9 +11,11 @@ import { useSiteSettings } from '@/components/site/SiteSettingsProvider'
 type HeaderProps = {
   activeHref?: string
   variant?: 'floating' | 'landing'
+  /** Isi tambahan di ujung kanan bilah (dipakai beranda untuk lencana kabinet). */
+  aside?: ReactNode
 }
 
-export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) {
+export function Header({ activeHref = '/', variant = 'floating', aside }: HeaderProps) {
   const logo = useMediaSlot('brand.logo.primary')
   const settings = useSiteSettings()
   const navigation = settings.navigation.filter((item) => item.visible)
@@ -165,6 +168,7 @@ export function Header({ activeHref = '/', variant = 'floating' }: HeaderProps) 
             )
           })}
         </nav>
+        {aside}
         {settings.headerCtaVisible ? (
           <Link href={settings.headerCtaHref} className="hdr-cta">
             {settings.headerCtaLabel}{' '}
