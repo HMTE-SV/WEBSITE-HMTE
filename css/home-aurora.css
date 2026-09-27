@@ -246,120 +246,60 @@
   transform: rotate(-12deg) scale(1.06);
 }
 
-/* ---------- Bilah lompat-seksi (layar sempit, setelah hero) ---------- */
+/*
+ * HP dengan kapsul bawah: navigasi cukup di bawah. Header atas jadi
+ * baris merek di puncak hero saja (tidak menempel, ikut tergulir pergi),
+ * tanpa kaca blur di atas canvas yang bergerak.
+ */
+@media not all and (min-width: 769px) and (display-mode: browser) {
+  @media (max-width: 1023.98px) {
+    .av .av-nav-stage {
+      position: absolute;
+      right: 0;
+      left: 0;
+      margin: 0;
+    }
 
-.av-jump {
-  display: none;
+    .av .tre-header.header-landing,
+    .av .tre-header.header-landing.header-scrolled {
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
 }
 
+/* HP: efek mahal dimatikan (blur, blend, drop-shadow raksasa, drift). */
 @media (max-width: 899.98px) {
-  /* Begitu hero lewat, header menyingkir dan bilah lompat-seksi menggantikannya. */
-  .av.is-past-hero .av-nav-stage {
-    transform: translate3d(0, calc(-100% - 24px), 0);
+  .av-sky i,
+  .av-orbit-glint,
+  .av-horizon-glow {
+    animation: none;
+    will-change: auto;
   }
 
-  .av-jump {
-    position: fixed;
-    top: calc(10px + env(safe-area-inset-top));
-    right: 10px;
-    left: 10px;
-    z-index: calc(var(--z-header) + 1);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    max-width: 560px;
-    height: 52px;
-    margin-inline: auto;
-    padding: 4px;
-    border: 1px solid rgba(188, 203, 226, 0.14);
-    border-radius: 999px;
-    background: rgba(1, 22, 54, 0.9);
-    box-shadow: 0 16px 36px -18px rgba(0, 6, 20, 0.85);
-    -webkit-backdrop-filter: blur(16px) saturate(1.3);
-    backdrop-filter: blur(16px) saturate(1.3);
-    opacity: 0;
-    visibility: hidden;
-    transform: translate3d(0, calc(-100% - 20px), 0);
-    transition:
-      transform 380ms var(--av-ease),
-      opacity 240ms ease,
-      visibility 0s linear 380ms;
-  }
-
-  .av.is-past-hero .av-jump {
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-    transition:
-      transform 380ms var(--av-ease),
-      opacity 240ms ease,
-      visibility 0s;
-  }
-
-  .av-jump-home {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  .av-jump-home img {
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
-    filter: drop-shadow(0 3px 8px rgba(31, 111, 229, 0.6));
-  }
-
-  .av-jump-rail {
-    display: flex;
-    flex: 1;
-    gap: 2px;
-    min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-mask: linear-gradient(90deg, #000 calc(100% - 18px), transparent);
-    mask: linear-gradient(90deg, #000 calc(100% - 18px), transparent);
-  }
-
-  .av-jump-rail::-webkit-scrollbar {
+  .av-orbit-glint,
+  .av-horizon-glow,
+  .av-sky::after,
+  .av-box--deep::after,
+  .av-box--aurora::after {
     display: none;
   }
 
-  .av-jump-rail a {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    height: 42px;
-    padding: 0 13px;
-    border-radius: 999px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: rgba(226, 240, 255, 0.78);
-    text-decoration: none;
-    transition:
-      background 220ms var(--av-ease),
-      color 220ms var(--av-ease);
+  .av-orbit-rim,
+  .av-emblem-ring {
+    filter: none;
   }
 
-  .av-jump-rail a:last-child {
-    margin-right: 14px;
+  .av-chapter-tag {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
-  .av-jump-rail a[aria-current] {
-    background: #fff;
-    color: var(--av-navy);
-  }
-
-  .av-jump :focus-visible {
-    outline-color: #9fdcff;
-  }
-
-  /* Lompatan mendarat di bawah bilah, bukan di baliknya. */
-  .av-sec {
-    scroll-margin-top: 70px;
+  .av[data-motion] [data-reveal]:not(.is-in) {
+    filter: none;
   }
 }
 

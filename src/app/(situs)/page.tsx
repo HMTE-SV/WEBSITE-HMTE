@@ -10,7 +10,6 @@ import { HomeMomentum } from '@/components/home/HomeMomentum'
 import { HomeMotion } from '@/components/home/HomeMotion'
 import { HomeNews } from '@/components/home/HomeNews'
 import { HomeOrganization } from '@/components/home/HomeOrganization'
-import { HomeSectionNav } from '@/components/home/HomeSectionNav'
 import { getPublishedArticleFeed, type PublicArticle } from '@/lib/article-data'
 import { getOrganizationData } from '@/lib/organization-data'
 import { getPageContent } from '@/lib/page-content-data'
@@ -53,14 +52,6 @@ export default async function Home() {
     momentum: <HomeMomentum divisions={organizationData.divisions} leadersByDivision={organizationData.leadersByDivision} programsByDivision={organizationData.programsByDivision} />,
     cta: <HomeClose />,
   } as const
-  // Jangkar dan label bilah lompat-seksi HP, mengikuti urutan & visibilitas seksi.
-  const jumps = {
-    about: { id: 'tentang', label: 'Tentang' },
-    news: { id: 'kabar', label: 'Kabar' },
-    organization: { id: 'pillars', label: 'Pengurus' },
-    momentum: { id: 'hmte-dalam-gerak', label: 'Galeri' },
-    cta: { id: 'hubungi', label: 'Kontak' },
-  } as const
   const hero = pageContent.sections.find((section) => section.id === 'hero')
   const mainSections = [...pageContent.sections]
     .filter((section) => section.visible && section.id !== 'hero')
@@ -77,7 +68,6 @@ export default async function Home() {
         <div className="landing-nav-stage av-nav-stage">
           <Header variant="landing" aside={<HomeNavBadge />} />
         </div>
-        <HomeSectionNav sections={mainSections.flatMap((section) => (section.id in jumps ? [jumps[section.id as keyof typeof jumps]] : []))} />
         {hero?.visible ? <HomeHero articles={articles} /> : null}
         <main id="main-content" className="av-main">
           {mainSections.map((section) => <Fragment key={section.id}>{components[section.id as keyof typeof components]}</Fragment>)}

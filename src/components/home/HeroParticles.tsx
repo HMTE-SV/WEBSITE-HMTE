@@ -5,13 +5,17 @@ import { useEffect, useRef } from 'react'
 /*
  * Pusaran cahaya di sekeliling logo kabinet (canvas, tanpa pustaka).
  *
- * Saat halaman dibuka, butir cahaya tersebar di langit lalu berkumpul jadi
- * orbit miring di sekeliling logo, meninggalkan jejak. Setelah itu orbitnya
- * berputar terus; bidangnya ikut miring mengikuti pointer (desktop) atau
- * kemiringan ponsel (HP), lewat --hx/--hy yang ditulis HomeMotion di hero.
- * Mengetuk logo meledakkan butirnya keluar lalu menariknya kembali. Sesekali
- * bintang jatuh melintas. Berhenti saat hero tak terlihat atau tab
- * disembunyikan; tidak berjalan sama sekali bila gerakan dikurangi.
+ * Saat halaman dibuka, butir cahaya tersebar di langit lalu melesat
+ * berkumpul jadi orbit miring di sekeliling logo. Setelah itu orbitnya
+ * berputar terus; di desktop bidangnya ikut miring mengikuti pointer lewat
+ * --hx/--hy yang ditulis HomeMotion. Mengetuk logo meledakkan butirnya
+ * keluar lalu menariknya kembali. Sesekali bintang jatuh melintas.
+ *
+ * Hemat untuk HP: jejak digambar sebagai garis pendek dari posisi
+ * sebelumnya (bukan memudarkan seluruh canvas tiap bingkai), butirnya lebih
+ * sedikit, resolusinya dibatasi, dan di layar sempit berjalan 30 fps.
+ * Berhenti saat hero tak terlihat atau tab disembunyikan; tidak berjalan
+ * sama sekali bila gerakan dikurangi.
  */
 
 type Particle = {
@@ -26,9 +30,15 @@ type Particle = {
   delay: number
   lift: number
   kick: number
+  px: number
+  py: number
 }
 
 type Meteor = { x: number; y: number; vx: number; vy: number; born: number }
+
+const COLORS = ['226,246,255', '170,225,255', '120,185,255', '255,214,140']
+const GATHER_START = 0.35
+const GATHER_TIME = 1.5
 
 /** Titik cahaya lembut yang dirender sekali per warna, lalu cukup ditempel (lebih murah dari shadowBlur). */
 function makeGlow(color: string) {
@@ -46,10 +56,6 @@ function makeGlow(color: string) {
   }
   return sprite
 }
-
-const COLORS = ['226,246,255', '170,225,255', '120,185,255', '255,214,140']
-const GATHER_START = 0.45
-const GATHER_TIME = 1.7
 
 export function HeroParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -70,13 +76,17 @@ export function HeroParticles() {
 
     let width = 0
     let height = 0
+    let light = false
     let particles: Particle[] = []
     let frame = 0
     let visible = true
     let lastTime = 0
+    let lastPaint = 0
+    let center = { x: 0, y: 0, radius: 0 }
+    let centerAge = Infinity
     const born = performance.now()
     // Satu denyut kecil tepat saat butir selesai berkumpul, lalu ketukan pengguna.
-    let burstAt = born + (GATHER_START + GATHER_TIME + 0.55) * 1000
+    let burstAt = born + (GATHER_START + GATHER_TIME + 0.5) * 1000
     let burstPower = 0.45
     let tiltX = 0
     let tiltY = 0
@@ -85,34 +95,52 @@ export function HeroParticles() {
     const glows = new Map(COLORS.map((color) => [color, makeGlow(color)]))
 
     function build() {
-      const count = width < 640 ? 170 : 260
+      const count = light ? 76 : 240
       particles = Array.from({ length: count }, () => {
         const halo = Math.random() < 0.22
         const roll = Math.random()
+        const band = halo ? 1.4 + Math.random() * 1.3 : 0.86 + (Math.random() + Math.random() - 1) * 0.16
         return {
-          band: halo ? 1.4 + Math.random() * 1.3 : 0.86 + (Math.random() + Math.random() - 1) * 0.16,
-          glow: !halo && Math.random() < 0.3,
+          band,
+          glow: !halo && Math.random() < (light ? 0.26 : 0.3),
           angle: Math.random() * Math.PI * 2,
-          speed: 0,
-          size: halo ? 0.6 + Math.random() * 1 : 1 + Math.random() * 1.8,
+          speed: (0.34 + Math.random() * 0.36) / Math.pow(band, 1.5),
+          size: (halo ? 0.7 + Math.random() * 1 : 1.1 + Math.random() * 1.8) * (light ? 1.15 : 1),
           color: roll < 0.08 ? COLORS[3] : roll < 0.32 ? COLORS[2] : roll < 0.62 ? COLORS[1] : COLORS[0],
           startX: Math.random() * width,
           startY: Math.random() * height * 0.85,
-          delay: Math.random() * 0.8,
+          delay: Math.random() * 0.7,
           lift: (Math.random() - 0.5) * 0.16,
           kick: 0.55 + Math.random() * 0.9,
+          px: NaN,
+          py: NaN,
         }
-      }).map((particle) => ({ ...particle, speed: (0.34 + Math.random() * 0.36) / Math.pow(particle.band, 1.5) }))
+      })
     }
 
     function resize() {
-      const ratio = Math.min(2, window.devicePixelRatio || 1)
       width = frameBox.clientWidth
       height = frameBox.clientHeight
+      const wasLight = light
+      light = width < 900
+      const ratio = Math.min(light ? 1.5 : 2, window.devicePixelRatio || 1)
       paper.width = Math.round(width * ratio)
       paper.height = Math.round(height * ratio)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
-      if (!particles.length) build()
+      centerAge = Infinity
+      if (!particles.length || wasLight !== light) build()
+    }
+
+    // Di HP logo tidak bergerak (tanpa parallax), jadi pusatnya cukup dibaca sesekali.
+    function readCenter() {
+      const frameRect = frameBox.getBoundingClientRect()
+      const markRect = mark.getBoundingClientRect()
+      center = {
+        x: markRect.left + markRect.width / 2 - frameRect.left,
+        y: markRect.top + markRect.height / 2 - frameRect.top,
+        radius: markRect.width * 0.8,
+      }
+      centerAge = 0
     }
 
     function burst(power: number) {
@@ -124,22 +152,22 @@ export function HeroParticles() {
     }
 
     function draw(now: number) {
-      frame = 0
-      const dt = Math.min(0.05, (now - (lastTime || now)) / 1000)
+      frame = requestAnimationFrame(draw)
+      if (light && now - lastPaint < 31) return
+      lastPaint = now
+      const dt = Math.min(0.06, (now - (lastTime || now)) / 1000)
       lastTime = now
       const t = (now - born) / 1000
 
-      // Pusat orbit = pusat logo (logo ikut bergeser karena parallax/tilt).
-      const frameRect = frameBox.getBoundingClientRect()
-      const markRect = mark.getBoundingClientRect()
-      const cx = markRect.left + markRect.width / 2 - frameRect.left
-      const cy = markRect.top + markRect.height / 2 - frameRect.top
-      const radius = markRect.width * 0.8
+      if (!light || centerAge++ > 45) readCenter()
+      const { x: cx, y: cy, radius } = center
 
-      const hx = parseFloat(heroBox.style.getPropertyValue('--hx')) || 0
-      const hy = parseFloat(heroBox.style.getPropertyValue('--hy')) || 0
-      tiltX += (hx - tiltX) * 0.08
-      tiltY += (hy - tiltY) * 0.08
+      if (!light) {
+        const hx = parseFloat(heroBox.style.getPropertyValue('--hx')) || 0
+        const hy = parseFloat(heroBox.style.getPropertyValue('--hy')) || 0
+        tiltX += (hx - tiltX) * 0.08
+        tiltY += (hy - tiltY) * 0.08
+      }
       const flatten = 0.3 + tiltY * 0.14
       const roll = -0.12 + tiltX * 0.3
       const cosRoll = Math.cos(roll)
@@ -147,13 +175,12 @@ export function HeroParticles() {
 
       const sinceBurst = (now - burstAt) / 1000
       const blast = sinceBurst < 0 ? 0 : sinceBurst < 0.16 ? sinceBurst / 0.16 : Math.exp(-(sinceBurst - 0.16) * 2.6)
-      const gathering = t < GATHER_START + GATHER_TIME + 1
+      const gathering = t < GATHER_START + GATHER_TIME + 0.8
+      const streaking = gathering || blast > 0.08
 
-      // Jejak: pudarkan isi canvas sedikit tiap bingkai, bukan menghapusnya.
-      ctx.globalCompositeOperation = 'destination-out'
-      ctx.fillStyle = `rgba(0,0,0,${gathering || blast > 0.2 ? 0.16 : 0.32})`
-      ctx.fillRect(0, 0, width, height)
+      ctx.clearRect(0, 0, width, height)
       ctx.globalCompositeOperation = 'lighter'
+      ctx.lineCap = 'round'
 
       for (const particle of particles) {
         particle.angle += particle.speed * dt * (1 + blast * burstPower * 5)
@@ -172,7 +199,7 @@ export function HeroParticles() {
           y += (dy / length) * push
         }
 
-        let alpha = 0.25 + depth * 0.75
+        let alpha = 0.3 + depth * 0.7
         const progress = Math.min(1, Math.max(0, (t - GATHER_START - particle.delay) / GATHER_TIME))
         if (progress < 1) {
           const eased = 1 - Math.pow(1 - progress, 3)
@@ -182,6 +209,21 @@ export function HeroParticles() {
         }
 
         const size = particle.size * (0.65 + depth * 0.6)
+        const color = `rgba(${particle.color},${alpha.toFixed(2)})`
+        const moved = Number.isNaN(particle.px) ? 0 : Math.hypot(x - particle.px, y - particle.py)
+
+        if (streaking && moved > 2) {
+          // Jejak = garis dari posisi bingkai sebelumnya, diperpanjang sedikit.
+          ctx.strokeStyle = color
+          ctx.lineWidth = size
+          ctx.beginPath()
+          ctx.moveTo(x - (x - particle.px) * 2.2, y - (y - particle.py) * 2.2)
+          ctx.lineTo(x, y)
+          ctx.stroke()
+        } else {
+          ctx.fillStyle = color
+          ctx.fillRect(x - size / 2, y - size / 2, size, size)
+        }
         if (particle.glow) {
           const glow = glows.get(particle.color)
           const spread = size * 7
@@ -191,14 +233,8 @@ export function HeroParticles() {
             ctx.globalAlpha = 1
           }
         }
-        ctx.fillStyle = `rgba(${particle.color},${alpha.toFixed(3)})`
-        if (size < 1.3) {
-          ctx.fillRect(x - size / 2, y - size / 2, size, size)
-        } else {
-          ctx.beginPath()
-          ctx.arc(x, y, size / 2, 0, Math.PI * 2)
-          ctx.fill()
-        }
+        particle.px = x
+        particle.py = y
       }
 
       // Bintang jatuh sesekali di langit bagian atas.
@@ -220,36 +256,41 @@ export function HeroParticles() {
           meteors.splice(index, 1)
           continue
         }
-        const hx2 = meteor.x + meteor.vx * life
-        const hy2 = meteor.y + meteor.vy * life
+        const headX = meteor.x + meteor.vx * life
+        const headY = meteor.y + meteor.vy * life
         const tail = 0.22
-        const gradient = ctx.createLinearGradient(hx2, hy2, hx2 - meteor.vx * tail, hy2 - meteor.vy * tail)
+        const gradient = ctx.createLinearGradient(headX, headY, headX - meteor.vx * tail, headY - meteor.vy * tail)
         const fade = life < 0.15 ? life / 0.15 : 1 - (life - 0.15) / 0.75
-        gradient.addColorStop(0, `rgba(235,248,255,${(0.9 * fade).toFixed(3)})`)
+        gradient.addColorStop(0, `rgba(235,248,255,${(0.9 * fade).toFixed(2)})`)
         gradient.addColorStop(1, 'rgba(120,185,255,0)')
         ctx.strokeStyle = gradient
         ctx.lineWidth = 1.4
         ctx.beginPath()
-        ctx.moveTo(hx2, hy2)
-        ctx.lineTo(hx2 - meteor.vx * tail, hy2 - meteor.vy * tail)
+        ctx.moveTo(headX, headY)
+        ctx.lineTo(headX - meteor.vx * tail, headY - meteor.vy * tail)
         ctx.stroke()
       }
+      ctx.globalCompositeOperation = 'source-over'
+    }
 
-      if (visible && !document.hidden) frame = requestAnimationFrame(draw)
+    function stop() {
+      if (frame) cancelAnimationFrame(frame)
+      frame = 0
     }
 
     function start() {
       if (!frame && visible && !document.hidden) {
         lastTime = 0
+        particles.forEach((particle) => {
+          particle.px = NaN
+        })
         frame = requestAnimationFrame(draw)
       }
     }
 
     function onVisibility() {
-      if (document.hidden && frame) {
-        cancelAnimationFrame(frame)
-        frame = 0
-      } else start()
+      if (document.hidden) stop()
+      else start()
     }
 
     function onPress(event: PointerEvent) {
@@ -263,6 +304,7 @@ export function HeroParticles() {
     const watcher = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting
       if (visible) start()
+      else stop()
     })
     watcher.observe(heroBox)
     document.addEventListener('visibilitychange', onVisibility)
@@ -270,7 +312,7 @@ export function HeroParticles() {
     start()
 
     return () => {
-      if (frame) cancelAnimationFrame(frame)
+      stop()
       resizer.disconnect()
       watcher.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)

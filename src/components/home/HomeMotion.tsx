@@ -59,7 +59,7 @@ export function HomeMotion() {
 
     /*
      * Hero: busur dan logo bereaksi pada gulir (semua layar), pointer
-     * (layar berpointer halus), dan kemiringan ponsel (layar sentuh). Pointer dihaluskan dengan pegas sederhana
+     * (layar berpointer halus). Di HP busur dan logo diam; geraknya dari animasi CSS dan canvas. Pointer dihaluskan dengan pegas sederhana
      * supaya logo memiring dengan inersia, dan tepi busur menyala tepat di
      * sudut lingkaran yang berada di bawah kursor.
      */
@@ -121,28 +121,17 @@ export function HomeMotion() {
       aimAt(event.clientX)
       queueHero()
     }
-    /*
-     * HP: kemiringan ponsel menggantikan kursor. Android memberi datanya
-     * tanpa izin; iOS meminta izin, jadi di sana event ini diam saja.
-     */
-    function onTilt(event: DeviceOrientationEvent) {
-      if (!hero || fine.matches || event.gamma === null || event.beta === null) return
-      if (hero.getBoundingClientRect().bottom < 0) return
-      target.x = Math.max(-1, Math.min(1, event.gamma / 26))
-      target.y = Math.max(-1, Math.min(1, (event.beta - 55) / 26))
-      aimAt(window.innerWidth / 2 + target.x * window.innerWidth * 0.42)
-      queueHero()
-    }
     function onLeave() {
       target.x = 0
       target.y = 0
       target.spot = 0
       queueHero()
     }
-    window.addEventListener('scroll', queueHero, { passive: true })
+    // Parallax gulir hanya di layar lebar; di HP terlalu mahal (hitung ulang gaya tiap bingkai).
+    const wide = window.matchMedia('(min-width: 900px)').matches
+    if (wide) window.addEventListener('scroll', queueHero, { passive: true })
     hero?.addEventListener('pointermove', onPointer)
     hero?.addEventListener('pointerleave', onLeave)
-    window.addEventListener('deviceorientation', onTilt)
     paintHero()
 
     return () => {
@@ -152,7 +141,6 @@ export function HomeMotion() {
       window.removeEventListener('scroll', queueHero)
       hero?.removeEventListener('pointermove', onPointer)
       hero?.removeEventListener('pointerleave', onLeave)
-      window.removeEventListener('deviceorientation', onTilt)
       root.removeAttribute('data-motion')
       root.querySelectorAll('.is-in').forEach((element) => element.classList.remove('is-in'))
       counters.forEach((element) => {
@@ -164,8 +152,7 @@ export function HomeMotion() {
   /*
    * Mengetuk Beranda/logo saat sudah di beranda membawa kembali ke atas
    * (Next tidak berbuat apa-apa untuk tautan ke halaman yang sama). Berlaku
-   * juga saat gerakan dikurangi. Di layar sempit, header menyingkir begitu
-   * hero lewat dan bilah lompat-seksi menggantikannya (HomeSectionNav).
+   * juga saat gerakan dikurangi. Navigasi HP ada di kapsul bawah.
    */
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
